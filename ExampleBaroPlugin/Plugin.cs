@@ -1,9 +1,8 @@
-﻿using BarotraumaModInterface;
+﻿using Barotrauma.Plugins;
 
 public class Plugin : IBarotraumaPlugin
 {
-    [PluginService]
-    public static IDebugConsole DebugConsole { get; private set; } = null!;
+    public static readonly IDebugConsole DebugConsole = PluginServiceProvider.GetService<IDebugConsole>();
 
     public void Init()
     {
