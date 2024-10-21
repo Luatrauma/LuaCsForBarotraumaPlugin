@@ -1,0 +1,47 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35327.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsClient", "ClientSource\WindowsClient.csproj", "{30CD80EA-6AC6-4281-8EB2-609FE79AF1C7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsServer", "ServerSource\WindowsServer.csproj", "{4027FC86-07D6-43A1-B429-49F0AA7BFAC0}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedSource", "SharedSource\SharedSource.shproj", "{7C1C5D04-3108-447B-8CE6-9F5EFFA614EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginToolbox", "PluginToolbox\PluginToolbox.csproj", "{8055E3C4-D392-457F-8C3C-0977351F378C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{14FAE721-E323-4FA5-8517-1D5B9A375680}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14FAE721-E323-4FA5-8517-1D5B9A375680}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14FAE721-E323-4FA5-8517-1D5B9A375680}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14FAE721-E323-4FA5-8517-1D5B9A375680}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4041ED3-F15A-4A89-A66D-B55AF3DE1848}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4041ED3-F15A-4A89-A66D-B55AF3DE1848}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4041ED3-F15A-4A89-A66D-B55AF3DE1848}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4041ED3-F15A-4A89-A66D-B55AF3DE1848}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30CD80EA-6AC6-4281-8EB2-609FE79AF1C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30CD80EA-6AC6-4281-8EB2-609FE79AF1C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30CD80EA-6AC6-4281-8EB2-609FE79AF1C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30CD80EA-6AC6-4281-8EB2-609FE79AF1C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4027FC86-07D6-43A1-B429-49F0AA7BFAC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4027FC86-07D6-43A1-B429-49F0AA7BFAC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4027FC86-07D6-43A1-B429-49F0AA7BFAC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4027FC86-07D6-43A1-B429-49F0AA7BFAC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8055E3C4-D392-457F-8C3C-0977351F378C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8055E3C4-D392-457F-8C3C-0977351F378C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8055E3C4-D392-457F-8C3C-0977351F378C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8055E3C4-D392-457F-8C3C-0977351F378C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		SharedSource\SharedSource.projitems*{7c1c5d04-3108-447b-8ce6-9f5effa614ec}*SharedItemsImports = 13
+	EndGlobalSection
+EndGlobal

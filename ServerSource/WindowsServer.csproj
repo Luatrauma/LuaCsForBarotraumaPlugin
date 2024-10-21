@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>ServerSource</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Barotrauma">
+      <Private>False</Private>
+      <HintPath>..\..\Barotrauma-development\Barotrauma\bin\DebugWindows\net6.0\Barotrauma.dll</HintPath>
+    </Reference>
+    <Reference Include="XNATypes">
+      <Private>False</Private>
+      <HintPath>..\..\Barotrauma-development\Barotrauma\bin\DebugWindows\net6.0\XNATypes.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <Import Project="..\SharedSource\SharedSource.projitems" Label="Shared" />
+</Project>

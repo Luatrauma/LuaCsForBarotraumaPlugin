@@ -7,7 +7,7 @@ public class Plugin : IBarotraumaPlugin
 
     public void Init()
     {
-        DebugConsole.NewMessage("Plugin loaded", Color.Lime);
+        DebugConsole.NewMessage("Plugin loaded test", Color.Lime);
         DebugConsole.RegisterCommand(
             command: "test",
             helpMessage: "An example command from a mod.",

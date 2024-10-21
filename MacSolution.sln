@@ -1,0 +1,24 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MacClient", "ClientSource\MacClient.csproj", "{13EA6C81-7E6B-4542-8376-AA9F77ED65E5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MacServer", "ServerSource\MacServer.csproj", "{04DD9A40-6991-4F0E-9ED5-7B818A7E2052}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedSource", "SharedSource\SharedSource.shproj", "{7C1C5D04-3108-447B-8CE6-9F5EFFA614EC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{13EA6C81-7E6B-4542-8376-AA9F77ED65E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13EA6C81-7E6B-4542-8376-AA9F77ED65E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13EA6C81-7E6B-4542-8376-AA9F77ED65E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13EA6C81-7E6B-4542-8376-AA9F77ED65E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04DD9A40-6991-4F0E-9ED5-7B818A7E2052}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04DD9A40-6991-4F0E-9ED5-7B818A7E2052}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04DD9A40-6991-4F0E-9ED5-7B818A7E2052}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04DD9A40-6991-4F0E-9ED5-7B818A7E2052}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
