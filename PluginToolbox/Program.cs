@@ -3,7 +3,7 @@
 internal static class Program
 {
     // PluginToolbox/bin/Debug/net.6.0 = 4 directories deep
-    public static string projectRoot = Path.Combine("..", "..", "..", "..");
+    private static readonly string projectRoot = Path.Combine("..", "..", "..", "..");
 
     internal static void Main(string[] args)
     {
