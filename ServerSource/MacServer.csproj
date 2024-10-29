@@ -10,11 +10,15 @@
   <ItemGroup>
     <Reference Include="Barotrauma">
       <Private>False</Private>
-      <HintPath>..\..\Barotrauma-development\Barotrauma\bin\DebugWindows\net6.0\Barotrauma.dll</HintPath>
+      <HintPath>..\..\Barotrauma-development\Barotrauma\bin\DebugMac\net6.0\DedicatedServer.dll</HintPath>
+    </Reference>
+    <Reference Include="BarotraumaCore">
+      <Private>False</Private>
+      <HintPath>..\..\Barotrauma-development\Barotrauma\bin\DebugMac\net6.0\BarotraumaCore.dll</HintPath>
     </Reference>
     <Reference Include="XNATypes">
       <Private>False</Private>
-      <HintPath>..\..\Barotrauma-development\Barotrauma\bin\DebugWindows\net6.0\XNATypes.dll</HintPath>
+      <HintPath>..\..\Barotrauma-development\Barotrauma\bin\DebugMac\net6.0\XNATypes.dll</HintPath>
     </Reference>
   </ItemGroup>
 
