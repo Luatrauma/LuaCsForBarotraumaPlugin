@@ -42,6 +42,12 @@ public static class Csproj
     public static void SetRepositoryUrl(XDocument doc, string repositoryUrl)
         => SetPropertyGroup(doc, "RepositoryUrl", repositoryUrl);
 
+    public static string? GetAssemblyName(XDocument doc)
+        => doc.Root
+              ?.Element("PropertyGroup")
+              ?.Element("AssemblyName")
+              ?.Value;
+
     public static void SetBaroMetadata(XDocument doc, params Metadata[] metadata)
     {
         if (doc.Root is null) { throw new Exception("Root element is null"); }

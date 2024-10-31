@@ -164,32 +164,38 @@ internal static class Program
 
         string modDir = Path.Combine(buildPath, "ExampleMod");
         ContentPackageBuilder builder = new(
-            ModName: "ExampleMod",
-            ModVersion: new Version(major: 1, minor: 0, build: 0),
-            GameVersion: new Version(major: 1, minor: 2, build: 8, revision: 0),
+            ModName: "ExampleMod", // PLUGIN_TODO get mod name automatically
+            ModVersion: new Version(major: 1, minor: 0, build: 0), // PLUGIN_TODO get mod version automatically
+            GameVersion: new Version(major: 1, minor: 2, build: 8, revision: 0), // PLUGIN_TODO get game version automatically
             OutPath: modDir);
         builder.Prepare();
 
         string clientPath = Path.Combine(modDir, "Client");
         Directory.CreateDirectory(clientPath);
 
+        string clientProjectPath = Path.Combine(projectRoot, "ClientSource", $"{prefix}Client.csproj");
         DotnetCmd.CompileProject(
-            projectPath: Path.Combine(projectRoot, "ClientSource", $"{prefix}Client.csproj"),
+            projectPath: clientProjectPath,
             configuration: Configuration.Debug,
             runtime: Runtime.Windows,
             outPath: clientPath);
 
-        builder.AddAssembly(Path.Combine(clientPath, $"{prefix}Client.dll"));
+        string clientAssemblyName = $"{Csproj.GetAssemblyName(Csproj.ParseCsproj(clientProjectPath)) ?? $"{prefix}Client"}.dll";
+
+        builder.AddAssembly(Path.Combine(clientPath, clientAssemblyName));
 
         string serverPath = Path.Combine(modDir, "Server");
+        string serverProjectPath = Path.Combine(projectRoot, "ServerSource", $"{prefix}Server.csproj");
         Directory.CreateDirectory(serverPath);
         DotnetCmd.CompileProject(
-            projectPath: Path.Combine(projectRoot, "ServerSource", $"{prefix}Server.csproj"),
+            projectPath: serverProjectPath,
             configuration: Configuration.Debug,
             runtime: Runtime.Windows,
             outPath: serverPath);
 
-        builder.AddAssembly(Path.Combine(serverPath, $"{prefix}Server.dll"));
+        string serverAssemblyName = $"{Csproj.GetAssemblyName(Csproj.ParseCsproj(serverProjectPath)) ?? $"{prefix}Server"}.dll";
+
+        builder.AddAssembly(Path.Combine(serverPath, serverAssemblyName));
         builder.Build();
     }
 
