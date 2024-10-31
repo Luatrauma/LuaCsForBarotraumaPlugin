@@ -27,7 +27,7 @@ internal static class DotnetCmd
         string homeDotNetPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
             ".dotnet",
-            IsWindows() ? "dotnet.exe" : "dotnet");
+            Program.IsWindows() ? "dotnet.exe" : "dotnet");
 
         // maybe it's here?
         if (File.Exists(homeDotNetPath))
@@ -70,10 +70,7 @@ internal static class DotnetCmd
         }
 
         static string Where(string command)
-            => RunCommand(IsWindows() ? "where.exe" : "which", command);
-
-        static bool IsWindows()
-            => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            => RunCommand(Program.IsWindows() ? "where.exe" : "which", command);
 
         static string RunCommand(string command, string arg)
         {
