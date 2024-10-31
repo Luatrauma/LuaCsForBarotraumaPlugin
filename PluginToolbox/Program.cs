@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.Xml.Linq;
 
 namespace PluginToolbox;
 
@@ -11,8 +13,10 @@ internal static class Program
         {
             // try getting the project directory from the assembly metadata
             Assembly asm = typeof(Program).Assembly;
-            var attrs = asm.GetCustomAttributes<AssemblyMetadataAttribute>();
-            string? projectDir = attrs.FirstOrDefault(static a => a.Key == "ProjectDir")?.Value;
+            string? projectDir = asm
+                                 .GetCustomAttributes<AssemblyMetadataAttribute>()
+                                 .FirstOrDefault(static a => a.Key == "SolutionRoot")
+                                 ?.Value;
 
             // no metadata? just hardcode the path I guess
             if (string.IsNullOrWhiteSpace(projectDir))
@@ -20,14 +24,17 @@ internal static class Program
                 // PluginToolbox/bin/Debug/net.6.0 = 4 directories deep
                 return Path.Combine("..", "..", "..", "..");
             }
-            return Path.Combine(projectDir, "..");
+
+            return projectDir;
         }
     }
 
     public static bool IsWindows()
         => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
     public static bool IsMacOS()
         => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+
     public static bool IsLinux()
         => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
@@ -43,14 +50,99 @@ internal static class Program
                 case "--initial-setup":
                     InitialSetup();
                     break;
+                case "--update-metadata":
+                    UpdateMetadata();
+                    break;
             }
         }
     }
 
     private static void InitialSetup()
     {
+        string modName = AskForInput("Enter the mod name: ") ?? string.Empty;
+        if (!IsValid(modName))
+        {
+            Console.WriteLine("Mod name cannot be empty");
+            return;
+        }
 
+        string author = AskForInput("Enter the author(s) name: ") ?? string.Empty;
+        if (!IsValid(author))
+        {
+            Console.WriteLine("Author name cannot be empty");
+            return;
+        }
+
+        string identifier = AskForInput("Enter the mod identifier (leave blank for auto generated one): ") ??
+                            string.Empty;
+        if (!IsValid(identifier))
+        {
+            identifier = $"{FormatIdentifier(author, "_", allowNumbers: true)}.{FormatIdentifier(modName, "_", allowNumbers: true)}";
+            Console.WriteLine($"Generated identifier: {identifier}");
+        }
+
+        string repo = AskForInput("Enter the repository URL (leave blank for none): ") ?? string.Empty;
+
+        foreach (var (csproj, path) in GetCsprojFilesToUpdate())
+        {
+            Csproj.SetVersion(csproj, new Version(major: 1, minor: 0, build: 0));
+            Csproj.SetAssemblyName(csproj, modName);
+            Csproj.SetRootNamespace(csproj, FormatIdentifier(modName, string.Empty, allowNumbers: false));
+            Csproj.SetAuthors(csproj, author);
+            Csproj.SetRepositoryUrl(csproj, repo);
+
+            Csproj.SetBaroMetadata(csproj, Metadata.Identifier(identifier));
+            Csproj.SaveCsproj(csproj, path);
+        }
+
+        static bool IsValid(string? answer)
+            => !string.IsNullOrWhiteSpace(answer);
+
+        static string FormatIdentifier(string id, string sub, bool allowNumbers)
+        {
+            StringBuilder sb = new();
+            foreach (char c in id)
+            {
+                if (asciiLetters.Contains(c) || (allowNumbers && asciiDigits.Contains(c)))
+                {
+                    sb.Append(c);
+                }
+                else
+                {
+                    sb.Append(sub);
+                }
+            }
+
+            return sb.ToString();
+        }
     }
+
+    private static readonly char[] asciiLetters
+        = Enumerable.Range('A', 'Z').Concat(Enumerable.Range('a', 'z'))
+                    .Select(static i => (char)i)
+                    .ToArray();
+
+    private static readonly char[] asciiDigits
+        = Enumerable.Range('0', '9')
+                    .Select(static i => (char)i)
+                    .ToArray();
+
+    public static (XDocument Doc, string Path)[] GetCsprojFilesToUpdate()
+    {
+        string clientPath = Path.Combine(projectRoot, "ClientSource");
+        string serverPath = Path.Combine(projectRoot, "ServerSource");
+
+        string[] clientCsprojs = Directory.GetFiles(clientPath, "*Client.csproj", SearchOption.TopDirectoryOnly);
+        string[] serverCsprojs = Directory.GetFiles(serverPath, "*Server.csproj", SearchOption.TopDirectoryOnly);
+
+        List<(XDocument, string)> docs = new();
+        docs.AddRange(clientCsprojs.Select(static path => (Csproj.ParseCsproj(path), path)));
+        docs.AddRange(serverCsprojs.Select(static path => (Csproj.ParseCsproj(path), path)));
+
+        return docs.ToArray();
+    }
+
+    private static void UpdateMetadata() { }
 
     private static void Build()
     {
@@ -103,7 +195,7 @@ internal static class Program
 
     private static string? AskForInput(string prompt)
     {
-        Console.Write(prompt);
+        Console.Write($"{prompt}: ");
         return Console.ReadLine();
     }
 }
