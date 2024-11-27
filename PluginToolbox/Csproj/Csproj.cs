@@ -48,17 +48,23 @@ public static class Csproj
               ?.Element("AssemblyName")
               ?.Value;
 
+    public static string? GetBaroAssemblyPath(XDocument doc)
+        => doc.Root
+              ?.Elements("ItemGroup")
+              .SelectMany(static e => e.Elements("Reference"))
+              .FirstOrDefault(static e => e.Attribute("Include")?.Value is "Barotrauma" or "DedicatedServer")
+              ?.Element("HintPath")
+              ?.Value;
+
     public static void SetBaroMetadata(XDocument doc, params Metadata[] metadata)
     {
         if (doc.Root is null) { throw new Exception("Root element is null"); }
 
         const string elementName = "BarotraumaMetadata";
 
-        XElement? itemGroup = doc
-                              .Elements()
-                              .FirstOrDefault(static element =>
-                                                  element.Name == "ItemGroup" &&
-                                                  element.Attribute("Label")?.Value == elementName);
+        XElement? itemGroup = doc.Root
+                                 .Elements("ItemGroup")
+                                 .FirstOrDefault(static e => e.Attribute("Label")?.Value is elementName);
 
         if (itemGroup is null)
         {
@@ -69,10 +75,11 @@ public static class Csproj
 
         foreach (Metadata data in metadata)
         {
+            // Remove existing metadata with the same key
             itemGroup
-                .Elements()
+                .Elements("AssemblyAttribute")
                 .Where(e => e.Element("_Parameter1")?.Value == data.Key)
-                .Remove(); // Remove existing metadata with the same key
+                .Remove();
 
             XElement assemblyAttribute = new("AssemblyAttribute",
                                              new XAttribute("Include", "System.Reflection.AssemblyMetadataAttribute"),

@@ -14,9 +14,9 @@ public class Metadata
     public static Metadata Identifier(string value)
         => new("Identifier", value);
 
-    public static Metadata ApiLevel(int value)
-        => new("ApiLevel", value.ToString());
+    public static Metadata GameVersion(Version value)
+        => new("GameVersion", value.ToString());
 
-    public static Metadata GameVersion(string value)
-        => new("GameVersion", value);
+    public static Metadata RepositoryUrl(string value)
+        => new("RepositoryUrl", value);
 }

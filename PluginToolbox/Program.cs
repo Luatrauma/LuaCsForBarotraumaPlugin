@@ -59,31 +59,38 @@ internal static class Program
 
     private static void InitialSetup()
     {
-        string modName = AskForInput("Enter the mod name: ") ?? string.Empty;
+        string modName = AskForInput("Enter the mod name") ?? string.Empty;
         if (!IsValid(modName))
         {
             Console.WriteLine("Mod name cannot be empty");
             return;
         }
 
-        string author = AskForInput("Enter the author(s) name: ") ?? string.Empty;
+        string author = AskForInput("Enter the author(s) name") ?? string.Empty;
         if (!IsValid(author))
         {
             Console.WriteLine("Author name cannot be empty");
             return;
         }
 
-        string identifier = AskForInput("Enter the mod identifier (leave blank for auto generated one): ") ??
+        string identifier = AskForInput("Enter the mod identifier (leave blank for auto generated one)") ??
                             string.Empty;
         if (!IsValid(identifier))
         {
-            identifier = $"{FormatIdentifier(author, "_", allowNumbers: true)}.{FormatIdentifier(modName, "_", allowNumbers: true)}";
+            identifier =
+                $"{FormatIdentifier(author, "_", allowNumbers: true)}.{FormatIdentifier(modName, "_", allowNumbers: true)}";
             Console.WriteLine($"Generated identifier: {identifier}");
         }
 
-        string repo = AskForInput("Enter the repository URL (leave blank for none): ") ?? string.Empty;
+        string repo = AskForInput("Enter the repository URL (leave blank for none)") ?? string.Empty;
 
-        foreach (var (csproj, path) in GetCsprojFilesToUpdate())
+        (XDocument Doc, string Path)[] projects = GetCsprojFilesToUpdate();
+
+        (XDocument Doc, string Path) currentPlatformProject =
+            projects.First(static p => Path.GetFileName(path: p.Path).Contains(GetPlatformString()));
+        Version gameVersion = GetGameVersionFromCsproj(currentPlatformProject.Doc, currentPlatformProject.Path);
+
+        foreach (var (csproj, path) in projects)
         {
             Csproj.SetVersion(csproj, new Version(major: 1, minor: 0, build: 0));
             Csproj.SetAssemblyName(csproj, modName);
@@ -91,7 +98,10 @@ internal static class Program
             Csproj.SetAuthors(csproj, author);
             Csproj.SetRepositoryUrl(csproj, repo);
 
-            Csproj.SetBaroMetadata(csproj, Metadata.Identifier(identifier));
+            Csproj.SetBaroMetadata(csproj,
+                                   Metadata.GameVersion(gameVersion),
+                                   Metadata.Identifier(identifier),
+                                   Metadata.RepositoryUrl(repo));
             Csproj.SaveCsproj(csproj, path);
         }
 
@@ -115,6 +125,22 @@ internal static class Program
 
             return sb.ToString();
         }
+    }
+
+    private static Version GetGameVersionFromCsproj(XDocument csproj, string path)
+    {
+        string oldDir = Directory.GetCurrentDirectory();
+        string? assemblyPath = Csproj.GetBaroAssemblyPath(csproj);
+
+        if (assemblyPath is null)
+        {
+            throw new InvalidOperationException("Could not find assembly path in csproj");
+        }
+
+        Directory.SetCurrentDirectory(Path.GetDirectoryName(path)!);
+        AssemblyName name = AssemblyName.GetAssemblyName(assemblyPath);
+        Directory.SetCurrentDirectory(oldDir);
+        return name.Version!;
     }
 
     private static readonly char[] asciiLetters
@@ -142,17 +168,34 @@ internal static class Program
         return docs.ToArray();
     }
 
-    private static void UpdateMetadata() { }
-
-    private static void Build()
+    private static void UpdateMetadata()
     {
-        string prefix = (IsWindows(), IsMacOS(), IsLinux()) switch
+        (XDocument Doc, string Path)[] projects = GetCsprojFilesToUpdate();
+
+        (XDocument Doc, string Path) currentPlatformProject =
+            projects.First(static c => Path.GetFileName(path: c.Path).Contains(GetPlatformString()));
+
+        Version gameVersion = GetGameVersionFromCsproj(currentPlatformProject.Doc, currentPlatformProject.Path);
+
+        foreach (var (csproj, path) in projects)
+        {
+            Csproj.SetBaroMetadata(csproj, Metadata.GameVersion(gameVersion));
+            Csproj.SaveCsproj(csproj, path);
+        }
+    }
+
+    private static string GetPlatformString()
+        => (IsWindows(), IsMacOS(), IsLinux()) switch
         {
             (true, _, _) => "Windows",
             (_, true, _) => "Mac",
             (_, _, true) => "Linux",
             _            => throw new PlatformNotSupportedException()
         };
+
+    private static void Build()
+    {
+        string prefix = GetPlatformString();
 
         string buildPath = Path.Combine(Directory.GetCurrentDirectory(), "Build");
         if (Directory.Exists(buildPath))
@@ -164,9 +207,10 @@ internal static class Program
 
         string modDir = Path.Combine(buildPath, "ExampleMod");
         ContentPackageBuilder builder = new(
-            ModName: "ExampleMod", // PLUGIN_TODO get mod name automatically
+            ModName: "ExampleMod",                                 // PLUGIN_TODO get mod name automatically
             ModVersion: new Version(major: 1, minor: 0, build: 0), // PLUGIN_TODO get mod version automatically
-            GameVersion: new Version(major: 1, minor: 2, build: 8, revision: 0), // PLUGIN_TODO get game version automatically
+            GameVersion: new Version(major: 1, minor: 2, build: 8,
+                                     revision: 0), // PLUGIN_TODO get game version automatically
             OutPath: modDir);
         builder.Prepare();
 
@@ -180,7 +224,8 @@ internal static class Program
             runtime: Runtime.Windows,
             outPath: clientPath);
 
-        string clientAssemblyName = $"{Csproj.GetAssemblyName(Csproj.ParseCsproj(clientProjectPath)) ?? $"{prefix}Client"}.dll";
+        string clientAssemblyName =
+            $"{Csproj.GetAssemblyName(Csproj.ParseCsproj(clientProjectPath)) ?? $"{prefix}Client"}.dll";
 
         builder.AddAssembly(Path.Combine(clientPath, clientAssemblyName));
 
@@ -193,7 +238,8 @@ internal static class Program
             runtime: Runtime.Windows,
             outPath: serverPath);
 
-        string serverAssemblyName = $"{Csproj.GetAssemblyName(Csproj.ParseCsproj(serverProjectPath)) ?? $"{prefix}Server"}.dll";
+        string serverAssemblyName =
+            $"{Csproj.GetAssemblyName(Csproj.ParseCsproj(serverProjectPath)) ?? $"{prefix}Server"}.dll";
 
         builder.AddAssembly(Path.Combine(serverPath, serverAssemblyName));
         builder.Build();
