@@ -39,9 +39,6 @@ public static class Csproj
     public static void SetAuthors(XDocument doc, string authors)
         => SetPropertyGroup(doc, "Authors", authors);
 
-    public static void SetRepositoryUrl(XDocument doc, string repositoryUrl)
-        => SetPropertyGroup(doc, "RepositoryUrl", repositoryUrl);
-
     public static string? GetAssemblyName(XDocument doc)
         => doc.Root
               ?.Element("PropertyGroup")

@@ -73,15 +73,6 @@ internal static class Program
             return;
         }
 
-        string identifier = AskForInput("Enter the mod identifier (leave blank for auto generated one)") ??
-                            string.Empty;
-        if (!IsValid(identifier))
-        {
-            identifier =
-                $"{FormatIdentifier(author, "_", allowNumbers: true)}.{FormatIdentifier(modName, "_", allowNumbers: true)}";
-            Console.WriteLine($"Generated identifier: {identifier}");
-        }
-
         string repo = AskForInput("Enter the repository URL (leave blank for none)") ?? string.Empty;
 
         (XDocument Doc, string Path)[] projects = GetCsprojFilesToUpdate();
@@ -96,11 +87,9 @@ internal static class Program
             Csproj.SetAssemblyName(csproj, modName);
             Csproj.SetRootNamespace(csproj, FormatIdentifier(modName, string.Empty, allowNumbers: false));
             Csproj.SetAuthors(csproj, author);
-            Csproj.SetRepositoryUrl(csproj, repo);
 
             Csproj.SetBaroMetadata(csproj,
                                    Metadata.GameVersion(gameVersion),
-                                   Metadata.Identifier(identifier),
                                    Metadata.RepositoryUrl(repo));
             Csproj.SaveCsproj(csproj, path);
         }

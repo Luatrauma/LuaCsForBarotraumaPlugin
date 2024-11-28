@@ -7,6 +7,7 @@ public class Plugin : IBarotraumaPlugin
 {
     public static readonly IDebugConsole DebugConsole = PluginServiceProvider.GetService<IDebugConsole>();
     public static readonly IContentPackage ContentPackage = PluginServiceProvider.GetService<IContentPackage>();
+    public static readonly IGameUpdateLoop GameUpdateLoop = PluginServiceProvider.GetService<IGameUpdateLoop>();
 
     public void Init()
     {
@@ -18,6 +19,12 @@ public class Plugin : IBarotraumaPlugin
             onCommandExecuted: OnTestCommandExecuted);
 
         ContentPackage.RegisterContentPackage<MyContentFile>();
+        GameUpdateLoop.RegisterPostUpdate(OnUpdate);
+    }
+
+    private void OnUpdate(float deltaTime)
+    {
+
     }
 
     private void OnTestCommandExecuted(string[] args)

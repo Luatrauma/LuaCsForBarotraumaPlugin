@@ -11,9 +11,6 @@ public class Metadata
         Value = value;
     }
 
-    public static Metadata Identifier(string value)
-        => new("Identifier", value);
-
     public static Metadata GameVersion(Version value)
         => new("GameVersion", value.ToString());
 
