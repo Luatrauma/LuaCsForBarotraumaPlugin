@@ -1,13 +1,15 @@
 ﻿using System.Text;
+using System.Xml.Linq;
+using Barotrauma;
 using Barotrauma.Plugins;
 using ClientSource;
 using Microsoft.Xna.Framework;
 
-public class Plugin : IBarotraumaPlugin
+public partial class Plugin : IBarotraumaPlugin
 {
     public static readonly IDebugConsole DebugConsole = PluginServiceProvider.GetService<IDebugConsole>();
     public static readonly IContentPackage ContentPackage = PluginServiceProvider.GetService<IContentPackage>();
-    public static readonly IGameUpdateLoop GameUpdateLoop = PluginServiceProvider.GetService<IGameUpdateLoop>();
+    public static readonly ICampaignLifecycle CampaignLifecycle = PluginServiceProvider.GetService<ICampaignLifecycle>();
 
     public void Init()
     {
@@ -19,12 +21,30 @@ public class Plugin : IBarotraumaPlugin
             onCommandExecuted: OnTestCommandExecuted);
 
         ContentPackage.RegisterContentPackage<MyContentFile>();
-        GameUpdateLoop.RegisterPostUpdate(OnUpdate);
+
+        CampaignLifecycle.RegisterOnCampaignLoad(OnCampaignLoad);
+        CampaignLifecycle.RegisterOnCampaignSave(OnCampaignSave);
+
+        InitProjectSpecific();
     }
 
-    private void OnUpdate(float deltaTime)
-    {
+    public partial void InitProjectSpecific();
 
+    public const string ShortcutManagerField = "ShortcutManager";
+
+    private void OnCampaignLoad(CampaignMode campaign, Option<XElement> saveFile, CampaignSettings settings)
+    {
+        ShortcutManager shortcutManager = saveFile.TryUnwrap(out XElement? element)
+            ? new ShortcutManager(campaign, element)
+            : new ShortcutManager(campaign);
+
+        campaign.Map.SetExtraField(ShortcutManagerField, shortcutManager);
+    }
+
+    private void OnCampaignSave(CampaignMode mode, XElement save)
+    {
+        ShortcutManager? shortcutManager = mode.Map.GetExtraField<ShortcutManager>(ShortcutManagerField);
+        shortcutManager?.Save(save);
     }
 
     private void OnTestCommandExecuted(string[] args)
