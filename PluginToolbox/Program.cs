@@ -216,7 +216,7 @@ internal static class Program
         string clientAssemblyName =
             $"{Csproj.GetAssemblyName(Csproj.ParseCsproj(clientProjectPath)) ?? $"{prefix}Client"}.dll";
 
-        builder.AddAssembly(Path.Combine(clientPath, clientAssemblyName));
+        builder.AddAssembly(ContentPackageBuilder.AssemblyType.Client, Path.Combine(clientPath, clientAssemblyName));
 
         string serverPath = Path.Combine(modDir, "Server");
         string serverProjectPath = Path.Combine(projectRoot, "ServerSource", $"{prefix}Server.csproj");
@@ -230,7 +230,7 @@ internal static class Program
         string serverAssemblyName =
             $"{Csproj.GetAssemblyName(Csproj.ParseCsproj(serverProjectPath)) ?? $"{prefix}Server"}.dll";
 
-        builder.AddAssembly(Path.Combine(serverPath, serverAssemblyName));
+        builder.AddAssembly(ContentPackageBuilder.AssemblyType.Server, Path.Combine(serverPath, serverAssemblyName));
         builder.Build();
     }
 

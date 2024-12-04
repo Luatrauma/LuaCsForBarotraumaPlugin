@@ -4,7 +4,13 @@ namespace PluginToolbox;
 
 internal record ContentPackageBuilder(string ModName, Version ModVersion, Version GameVersion, string OutPath)
 {
-    private readonly List<string> fullAssemblyPaths = new();
+    public enum AssemblyType
+    {
+        Server,
+        Client
+    }
+
+    private readonly Dictionary<AssemblyType, string> fullAssemblyPaths = new();
 
     public void Prepare()
     {
@@ -19,18 +25,18 @@ internal record ContentPackageBuilder(string ModName, Version ModVersion, Versio
         }
     }
 
-    public void AddAssembly(string assemblyPath)
+    public void AddAssembly(AssemblyType type, string assemblyPath)
     {
         if (!File.Exists(assemblyPath))
         {
             throw new FileNotFoundException("Assembly not found", assemblyPath);
         }
 
-        fullAssemblyPaths.Add(assemblyPath);
+        fullAssemblyPaths.Add(type, assemblyPath);
     }
 
-    private IEnumerable<string> GetLocalAssemblyPaths()
-        => fullAssemblyPaths.Select(path => Path.GetRelativePath(OutPath, path));
+    private Dictionary<AssemblyType, string> GetLocalAssemblyPaths()
+        => fullAssemblyPaths.ToDictionary(static kvp => kvp.Key, kvp => Path.GetRelativePath(OutPath, kvp.Value));
 
     private XDocument CreateFileList()
     {
@@ -40,9 +46,14 @@ internal record ContentPackageBuilder(string ModName, Version ModVersion, Versio
                             new XAttribute("corepackage", false),
                             new XAttribute("gameversion", GameVersion));
 
-        foreach (string path in GetLocalAssemblyPaths())
+        foreach (var (type, path) in GetLocalAssemblyPaths())
         {
-            XElement pluginFile = new("Plugin",
+            XElement pluginFile = new(type switch
+                                      {
+                                            AssemblyType.Server => "ServerPlugin",
+                                            AssemblyType.Client => "ClientPlugin",
+                                            _ => throw new ArgumentOutOfRangeException(nameof(type))
+                                      },
                                       new XAttribute("file", $"%ModDir%/{path.Replace("\\", "/")}"));
             root.Add(pluginFile);
         }
