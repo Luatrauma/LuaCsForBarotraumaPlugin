@@ -5,11 +5,14 @@ using Barotrauma.Plugins;
 using ClientSource;
 using Microsoft.Xna.Framework;
 
+namespace ExampleMod;
+
 public partial class Plugin : IBarotraumaPlugin
 {
     public static readonly IDebugConsole DebugConsole = PluginServiceProvider.GetService<IDebugConsole>();
-    public static readonly IContentPackage ContentPackage = PluginServiceProvider.GetService<IContentPackage>();
-    public static readonly ICampaignLifecycle CampaignLifecycle = PluginServiceProvider.GetService<ICampaignLifecycle>();
+    //public static readonly IContentFileRegistrar ContentFileRegistrar = PluginServiceProvider.GetService<IContentFileRegistrar>();
+    public static readonly ISimpleHookService HookService = PluginServiceProvider.GetService<ISimpleHookService>();
+    //public static IItemComponentRegistrar ItemComponentRegistrar = PluginServiceProvider.GetService<IItemComponentRegistrar>();
 
     public void Init()
     {
@@ -20,10 +23,14 @@ public partial class Plugin : IBarotraumaPlugin
             flags: CommandFlags.DoNotRelayToServer,
             onCommandExecuted: OnTestCommandExecuted);
 
-        ContentPackage.RegisterContentPackage<MyContentFile>();
+        //ContentFileRegistrar.RegisterContentFile<MyContentFile>();
 
-        CampaignLifecycle.RegisterOnCampaignLoad(OnCampaignLoad);
-        CampaignLifecycle.RegisterOnCampaignSave(OnCampaignSave);
+        HookService.RegisterHook<PluginCampaignLoadDelegate>(OnCampaignLoad);
+        HookService.RegisterHook<PluginCampaignSaveDelegate>(OnCampaignSave);
+
+        GameMain.SubEditorScreen.GetOrAddExtraField("ShortcutManager", new object());
+
+        //ItemComponentRegistrar.RegisterItemComponent<MyItemComponent>();
 
         InitProjectSpecific();
     }
@@ -35,8 +42,8 @@ public partial class Plugin : IBarotraumaPlugin
     private void OnCampaignLoad(CampaignMode campaign, Option<XElement> saveFile, CampaignSettings settings)
     {
         ShortcutManager shortcutManager = saveFile.TryUnwrap(out XElement? element)
-            ? new ShortcutManager(campaign, element)
-            : new ShortcutManager(campaign);
+                                              ? new ShortcutManager(campaign, element)
+                                              : new ShortcutManager(campaign);
 
         campaign.Map.SetExtraField(ShortcutManagerField, shortcutManager);
     }
@@ -58,8 +65,5 @@ public partial class Plugin : IBarotraumaPlugin
         DebugConsole.NewMessage(sb.ToString(), Color.White);
     }
 
-    public void Dispose()
-    {
-        DebugConsole.NewMessage("Plugin unloaded", Color.Red);
-    }
+    public void Dispose() { DebugConsole.NewMessage("Plugin unloaded", Color.Red); }
 }

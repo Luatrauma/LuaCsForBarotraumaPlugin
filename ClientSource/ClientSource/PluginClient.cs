@@ -3,13 +3,12 @@ using Barotrauma.Plugins;
 using ClientSource;
 using Microsoft.Xna.Framework;
 
+namespace ExampleMod;
+
 public partial class Plugin
 {
-    public partial void InitProjectSpecific()
-    {
-        CampaignLifecycle.RegisterOnCampaignMapUpdate(OnCampaignUpdate);
-    }
-    
+    public partial void InitProjectSpecific() { HookService.RegisterHook<PluginCampaignMapUpdateDelegate>(OnCampaignUpdate); }
+
     bool wasAltDown = false;
     bool isAltDown = false;
 
