@@ -10,9 +10,31 @@ namespace ExampleMod;
 public partial class Plugin : IBarotraumaPlugin
 {
     public static readonly IDebugConsole DebugConsole = PluginServiceProvider.GetService<IDebugConsole>();
-    //public static readonly IContentFileRegistrar ContentFileRegistrar = PluginServiceProvider.GetService<IContentFileRegistrar>();
+    public static readonly IContentFileRegistrar ContentFileRegistrar = PluginServiceProvider.GetService<IContentFileRegistrar>();
     public static readonly ISimpleHookService HookService = PluginServiceProvider.GetService<ISimpleHookService>();
-    //public static IItemComponentRegistrar ItemComponentRegistrar = PluginServiceProvider.GetService<IItemComponentRegistrar>();
+    public static readonly IItemComponentRegistrar ItemComponentRegistrar = PluginServiceProvider.GetService<IItemComponentRegistrar>();
+    public static readonly IGameNetwork GameNetwork = PluginServiceProvider.GetService<IGameNetwork>();
+
+    public enum NetworkHeaders
+    {
+        RequestEcho,
+        RespondEcho,
+        RequestEntityEvents
+    }
+
+    public enum EntityEventType
+    {
+        SendHealthAndIdentifier
+    }
+
+    [NetworkSerialize]
+    public readonly record struct EchoRequestData(Identifier TestIdentifier, int TestInt) : INetSerializableStruct;
+
+    [NetworkSerialize]
+    public readonly record struct EchoRequestResponse(SerializableDateTime DateTime, Option<Vector2> Vec2) : INetSerializableStruct;
+
+    [NetworkSerialize]
+    public readonly record struct ClientRequestEntityEventData(Identifier[] Identifier) : INetSerializableStruct;
 
     public void Init()
     {
@@ -23,14 +45,18 @@ public partial class Plugin : IBarotraumaPlugin
             flags: CommandFlags.DoNotRelayToServer,
             onCommandExecuted: OnTestCommandExecuted);
 
-        //ContentFileRegistrar.RegisterContentFile<MyContentFile>();
+        ContentFileRegistrar.RegisterContentFile<MyContentFile>();
 
         HookService.RegisterHook<PluginCampaignLoadDelegate>(OnCampaignLoad);
         HookService.RegisterHook<PluginCampaignSaveDelegate>(OnCampaignSave);
 
-        GameMain.SubEditorScreen.GetOrAddExtraField("ShortcutManager", new object());
+        // test that this doesn't cause unload issues
+        GameMain.SubEditorScreen.GetOrAddExtraField("UnloadTest", new object());
 
-        //ItemComponentRegistrar.RegisterItemComponent<MyItemComponent>();
+        ItemComponentRegistrar.RegisterItemComponent<MyItemComponent>();
+
+        GameNetwork.RegisterNetworkHeaders<NetworkHeaders>();
+        GameNetwork.RegisterCustomEntityEventHandler(new ItemEntityEventHandler());
 
         InitProjectSpecific();
     }

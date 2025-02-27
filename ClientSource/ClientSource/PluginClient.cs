@@ -1,4 +1,5 @@
-﻿using Barotrauma;
+﻿using System.Diagnostics;
+using Barotrauma;
 using Barotrauma.Plugins;
 using ClientSource;
 using Microsoft.Xna.Framework;
@@ -7,7 +8,32 @@ namespace ExampleMod;
 
 public partial class Plugin
 {
-    public partial void InitProjectSpecific() { HookService.RegisterHook<PluginCampaignMapUpdateDelegate>(OnCampaignUpdate); }
+    public partial void InitProjectSpecific()
+    {
+        HookService.RegisterHook<PluginCampaignMapUpdateDelegate>(OnCampaignUpdate);
+        GameNetwork.RegisterHandler<NetworkHeaders, EchoRequestResponse>(NetworkHeaders.RespondEcho, HandleBar);
+        DebugConsole.RegisterCommand(command: "testnetwork",
+                                     helpMessage: "Send a network message to the server",
+                                     flags: CommandFlags.DoNotRelayToServer,
+                                     onCommandExecuted: static (string[] args) =>
+                                     {
+                                         Random random = new Random();
+                                         GameNetwork.Send(NetworkHeaders.RequestEcho, new EchoRequestData("Test".ToIdentifier(), random.Next()));
+                                     });
+
+        DebugConsole.RegisterCommand(command: "testneworkrequestentityevents",
+                                     helpMessage: "Make the server create entity events for specific items based on the identifier",
+                                     flags: CommandFlags.DoNotRelayToServer,
+                                     onCommandExecuted: static (string[] args) =>
+                                     {
+                                         GameNetwork.Send(NetworkHeaders.RequestEntityEvents, new ClientRequestEntityEventData(args.Select(static a => a.ToIdentifier()).ToArray()));
+                                     });
+    }
+
+    private void HandleBar(EchoRequestResponse data)
+    {
+        DebugConsole.NewMessage($"Received BarData with time: {data.DateTime} and position: {data.Vec2.Fallback(Vector2.Zero)}");
+    }
 
     bool wasAltDown = false;
     bool isAltDown = false;
