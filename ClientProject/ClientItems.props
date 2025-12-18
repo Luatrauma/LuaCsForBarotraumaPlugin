@@ -5,24 +5,25 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <Import Project="..\Build.props" />
+  <Import Project="..\UserBuild.props" />
+
   <ItemGroup>
     <Reference Include="Barotrauma">
       <Private>False</Private>
-      <HintPath>..\Refs\Barotrauma.dll</HintPath>
+      <HintPath>$(RefDir)\Barotrauma.dll</HintPath>
     </Reference>
     <Reference Include="BarotraumaCore">
       <Private>False</Private>
-      <HintPath>..\Refs\BarotraumaCore.dll</HintPath>
+      <HintPath>$(RefDir)\BarotraumaCore.dll</HintPath>
     </Reference>
     <Reference Include="XNATypes">
       <Private>False</Private>
-      <HintPath>..\Refs\XNATypes.dll</HintPath>
+      <HintPath>$(RefDir)\XNATypes.dll</HintPath>
     </Reference>
   </ItemGroup>
 
   <Import Project="..\SharedProject\SharedProject.projitems" Label="Shared" />
-  <Import Project="..\Build.props" />
-  <Import Project="..\UserBuild.props" />
   <Import Project="..\SharedProject\Content.props" />
 
   <PropertyGroup>
@@ -35,7 +36,7 @@
         <Assemblies Include="$(TargetDir)$(TargetName).dll" />
         <DepsFiles Include="$(TargetDir)$(TargetName).deps.json" />
     </ItemGroup>
-    <Copy SourceFiles="@(Assemblies)" DestinationFiles="$(ModDeployDir)\$(PlatformName)\$(TargetName).dll" />
-    <Copy SourceFiles="@(DepsFiles)" DestinationFiles="$(ModDeployDir)\$(PlatformName)\$(TargetName).deps.json" />
+    <Copy SourceFiles="@(Assemblies)" DestinationFiles="$(ModDeployDir)\$(ModName)\$(PlatformName)\$(TargetName).dll" />
+    <Copy SourceFiles="@(DepsFiles)" DestinationFiles="$(ModDeployDir)\$(ModName)\$(PlatformName)\$(TargetName).deps.json" />
   </Target>
 </Project>

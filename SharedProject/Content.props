@@ -3,9 +3,11 @@
     <ItemGroup>
       <ModFiles Include="..\SharedProject\filelist.xml" />
       <ModFiles Include="..\SharedProject\PluginInfo.xml" />
-      <ModFiles Include="..\SharedProject\Content\**\*" />
+
+      <ModContentFiles Include="..\SharedProject\Content\**\*" />
     </ItemGroup>
 
-    <Copy SourceFiles="@(ModFiles)" DestinationFiles="@(ModFiles->'$(ModDeployDir)\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ModFiles)" DestinationFolder="$(ModDeployDir)\$(ModName)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ModContentFiles)" DestinationFiles="@(ModContentFiles->'$(ModDeployDir)\$(ModName)\Content\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>
 </Project>
