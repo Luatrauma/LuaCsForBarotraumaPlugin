@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="HarmonyX" Version="2.15.0" />
     <!-- Add misc references here -->
   </ItemGroup>
 </Project>
