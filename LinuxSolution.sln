@@ -1,10 +1,10 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinuxClient", "ClientSource\LinuxClient.csproj", "{E09CB094-B61B-4B1F-BE50-DF7E7D4F5C76}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinuxProject", "ClientSource\LinuxClient.csproj", "{E09CB094-B61B-4B1F-BE50-DF7E7D4F5C76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinuxServer", "ServerSource\LinuxServer.csproj", "{C4D120E7-A4AC-4026-9866-334E4B66F48E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinuxProject", "ServerSource\LinuxServer.csproj", "{C4D120E7-A4AC-4026-9866-334E4B66F48E}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedSource", "SharedSource\SharedSource.shproj", "{7C1C5D04-3108-447B-8CE6-9F5EFFA614EC}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedProject", "SharedSource\SharedProject.shproj", "{7C1C5D04-3108-447B-8CE6-9F5EFFA614EC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginToolbox", "PluginToolbox\PluginToolbox.csproj", "{19CCE4CD-8A40-49DA-A29C-64D1B1A2C2A5}"
 EndProject

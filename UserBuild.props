@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <ModDeployDir>C:\dev\FakeFish\ExampleBaroPlugin\LocalMods</ModDeployDir>
+  </PropertyGroup>
+</Project>

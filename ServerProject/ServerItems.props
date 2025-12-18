@@ -1,0 +1,41 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Barotrauma">
+      <Private>False</Private>
+      <HintPath>..\Refs\DedicatedServer.dll</HintPath>
+    </Reference>
+    <Reference Include="BarotraumaCore">
+      <Private>False</Private>
+      <HintPath>..\Refs\BarotraumaCore.dll</HintPath>
+    </Reference>
+    <Reference Include="XNATypes">
+      <Private>False</Private>
+      <HintPath>..\Refs\XNATypes.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <Import Project="..\SharedProject\SharedProject.projitems" Label="Shared" />
+  <Import Project="..\Build.props" />
+  <Import Project="..\UserBuild.props" />
+  <Import Project="..\SharedProject\Content.props" />
+
+  <PropertyGroup>
+    <RootNamespace>$(ModName)</RootNamespace>
+    <AssemblyName>$(ModName)Server</AssemblyName>
+  </PropertyGroup>
+
+  <Target Name="CopyFiles" AfterTargets="Build">
+    <ItemGroup>
+        <Assemblies Include="$(TargetDir)$(TargetName).dll" />
+        <DepsFiles Include="$(TargetDir)$(TargetName).deps.json" />
+    </ItemGroup>
+    <Copy SourceFiles="@(Assemblies)" DestinationFiles="$(ModDeployDir)\$(PlatformName)\$(TargetName).dll" />
+    <Copy SourceFiles="@(DepsFiles)" DestinationFiles="$(ModDeployDir)\$(PlatformName)\$(TargetName).deps.json" />
+  </Target>
+</Project>

@@ -1,0 +1,11 @@
+<Project>
+  <Target Name="CopyModFiles" AfterTargets="Build">
+    <ItemGroup>
+      <ModFiles Include="..\SharedProject\filelist.xml" />
+      <ModFiles Include="..\SharedProject\PluginInfo.xml" />
+      <ModFiles Include="..\SharedProject\Content\**\*" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(ModFiles)" DestinationFiles="@(ModFiles->'$(ModDeployDir)\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+</Project>
