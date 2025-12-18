@@ -1,1 +1,0 @@
-Any xml, texture, sound or anything else should go in this folder
