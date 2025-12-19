@@ -2,7 +2,7 @@
 using Barotrauma.Plugins;
 using Microsoft.Xna.Framework;
 
-namespace ExampleMod;
+namespace LuaCsForBarotrauma;
 
 public partial class Plugin : IBarotraumaPlugin
 {
@@ -10,16 +10,12 @@ public partial class Plugin : IBarotraumaPlugin
 
     public void Init()
     {
-        DebugConsole.NewMessage("Plugin loaded", Color.Lime);
-
-        InitProjectSpecific();
+        DebugConsole.NewMessage("LuaCsForBarotrauma loaded", Color.Lime);
     }
-
-    public partial void InitProjectSpecific();
 
     public void Dispose() 
     { 
-        DebugConsole.NewMessage("Plugin unloaded", Color.Red); 
+        DebugConsole.NewMessage("LuaCsForBarotrauma unloaded", Color.Red); 
     }
 
     public void OnContentLoaded()
