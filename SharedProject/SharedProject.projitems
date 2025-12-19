@@ -15,5 +15,7 @@
     <Content Include="$(MSBuildThisFileDirectory)Content\**\*.*" />
     <Content Include="$(MSBuildThisFileDirectory)filelist.xml" />
     <Content Include="$(MSBuildThisFileDirectory)PluginInfo.xml" />
+    <Content Include="$(MSBuildThisFileDirectory)Build.props" />
+    <Content Include="$(MSBuildThisFileDirectory)UserBuild.props" />
   </ItemGroup>
 </Project>

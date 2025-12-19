@@ -6,8 +6,8 @@
     <DefineConstants>$(DefineConstants);CLIENT</DefineConstants>
   </PropertyGroup>
 
-  <Import Project="..\Build.props" />
-  <Import Project="..\UserBuild.props" />
+  <Import Project="..\SharedProject\Build.props" />
+  <Import Project="..\SharedProject\UserBuild.props" />
 
   <ItemGroup>
     <Reference Include="Barotrauma">

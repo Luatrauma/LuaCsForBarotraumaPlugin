@@ -61,3 +61,5 @@ ref/*
 LocalMods
 Refs/*
 !Refs/readme.txt
+
+SharedProject/UserBuild.props
