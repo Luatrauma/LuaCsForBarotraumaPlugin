@@ -2,5 +2,8 @@
   <PropertyGroup>
     <PlatformName>Windows</PlatformName>
   </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="ClientSource\" />
+  </ItemGroup>
   <Import Project="ClientItems.props" />
 </Project>

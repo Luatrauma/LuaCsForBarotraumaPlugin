@@ -2,5 +2,8 @@
   <PropertyGroup>
     <PlatformName>Windows</PlatformName>
   </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="ServerSource\" />
+  </ItemGroup>
   <Import Project="ServerItems.props" />
 </Project>

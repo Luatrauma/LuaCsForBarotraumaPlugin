@@ -11,7 +11,9 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedProject", "SharedProj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginToolbox", "PluginToolbox\PluginToolbox.csproj", "{8055E3C4-D392-457F-8C3C-0977351F378C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContentPackageBuilder", "ContentPackageBuilder\ContentPackageBuilder.csproj", "{865A7165-545C-42B3-D141-B69E5497EB3C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoonSharp.Interpreter", "Libraries\moonsharp\MoonSharp.Interpreter\MoonSharp.Interpreter.csproj", "{C036E30B-C4FF-DA5F-06C5-E3AF86E16527}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{3CA3079B-F459-4B18-900E-67B0C6A111DA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,13 +33,16 @@ Global
 		{8055E3C4-D392-457F-8C3C-0977351F378C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8055E3C4-D392-457F-8C3C-0977351F378C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8055E3C4-D392-457F-8C3C-0977351F378C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{865A7165-545C-42B3-D141-B69E5497EB3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{865A7165-545C-42B3-D141-B69E5497EB3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{865A7165-545C-42B3-D141-B69E5497EB3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{865A7165-545C-42B3-D141-B69E5497EB3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C036E30B-C4FF-DA5F-06C5-E3AF86E16527}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C036E30B-C4FF-DA5F-06C5-E3AF86E16527}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C036E30B-C4FF-DA5F-06C5-E3AF86E16527}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C036E30B-C4FF-DA5F-06C5-E3AF86E16527}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C036E30B-C4FF-DA5F-06C5-E3AF86E16527} = {3CA3079B-F459-4B18-900E-67B0C6A111DA}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		SharedProject\SharedProject.projitems*{30cd80ea-6ac6-4281-8eb2-609fe79af1c7}*SharedItemsImports = 5
