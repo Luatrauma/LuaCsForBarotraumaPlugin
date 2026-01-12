@@ -1,0 +1,72 @@
+<Project>
+  <UsingTask
+    TaskName="ReplaceTokenInFile"
+    TaskFactory="CodeTaskFactory"
+    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+
+    <ParameterGroup>
+      <FilePath ParameterType="System.String" Required="true" />
+      <Token ParameterType="System.String" Required="true" />
+      <Value ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+
+    <Task>
+      <Code Type="Fragment" Language="cs">
+      <![CDATA[
+        var text = System.IO.File.ReadAllText(FilePath);
+        text = text.Replace(Token, Value);
+        System.IO.File.WriteAllText(FilePath, text);
+      ]]>
+    </Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="CopyModFiles" AfterTargets="Build">
+    <ItemGroup>
+      <ModFiles Include="..\SharedProject\filelist.xml" />
+      <ModFiles Include="..\SharedProject\PluginInfo.xml" />
+
+      <ModContentFiles Include="..\SharedProject\Content\**\*" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(ModFiles)" DestinationFolder="$(ModDeployDir)\$(ModName)"
+      SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ModContentFiles)"
+      DestinationFiles="@(ModContentFiles->'$(ModDeployDir)\$(ModName)\Content\%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+
+    <!-- Replace %ModName% with the actual mod name -->
+    <ReplaceTokenInFile
+      FilePath="%(ModFiles.Identity)"
+      Token="%ModName%"
+      Value="$(ModName)" />
+  </Target>
+
+  <Target Name="ReadGameVersion" AfterTargets="ResolveAssemblyReferences"
+    BeforeTargets="GenerateAssemblyInfo">
+    <ItemGroup>
+      <GameAssembly Include="@(ReferencePath)" Condition="'%(Filename)' == 'Barotrauma'" />
+    </ItemGroup>
+
+    <GetAssemblyIdentity AssemblyFiles="@(GameAssembly)">
+      <Output TaskParameter="Assemblies" ItemName="GameAssemblyIdentity" />
+    </GetAssemblyIdentity>
+
+    <PropertyGroup>
+      <GameVersion>@(GameAssemblyIdentity->'%(Version)')</GameVersion>
+    </PropertyGroup>
+
+    <Message Importance="High" Text="Detected Barotrauma version: $(GameVersion)" />
+
+    <ItemGroup Label="BarotraumaMetadata">
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>RepositoryUrl</_Parameter1>
+        <_Parameter2>$(RepositoryURL)</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>GameVersion</_Parameter1>
+        <_Parameter2>12.12.12.12</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
+</Project>

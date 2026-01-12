@@ -6,8 +6,7 @@
     <DefineConstants>$(DefineConstants);CLIENT</DefineConstants>
   </PropertyGroup>
 
-  <Import Project="..\SharedProject\Build.props" />
-  <Import Project="..\SharedProject\UserBuild.props" />
+  <Import Project="..\SharedProject\BuildData.props" />
 
   <ItemGroup>
     <Reference Include="Barotrauma">
@@ -25,7 +24,7 @@
   </ItemGroup>
 
   <Import Project="..\SharedProject\SharedProject.projitems" Label="Shared" />
-  <Import Project="..\SharedProject\Content.props" />
+  <Import Project="..\SharedProject\SharedBuild.props" />
 
   <PropertyGroup>
     <RootNamespace>$(ModName)</RootNamespace>

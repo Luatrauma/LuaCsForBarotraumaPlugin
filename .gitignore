@@ -62,4 +62,4 @@ LocalMods
 Refs/*
 !Refs/readme.txt
 
-SharedProject/UserBuild.props
+SharedProject/UserBuildData.props

@@ -1,18 +1,10 @@
 <Project>
   <PropertyGroup>
     <ModName>ExampleMod</ModName>
+    <RepositoryURL></RepositoryURL>
   </PropertyGroup>
 
-  <ItemGroup Label="BarotraumaMetadata">
-    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-      <_Parameter1>RepositoryUrl</_Parameter1>
-      <_Parameter2></_Parameter2>
-    </AssemblyAttribute>
-    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-      <_Parameter1>GameVersion</_Parameter1>
-      <_Parameter2>1.15.1.0</_Parameter2>
-    </AssemblyAttribute>
-  </ItemGroup>
+  <Import Project="..\SharedProject\UserBuildData.props" />
 
   <ItemGroup>
     <PackageReference Include="HarmonyX" Version="2.15.0" />
