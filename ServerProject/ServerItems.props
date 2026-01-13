@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <Import Project="..\SharedProject\BuildData.props" />
+  <Import Project="..\BuildData.props" />
 
   <ItemGroup>
     <Reference Include="Barotrauma">
