@@ -17,14 +17,10 @@
       <Private>False</Private>
       <HintPath>$(RefDir)\BarotraumaCore.dll</HintPath>
     </Reference>
-    <Reference Include="XNATypes">
-      <Private>False</Private>
-      <HintPath>$(RefDir)\XNATypes.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
   <Import Project="..\SharedProject\SharedProject.projitems" Label="Shared" />
-  <Import Project="..\SharedProject\SharedBuild.props" />
+  <Import Project="..\SharedProject\SharedItems.props" />
 
   <PropertyGroup>
     <RootNamespace>$(ModName)</RootNamespace>

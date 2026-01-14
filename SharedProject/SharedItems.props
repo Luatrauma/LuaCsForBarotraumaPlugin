@@ -1,4 +1,11 @@
 <Project>
+  <ItemGroup>
+    <Reference Include="XNATypes">
+      <Private>False</Private>
+      <HintPath>$(RefDir)\XNATypes.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
   <UsingTask
     TaskName="ReplaceTokenInFile"
     TaskFactory="RoslynCodeTaskFactory"
