@@ -7,7 +7,7 @@
     <RepositoryURL></RepositoryURL>
   </PropertyGroup>
 
-  <Import Project="..\SharedProject\UserBuildData.props" />
+  <Import Project="UserBuildData.props" />
 
   <ItemGroup>
     <PackageReference Include="HarmonyX" Version="2.15.0" />
