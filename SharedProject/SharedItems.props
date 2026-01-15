@@ -34,6 +34,8 @@
       <ModFiles Include="..\SharedProject\PluginInfo.xml" />
 
       <ModContentFiles Include="..\SharedProject\Content\**\*" />
+
+      <ModFilesDest Include="@(ModFiles->'$(ModDeployDir)\$(ModName)\%(Filename)%(Extension)')" />
     </ItemGroup>
 
     <Copy SourceFiles="@(ModFiles)" DestinationFolder="$(ModDeployDir)\$(ModName)"
@@ -44,7 +46,7 @@
 
     <!-- Replace %ModName% with the actual mod name -->
     <ReplaceTokenInFile
-      FilePath="%(ModFiles.Identity)"
+      FilePath="%(ModFilesDest.Identity)"
       Token="%ModName%"
       Value="$(ModName)" />
   </Target>
