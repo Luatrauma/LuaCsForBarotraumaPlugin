@@ -1,4 +1,4 @@
-# Example Barotrauma Plugin Project
+# Base Barotrauma Plugin
 
 This repository provides a base template used by most Barotrauma plugins.
 
