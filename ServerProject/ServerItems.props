@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <DefineConstants>$(DefineConstants);SERVER</DefineConstants>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultContentItems>false</EnableDefaultContentItems>
   </PropertyGroup>
 
   <Import Project="..\BuildData.props" />
