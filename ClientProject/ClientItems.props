@@ -29,10 +29,11 @@
 
   <Target Name="CopyFiles" AfterTargets="Build">
     <ItemGroup>
-        <Assemblies Include="$(TargetDir)$(TargetName).dll" />
-        <DepsFiles Include="$(TargetDir)$(TargetName).deps.json" />
+      <FilesToCopy Include="$(TargetDir)$(TargetName).dll" />
+      <FilesToCopy Include="$(TargetDir)$(TargetName).deps.json" />
+      <FilesToCopy Include="$(TargetDir)$(TargetName).pdb" />
     </ItemGroup>
-    <Copy SourceFiles="@(Assemblies)" DestinationFiles="$(ModDeployDir)\$(ModName)\$(PlatformName)\$(TargetName).dll" />
-    <Copy SourceFiles="@(DepsFiles)" DestinationFiles="$(ModDeployDir)\$(ModName)\$(PlatformName)\$(TargetName).deps.json" />
+
+    <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(ModDeployDir)\$(ModName)\$(PlatformName)" />
   </Target>
 </Project>
