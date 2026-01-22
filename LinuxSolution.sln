@@ -11,6 +11,8 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedProject", "SharedProj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginToolbox", "PluginToolbox\PluginToolbox.csproj", "{8055E3C4-D392-457F-8C3C-0977351F378C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContentPackageBuilder", "ContentPackageBuilder\ContentPackageBuilder.csproj", "{865A7165-545C-42B3-D141-B69E5497EB3C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

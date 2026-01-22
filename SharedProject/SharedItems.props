@@ -1,55 +1,16 @@
 <Project>
   <ItemGroup>
+    <PackageReference Include="HarmonyX" Version="2.15.0" />
+
     <Reference Include="XNATypes">
       <Private>False</Private>
       <HintPath>$(RefDir)\XNATypes.dll</HintPath>
     </Reference>
+
+    <ProjectReference Include="..\ContentPackageBuilder\ContentPackageBuilder.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
-
-  <UsingTask
-    TaskName="ReplaceTokenInFile"
-    TaskFactory="RoslynCodeTaskFactory"
-    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
-
-    <ParameterGroup>
-      <FilePath ParameterType="System.String" Required="true" />
-      <Token ParameterType="System.String" Required="true" />
-      <Value ParameterType="System.String" Required="true" />
-    </ParameterGroup>
-
-    <Task>
-      <Code Type="Fragment" Language="cs">
-      <![CDATA[
-        var text = System.IO.File.ReadAllText(FilePath);
-        text = text.Replace(Token, Value);
-        System.IO.File.WriteAllText(FilePath, text);
-      ]]>
-    </Code>
-    </Task>
-  </UsingTask>
-
-  <Target Name="CopyModFiles" AfterTargets="Build">
-    <ItemGroup>
-      <ModFiles Include="..\SharedProject\filelist.xml" />
-      <ModFiles Include="..\SharedProject\PluginInfo.xml" />
-
-      <ModContentFiles Include="..\SharedProject\Content\**\*" />
-
-      <ModFilesDest Include="@(ModFiles->'$(ModDeployDir)\$(ModName)\%(Filename)%(Extension)')" />
-    </ItemGroup>
-
-    <Copy SourceFiles="@(ModFiles)" DestinationFolder="$(ModDeployDir)\$(ModName)"
-      SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(ModContentFiles)"
-      DestinationFiles="@(ModContentFiles->'$(ModDeployDir)\$(ModName)\Content\%(RecursiveDir)%(Filename)%(Extension)')"
-      SkipUnchangedFiles="true" />
-
-    <!-- Replace %ModName% with the actual mod name -->
-    <ReplaceTokenInFile
-      FilePath="%(ModFilesDest.Identity)"
-      Token="%ModName%"
-      Value="$(ModName)" />
-  </Target>
 
   <Target Name="ReadGameVersion" AfterTargets="ResolveAssemblyReferences"
     BeforeTargets="GenerateAssemblyInfo">

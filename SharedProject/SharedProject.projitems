@@ -11,9 +11,4 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)\SharedSource\**\*.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="$(MSBuildThisFileDirectory)Content\**\*.*" />
-    <Content Include="$(MSBuildThisFileDirectory)filelist.xml" />
-    <Content Include="$(MSBuildThisFileDirectory)PluginInfo.xml" />
-  </ItemGroup>
 </Project>
