@@ -15,9 +15,15 @@
       <Private>False</Private>
       <HintPath>$(RefDir)\Barotrauma.dll</HintPath>
     </Reference>
-    <Reference Include="BarotraumaCore">
+
+    <Reference Include="Concentus.NetStandard">
       <Private>False</Private>
-      <HintPath>$(RefDir)\BarotraumaCore.dll</HintPath>
+      <HintPath>$(RefDir)\Concentus.NetStandard.dll</HintPath>
+    </Reference>
+
+    <Reference Include="SharpFont.NetStandard">
+      <Private>False</Private>
+      <HintPath>$(RefDir)\SharpFont.NetStandard.dll</HintPath>
     </Reference>
   </ItemGroup>
 

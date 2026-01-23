@@ -15,10 +15,6 @@
       <Private>False</Private>
       <HintPath>$(RefDir)\DedicatedServer.dll</HintPath>
     </Reference>
-    <Reference Include="BarotraumaCore">
-      <Private>False</Private>
-      <HintPath>$(RefDir)\BarotraumaCore.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
   <Import Project="..\SharedProject\SharedProject.projitems" Label="Shared" />

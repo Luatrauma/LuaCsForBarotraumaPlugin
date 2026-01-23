@@ -2,9 +2,24 @@
   <ItemGroup>
     <PackageReference Include="HarmonyX" Version="2.15.0" />
 
+    <Reference Include="BarotraumaCore">
+      <Private>False</Private>
+      <HintPath>$(RefDir)\BarotraumaCore.dll</HintPath>
+    </Reference>
+
     <Reference Include="XNATypes">
       <Private>False</Private>
       <HintPath>$(RefDir)\XNATypes.dll</HintPath>
+    </Reference>
+
+    <Reference Include="Farseer.NetStandard">
+      <Private>False</Private>
+      <HintPath>$(RefDir)\Farseer.NetStandard.dll</HintPath>
+    </Reference>
+
+    <Reference Include="Lidgren.NetStandard">
+      <Private>False</Private>
+      <HintPath>$(RefDir)\Lidgren.NetStandard.dll</HintPath>
     </Reference>
 
     <ProjectReference Include="..\ContentPackageBuilder\ContentPackageBuilder.csproj">
