@@ -20,16 +20,21 @@ It is also recommended to have **Git** installed:
 
 There are two ways to obtain the project:
 
-### Option 1: Fork the Repository (Recommended)
+### Option 1: Use the GitHub Template (Recommended)
+
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/fbd5fb22-04cb-471f-9c4d-456736487b35" />
+
 
 1. Create or sign in to a GitHub account.
-2. Click the **Fork** button in the top-right corner of this repository.
-3. Clone your fork locally:
+2. Click the **Use this template** button in the top-right corner of this repository.
+3. Clone your newly created repository locally:
    ```bash
-   git clone https://github.com/yourname/yourforkname
+   git clone https://github.com/your_username/your_repo_name
    ```
 
 ### Option 2: Download Directly
+
+<img width="429" alt="image" src="https://github.com/user-attachments/assets/ce9acc22-b516-46aa-af85-7501ed8d942a" />
 
 You can also download the repository as a ZIP file from GitHub and extract it locally, though this option does not include version control.
 
@@ -79,11 +84,13 @@ DebugConsole.NewMessage("Hello from client");
 
 All mod content (XML files, sounds, textures, etc.) should be placed in:
 
-- `SharedProject/Content`
+- `ContentPackageBuilder/Content`
+
+> All files you put here will automatically be copied to your ModDeployDir, you can trigger this manually by right clicking the ContentPackageBuilder project and pressing build.
 
 If you add new XML content, make sure to update the file list located at:
 
-- `SharedProject/filelist.xml`
+- `ContentPackageBuilder/filelist.xml`
 
 ## Testing Your Mod
 
