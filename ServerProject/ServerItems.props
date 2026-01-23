@@ -1,11 +1,9 @@
-<Project>
+﻿<Project>
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <DefineConstants>$(DefineConstants);SERVER</DefineConstants>
-    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-    <EnableDefaultContentItems>false</EnableDefaultContentItems>
   </PropertyGroup>
 
   <Import Project="..\BuildData.props" />
@@ -24,10 +22,6 @@
     <RootNamespace>$(ModName)</RootNamespace>
     <AssemblyName>$(ModName)Server</AssemblyName>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)\ServerSource\**\*.cs" />
-  </ItemGroup>
 
   <Target Name="CopyFiles" AfterTargets="Build">
     <ItemGroup>

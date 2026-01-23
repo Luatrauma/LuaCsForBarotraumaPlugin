@@ -4,8 +4,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <DefineConstants>$(DefineConstants);CLIENT</DefineConstants>
-    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-    <EnableDefaultContentItems>false</EnableDefaultContentItems>
   </PropertyGroup>
 
   <Import Project="..\BuildData.props" />
@@ -34,10 +32,6 @@
     <RootNamespace>$(ModName)</RootNamespace>
     <AssemblyName>$(ModName)Client</AssemblyName>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)\ClientSource\**\*.cs" />
-  </ItemGroup>
 
   <Target Name="CopyFiles" AfterTargets="Build">
     <ItemGroup>
