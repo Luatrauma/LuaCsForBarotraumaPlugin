@@ -4,23 +4,17 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <DefineConstants>$(DefineConstants);SERVER</DefineConstants>
+    <BuildTarget>Server</BuildTarget>
   </PropertyGroup>
 
   <Import Project="..\BuildData.props" />
-
-  <ItemGroup>
-    <Reference Include="Barotrauma">
-      <Private>False</Private>
-      <HintPath>$(RefDir)\DedicatedServer.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 
   <Import Project="..\SharedProject\SharedProject.projitems" Label="Shared" />
   <Import Project="..\SharedProject\SharedItems.props" />
 
   <PropertyGroup>
     <RootNamespace>$(ModName)</RootNamespace>
-    <AssemblyName>$(ModName)Server</AssemblyName>
+    <AssemblyName>$(ModName)$(BuildTarget)</AssemblyName>
   </PropertyGroup>
 
   <Target Name="CopyFiles" AfterTargets="Build">

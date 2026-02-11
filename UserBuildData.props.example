@@ -1,7 +1,5 @@
 <Project>
   <PropertyGroup>
     <ModDeployDir>C:\dev\FakeFish\Barotrauma-development\Barotrauma\bin\DebugWindows\net8.0\LocalMods</ModDeployDir>
-    <!-- TODO: Replace with nuget packages -->
-    <RefDir>C:\dev\FakeFish\Barotrauma-development\Barotrauma\bin\DebugWindows\net8.0</RefDir>
   </PropertyGroup>
 </Project>

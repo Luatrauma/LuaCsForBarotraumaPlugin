@@ -4,33 +4,17 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <DefineConstants>$(DefineConstants);CLIENT</DefineConstants>
+    <BuildTarget>Client</BuildTarget>
   </PropertyGroup>
 
   <Import Project="..\BuildData.props" />
-
-  <ItemGroup>
-    <Reference Include="Barotrauma">
-      <Private>False</Private>
-      <HintPath>$(RefDir)\Barotrauma.dll</HintPath>
-    </Reference>
-
-    <Reference Include="Concentus.NetStandard">
-      <Private>False</Private>
-      <HintPath>$(RefDir)\Concentus.NetStandard.dll</HintPath>
-    </Reference>
-
-    <Reference Include="SharpFont.NetStandard">
-      <Private>False</Private>
-      <HintPath>$(RefDir)\SharpFont.NetStandard.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 
   <Import Project="..\SharedProject\SharedProject.projitems" Label="Shared" />
   <Import Project="..\SharedProject\SharedItems.props" />
 
   <PropertyGroup>
     <RootNamespace>$(ModName)</RootNamespace>
-    <AssemblyName>$(ModName)Client</AssemblyName>
+    <AssemblyName>$(ModName)$(BuildTarget)</AssemblyName>
   </PropertyGroup>
 
   <Target Name="CopyFiles" AfterTargets="Build">
