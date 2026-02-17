@@ -1,5 +1,5 @@
 <Project>
   <PropertyGroup>
-    <ModDeployDir>C:\dev\FakeFish\Barotrauma-development\Barotrauma\bin\DebugWindows\net8.0\LocalMods</ModDeployDir>
+    <ModDeployDir>LocalMods</ModDeployDir>
   </PropertyGroup>
 </Project>
