@@ -1,5 +1,6 @@
 <Project>
   <ItemGroup>
     <!-- Add misc references here -->
+    <ProjectReference Include="$(MSBuildThisFileDirectory)Libraries\moonsharp\MoonSharp.Interpreter\MoonSharp.Interpreter.csproj" />
   </ItemGroup>
 </Project>

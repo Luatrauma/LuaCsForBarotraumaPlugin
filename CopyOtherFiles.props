@@ -1,7 +1,9 @@
 <Project>
   <Target Name="CopyOtherFiles" AfterTargets="Build">
     <ItemGroup>
-      <!-- 
+      <Files Include="MoonSharp.Interpreter.dll" />
+      <Files Include="MoonSharp.Interpreter.pdb" />
+      <!--
       Add any files you need copied from the output folder
       <Files Include="MyLibrary.dll" />
       <Files Include="MyLibrary.pdb" />
