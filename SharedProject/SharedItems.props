@@ -1,10 +1,10 @@
 <Project>
   <ItemGroup Condition="'$(UsePublicizedAssemblies)' != 'true'">
-    <PackageReference Include="Barotrauma.ReferenceAssemblies.Vanilla" Version="*" />
+    <PackageReference Include="Barotrauma.ReferenceAssemblies.Vanilla" GeneratePathProperty="true" Version="*" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(UsePublicizedAssemblies)' == 'true'">
-    <PackageReference Include="Barotrauma.ReferenceAssemblies.Vanilla.Publicized" Version="*" />
+    <PackageReference Include="Barotrauma.ReferenceAssemblies.Vanilla.Publicized" GeneratePathProperty="true" Version="*" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,13 +18,14 @@
 
   <Import Project="..\References.props" />
 
+  <PropertyGroup>
+    <BarotraumaPackageAssembly Condition="'$(UsePublicizedAssemblies)' != 'true'">$(PkgBarotrauma_ReferenceAssemblies_Vanilla)</BarotraumaPackageAssembly>
+    <BarotraumaPackageAssembly Condition="'$(UsePublicizedAssemblies)' == 'true'">$(PkgBarotrauma_ReferenceAssemblies_Vanilla_Publicized)</BarotraumaPackageAssembly>
+  </PropertyGroup>
+
   <Target Name="ReadGameVersion" AfterTargets="ResolveAssemblyReferences"
     BeforeTargets="GenerateAssemblyInfo">
-    <ItemGroup>
-      <GameAssembly Include="@(ReferencePath)" Condition="'%(Filename)' == 'Barotrauma'" />
-    </ItemGroup>
-
-    <GetAssemblyIdentity AssemblyFiles="@(GameAssembly)">
+    <GetAssemblyIdentity AssemblyFiles="$(BarotraumaPackageAssembly)\assemblies\Barotrauma.dll">
       <Output TaskParameter="Assemblies" ItemName="GameAssemblyIdentity" />
     </GetAssemblyIdentity>
 
