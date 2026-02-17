@@ -5,6 +5,9 @@ using MoonSharp.Interpreter;
 using Microsoft.Xna.Framework;
 using Barotrauma.Networking;
 
+
+// TODO Lua shims
+/*
 namespace Barotrauma.Networking
 {
     partial class Client
@@ -108,3 +111,4 @@ namespace Barotrauma.Items.Components
     {
     }
 }
+*/

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 
+// TODO Lua shims
+/*
 namespace Barotrauma.Networking
 {
 	partial class Client
@@ -105,3 +107,4 @@ namespace Barotrauma.Items.Components
 		}
 	}
 }
+*/

@@ -11,6 +11,7 @@ namespace Barotrauma
     {
         public static double Time => Timing.TotalTime;
         public static double GetTime() => Time;
+        /*
         public static double AccumulatorMax
         {
             get
@@ -22,6 +23,7 @@ namespace Barotrauma
                 Timing.AccumulatorMax = value;
             }
         }
+        */
 
         private class TimerComparer : IComparer<TimedAction>
         {

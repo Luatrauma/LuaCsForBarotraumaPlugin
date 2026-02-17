@@ -148,6 +148,7 @@ namespace Barotrauma.LuaCs
         public bool disableDisconnectCharacter = false;
         public bool enableControlHusk = false;
 
+        /*
         public int MapEntityUpdateInterval
         {
             get { return MapEntity.MapEntityUpdateInterval; }
@@ -172,6 +173,7 @@ namespace Barotrauma.LuaCs
             set { Character.CharacterUpdateInterval = value; }
         }
 
+        */
 
         public HashSet<Item> UpdatePriorityItems = new HashSet<Item>();
         public HashSet<Character> UpdatePriorityCharacters = new HashSet<Character>();
@@ -538,8 +540,8 @@ namespace Barotrauma.LuaCs
 
         public void Stop()
         {
-            MapEntityUpdateInterval = 1;
-            CharacterUpdateInterval = 1;
+            // MapEntityUpdateInterval = 1;
+            // CharacterUpdateInterval = 1;
 
             foreach (var cmd in luaAddedCommand)
             {
