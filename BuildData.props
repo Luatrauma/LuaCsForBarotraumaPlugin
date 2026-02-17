@@ -3,7 +3,7 @@
     <!-- 
     IMPORTANT: Don't make use of special (ie: spaces / : ; , \ < > ?) (periods "." are good) and non-english characters in the ModName.
      -->    
-    <ModName>BaseMod</ModName>
+    <ModName>LuaCsForBarotrauma</ModName>
     <RepositoryURL></RepositoryURL>
 
     <!-- 
