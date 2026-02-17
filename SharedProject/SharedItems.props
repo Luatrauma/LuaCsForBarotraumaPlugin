@@ -16,6 +16,8 @@
     </ProjectReference>
   </ItemGroup>
 
+  <Import Project="..\References.props" />
+
   <Target Name="ReadGameVersion" AfterTargets="ResolveAssemblyReferences"
     BeforeTargets="GenerateAssemblyInfo">
     <ItemGroup>

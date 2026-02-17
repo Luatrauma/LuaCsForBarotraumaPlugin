@@ -1,0 +1,13 @@
+<Project>
+  <Target Name="CopyOtherFiles" AfterTargets="Build">
+    <ItemGroup>
+      <!-- 
+      Add any files you need copied from the output folder
+      <Files Include="MyLibrary.dll" />
+      <Files Include="MyLibrary.pdb" />
+      -->
+    </ItemGroup>
+
+    <Copy SourceFiles="@(Files->'$(TargetDir)%(Identity)')" DestinationFolder="$(ModDeployDir)\$(ModName)\$(PlatformName)" />
+  </Target>
+</Project>

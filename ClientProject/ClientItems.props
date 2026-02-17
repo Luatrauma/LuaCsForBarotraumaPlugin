@@ -26,4 +26,6 @@
 
     <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(ModDeployDir)\$(ModName)\$(PlatformName)" />
   </Target>
+
+  <Import Project="..\CopyOtherFiles.props" />
 </Project>

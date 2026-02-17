@@ -11,7 +11,6 @@
 
   <Import Project="..\SharedProject\SharedProject.projitems" Label="Shared" />
   <Import Project="..\SharedProject\SharedItems.props" />
-
   <PropertyGroup>
     <RootNamespace>$(ModName)</RootNamespace>
     <AssemblyName>$(ModName)$(BuildTarget)</AssemblyName>
@@ -26,4 +25,6 @@
 
     <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(ModDeployDir)\$(ModName)\$(PlatformName)" />
   </Target>
+
+  <Import Project="..\CopyOtherFiles.props" />
 </Project>
