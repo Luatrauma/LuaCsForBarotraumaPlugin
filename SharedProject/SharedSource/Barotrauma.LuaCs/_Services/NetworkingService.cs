@@ -6,6 +6,9 @@ using FluentResults;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -46,6 +49,36 @@ internal partial class NetworkingService : INetworkingService
         NetMessageInternalId,
         NetMessageNetId,
         ReceiveNetIds
+    }
+
+    private ClientPacketHeader? clientHeader = null;
+    public ClientPacketHeader ClientHeader
+    {
+        get
+        {
+            if (clientHeader == null)
+            {
+                byte lastHeader = (byte)Enum.GetValues(typeof(ClientPacketHeader)).Cast<ClientPacketHeader>().Last();
+                clientHeader = (ClientPacketHeader)(lastHeader + 1);
+            }
+
+            return (ClientPacketHeader)clientHeader;
+        }
+    }
+
+    private ServerPacketHeader? serverHeader = null;
+    public ServerPacketHeader ServerHeader
+    {
+        get
+        {
+            if (serverHeader == null)
+            {
+                byte lastHeader = (byte)Enum.GetValues(typeof(ServerPacketHeader)).Cast<ServerPacketHeader>().Last();
+                serverHeader = (ServerPacketHeader)(lastHeader + 1);
+            }
+
+            return (ServerPacketHeader)serverHeader;
+        }
     }
 
 
@@ -94,8 +127,18 @@ internal partial class NetworkingService : INetworkingService
 
     public void Receive(string netIdString, NetMessageReceived callback) => Receive(new NetId(netIdString), callback);
     public void Receive(Guid netIdGuid, NetMessageReceived callback) => Receive(new NetId(netIdGuid.ToString()), callback);
-    public IWriteMessage Start(string netIdString) => Start(new NetId(netIdString));
+    public IWriteMessage Start(string netIdString)
+    {
+        if (netIdString == null)
+        {
+            // idk why but Lua calls this method with null instead of the Start method with no arguments
+            return new WriteOnlyMessage();
+        }
+
+        return Start(new NetId(netIdString));
+    }
     public IWriteMessage Start(Guid netIdGuid) => Start(new NetId(netIdGuid.ToString()));
+    public IWriteMessage Start() => new WriteOnlyMessage();
 
     internal void Receive(NetId netId, NetMessageReceived callback)
     {
@@ -244,4 +287,98 @@ internal partial class NetworkingService : INetworkingService
     {
         IsDisposed = true;
     }
+
+    #region Compatiblity
+
+    private static readonly HttpClient client = new HttpClient();
+
+    public async void HttpRequest(string url, LuaCsAction callback, string data = null, string method = "POST", string contentType = "application/json", Dictionary<string, string> headers = null, string savePath = null)
+    {
+        try
+        {
+            HttpRequestMessage request = new HttpRequestMessage(new HttpMethod(method), url);
+
+            if (headers != null)
+            {
+                foreach (var header in headers)
+                {
+                    request.Headers.Add(header.Key, header.Value);
+                }
+            }
+
+            if (data != null)
+            {
+                request.Content = new StringContent(data, Encoding.UTF8, contentType);
+            }
+
+            HttpResponseMessage response = await client.SendAsync(request);
+
+            if (savePath != null)
+            {
+                if (LuaCsFile.IsPathAllowedException(savePath))
+                {
+                    byte[] responseData = await response.Content.ReadAsByteArrayAsync();
+
+                    using (var fileStream = new FileStream(savePath, FileMode.Create, FileAccess.Write))
+                    {
+                        fileStream.Write(responseData, 0, responseData.Length);
+                    }
+                }
+            }
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            CrossThread.RequestExecutionOnMainThread(() =>
+            {
+                callback(responseBody, (int)response.StatusCode, response.Headers);
+            });
+        }
+        catch (HttpRequestException e)
+        {
+            CrossThread.RequestExecutionOnMainThread(() => { callback(e.Message, e.StatusCode, null); });
+        }
+        catch (Exception e)
+        {
+            CrossThread.RequestExecutionOnMainThread(() => { callback(e.Message, null, null); });
+        }
+    }
+
+    public void HttpPost(string url, LuaCsAction callback, string data, string contentType = "application/json", Dictionary<string, string> headers = null, string savePath = null)
+    {
+        HttpRequest(url, callback, data, "POST", contentType, headers, savePath);
+    }
+
+
+    public void HttpGet(string url, LuaCsAction callback, Dictionary<string, string> headers = null, string savePath = null)
+    {
+        HttpRequest(url, callback, null, "GET", null, headers, savePath);
+    }
+
+    public void CreateEntityEvent(INetSerializable entity, NetEntityEvent.IData extraData)
+    {
+        GameMain.NetworkMember.CreateEntityEvent(entity, extraData);
+    }
+
+    public ushort LastClientListUpdateID
+    {
+        get { return GameMain.NetworkMember.LastClientListUpdateID; }
+        set { GameMain.NetworkMember.LastClientListUpdateID = value; }
+    }
+
+#if SERVER
+    public void ClientWriteLobby(Client client) => GameMain.Server.ClientWriteLobby(client);
+
+    public void UpdateClientPermissions(Client client)
+    {
+        GameMain.Server.UpdateClientPermissions(client);
+    }
+
+    public int FileSenderMaxPacketsPerUpdate
+    {
+        get { return FileSender.FileTransferOut.MaxPacketsPerUpdate; }
+        set { FileSender.FileTransferOut.MaxPacketsPerUpdate = value; }
+    }
+#endif
+
+    #endregion
 }

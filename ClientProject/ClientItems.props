@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <DefineConstants>$(DefineConstants);CLIENT</DefineConstants>
     <BuildTarget>Client</BuildTarget>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <Import Project="..\BuildData.props" />

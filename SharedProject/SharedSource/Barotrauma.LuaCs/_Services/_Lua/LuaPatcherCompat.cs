@@ -197,7 +197,7 @@ namespace Barotrauma.LuaCs
                 }
             }
         }
-        protected void HookMethod(string identifier, string className, string methodName, string[] parameterNames, LuaCsCompatPatchFunc patch, ILuaCsHook.HookMethodType hookMethodType = ILuaCsHook.HookMethodType.Before)
+        public void HookMethod(string identifier, string className, string methodName, string[] parameterNames, LuaCsCompatPatchFunc patch, ILuaCsHook.HookMethodType hookMethodType = ILuaCsHook.HookMethodType.Before)
         {
             var method = ResolveMethod(className, methodName, parameterNames);
             if (method == null) return;
@@ -207,11 +207,11 @@ namespace Barotrauma.LuaCs
             }
             HookMethod(identifier, method, patch, hookMethodType);
         }
-        protected void HookMethod(string identifier, string className, string methodName, LuaCsCompatPatchFunc patch, ILuaCsHook.HookMethodType hookMethodType = ILuaCsHook.HookMethodType.Before) =>
+        public void HookMethod(string identifier, string className, string methodName, LuaCsCompatPatchFunc patch, ILuaCsHook.HookMethodType hookMethodType = ILuaCsHook.HookMethodType.Before) =>
             HookMethod(identifier, className, methodName, null, patch, hookMethodType);
-        protected void HookMethod(string className, string methodName, LuaCsCompatPatchFunc patch, ILuaCsHook.HookMethodType hookMethodType = ILuaCsHook.HookMethodType.Before) =>
+        public void HookMethod(string className, string methodName, LuaCsCompatPatchFunc patch, ILuaCsHook.HookMethodType hookMethodType = ILuaCsHook.HookMethodType.Before) =>
             HookMethod("", className, methodName, null, patch, hookMethodType);
-        protected void HookMethod(string className, string methodName, string[] parameterNames, LuaCsCompatPatchFunc patch, ILuaCsHook.HookMethodType hookMethodType = ILuaCsHook.HookMethodType.Before) =>
+        public void HookMethod(string className, string methodName, string[] parameterNames, LuaCsCompatPatchFunc patch, ILuaCsHook.HookMethodType hookMethodType = ILuaCsHook.HookMethodType.Before) =>
             HookMethod("", className, methodName, parameterNames, patch, hookMethodType);
 
 

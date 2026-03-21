@@ -12,13 +12,13 @@ public sealed class LuaCsInfoProvider : ILuaCsInfoProvider
     }
 
     public bool IsDisposed => false;
-    public bool IsCsEnabled => GameMain.LuaCs.IsCsEnabled;
-    public bool DisableErrorGUIOverlay => GameMain.LuaCs.DisableErrorGUIOverlay;
-    public bool HideUserNamesInLogs => GameMain.LuaCs.HideUserNamesInLogs;
-    public ulong LuaForBarotraumaSteamId => GameMain.LuaCs.LuaForBarotraumaSteamId;
-    public bool RestrictMessageSize => GameMain.LuaCs.RestrictMessageSize;
-    public string LocalDataSavePath =>  GameMain.LuaCs.LocalDataSavePath;
-    public RunState CurrentRunState => GameMain.LuaCs.CurrentRunState;
+    public bool IsCsEnabled => LuaCsSetup.Instance.IsCsEnabled;
+    public bool DisableErrorGUIOverlay => LuaCsSetup.Instance.DisableErrorGUIOverlay;
+    public bool HideUserNamesInLogs => LuaCsSetup.Instance.HideUserNamesInLogs;
+    public ulong LuaForBarotraumaSteamId => LuaCsSetup.Instance.LuaForBarotraumaSteamId;
+    public bool RestrictMessageSize => LuaCsSetup.Instance.RestrictMessageSize;
+    public string LocalDataSavePath => LuaCsSetup.Instance.LocalDataSavePath;
+    public RunState CurrentRunState => LuaCsSetup.Instance.CurrentRunState;
     public ContentPackage LuaCsForBarotraumaPackage
     {
         get

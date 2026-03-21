@@ -19,7 +19,7 @@ partial class NetworkingService : INetworkingService, IEventClientRawNetMessageR
     {
         var message = new WriteOnlyMessage();
 
-        message.WriteByte((byte)ServerPacketHeader.LUA_NET_MESSAGE);
+        message.WriteByte((byte)ServerHeader);
 
         if (idToPacket.ContainsKey(netId))
         {
@@ -35,9 +35,9 @@ partial class NetworkingService : INetworkingService, IEventClientRawNetMessageR
         return message;
     }
 
-    public void OnReceivedClientNetMessage(IReadMessage netMessage, ClientPacketHeader serverPacketHeader, NetworkConnection sender)
+    public void OnReceivedClientNetMessage(IReadMessage netMessage, ClientPacketHeader clientPacketHeader, NetworkConnection sender)
     {
-        if (serverPacketHeader != ClientPacketHeader.LUA_NET_MESSAGE)
+        if (clientPacketHeader != ClientHeader)
         {
             return;
         }
@@ -134,7 +134,7 @@ partial class NetworkingService : INetworkingService, IEventClientRawNetMessageR
     private void WriteIdToAll(ushort packet, NetId netId)
     {
         WriteOnlyMessage message = new WriteOnlyMessage();
-        message.WriteByte((byte)ServerPacketHeader.LUA_NET_MESSAGE);
+        message.WriteByte((byte)ServerHeader);
         message.WriteByte((byte)ServerToClient.ReceiveNetIds);
 
         message.WriteUInt16(1);
@@ -147,7 +147,7 @@ partial class NetworkingService : INetworkingService, IEventClientRawNetMessageR
     private void WriteSync(Client client)
     {
         WriteOnlyMessage message = new WriteOnlyMessage();
-        message.WriteByte((byte)ServerPacketHeader.LUA_NET_MESSAGE);
+        message.WriteByte((byte)ServerHeader);
         message.WriteByte((byte)ServerToClient.ReceiveNetIds);
 
         message.WriteUInt16((ushort)packetToId.Count());
@@ -180,4 +180,7 @@ partial class NetworkingService : INetworkingService, IEventClientRawNetMessageR
             GameMain.Server.ServerPeer.Send(netMessage, connection, deliveryMethod);
         }
     }
+
+    public void Send(IWriteMessage netMessage, NetworkConnection connection = null, DeliveryMethod deliveryMethod = DeliveryMethod.Reliable) 
+        => SendToClient(netMessage, connection, deliveryMethod);
 }

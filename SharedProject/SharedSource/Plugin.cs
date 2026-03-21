@@ -14,10 +14,7 @@ public partial class Plugin : IBarotraumaPlugin
     { 
         DebugConsole.NewMessage("LuaCsForBarotrauma loaded", Color.Lime);
 
-        Script script = new Script();
-        UserData.RegisterType(typeof(IDebugConsole));
-        script.Globals["DebugConsole"] = UserData.Create(DebugConsole);
-        script.DoString("DebugConsole.NewMessage('hi')");
+        LuaCsSetup.Instance.GetType();
     }
 
     public void Dispose() 

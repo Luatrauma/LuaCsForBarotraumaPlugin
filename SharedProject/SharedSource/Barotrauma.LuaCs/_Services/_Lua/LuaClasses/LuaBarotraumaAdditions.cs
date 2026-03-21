@@ -5,11 +5,10 @@ using MoonSharp.Interpreter;
 using Microsoft.Xna.Framework;
 using Barotrauma.Networking;
 
-
-// TODO Lua shims
 /*
 namespace Barotrauma.Networking
 {
+
     partial class Client
     {
         public static IReadOnlyList<Client> ClientList
@@ -62,7 +61,7 @@ namespace Barotrauma
     {
         public object GetComponentString(string component)
         {
-            Type type = GameMain.LuaCs.PluginManagementService.GetType("Barotrauma.Items.Components." + component);
+            Type type = LuaCsSetup.Instance.PluginManagementService.GetType("Barotrauma.Items.Components." + component);
             
             if (type == null)
             {

@@ -30,11 +30,13 @@ public abstract class SettingBase : ISettingBase
     }
 
     private int _isDisposed = 0;
-    protected virtual bool IsDisposed
+    public virtual bool IsDisposed
     {
         get => ModUtils.Threading.GetBool(ref _isDisposed);
         private set => ModUtils.Threading.SetBool(ref _isDisposed, value);
     }
+
+    protected abstract void OnDispose();
 
     public virtual void Dispose()
     {
@@ -43,8 +45,8 @@ public abstract class SettingBase : ISettingBase
             return;
         }
         
+        OnDispose();
         ConfigInfo = null;
-        OnValueChanged = null;
         GC.SuppressFinalize(this);
     }
     
@@ -55,6 +57,6 @@ public abstract class SettingBase : ISettingBase
     public abstract string GetDefaultStringValue();
 
     public abstract bool TrySetValue(OneOf<string, XElement> value);
-    public event Action<ISettingBase> OnValueChanged;
+    public abstract event Action<ISettingBase> OnValueChanged;
     public abstract OneOf<string, XElement> GetSerializableValue();
 }

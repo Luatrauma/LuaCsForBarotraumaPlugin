@@ -29,6 +29,7 @@ public interface ISettingBase : IDataInfo, IEquatable<ISettingBase>, IDisposable
     #if CLIENT
     IConfigDisplayInfo GetDisplayInfo();
     #endif
+    bool IsDisposed { get; }
     Type GetValueType();
     string GetStringValue();
     string GetDefaultStringValue();

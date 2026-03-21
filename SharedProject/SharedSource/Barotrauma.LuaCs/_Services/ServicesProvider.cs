@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using LightInject;
+using Microsoft.Toolkit.Diagnostics;
 
 namespace Barotrauma.LuaCs;
 
@@ -15,14 +16,11 @@ public class ServicesProvider : IServicesProvider
 {
     private ServiceContainer _serviceContainerInst;
     private ServiceContainer ServiceContainer => _serviceContainerInst;
-    /// <summary>
-    /// Definition: [Key: InterfaceType, Value: ConcreteTypes]
-    /// </summary>
-    private readonly ConcurrentDictionary<Type, ConcurrentBag<Type>> _systemTypeDefs = new();
+
     /// <summary>
     /// Definition: [Key: ConcreteType, Value: TypeInstance]
     /// </summary>
-    private readonly ConcurrentDictionary<Type, ISystem> _systemInstances = new();
+    private ImmutableArray<ISystem> _systemInstances = ImmutableArray<ISystem>.Empty;
     private readonly ReaderWriterLockSlim _serviceLock = new();
 
     public ServicesProvider()
@@ -41,7 +39,6 @@ public class ServicesProvider : IServicesProvider
         if (typeof(TSvcInterface).IsAssignableTo(typeof(ISystem)))
         {
             lifetimeInstance = new PerContainerLifetime();
-            _systemTypeDefs.GetOrAdd(typeof(TSvcInterface), (type) => new ConcurrentBag<Type>());
         }
         
         if (lifetimeInstance is null)
@@ -87,10 +84,9 @@ public class ServicesProvider : IServicesProvider
         }
         
         // ISystem services must run as a lifetime singleton
-        if (typeof(TSvcInterface).IsAssignableTo(typeof(ISystem)))
+        if (typeof(TService).IsAssignableTo(typeof(ISystem)))
         {
             lifetimeInstance = new PerContainerLifetime();
-            _systemTypeDefs.GetOrAdd(typeof(TSvcInterface), (type) => new ConcurrentBag<Type>());
         }
         
         if (lifetimeInstance is null)
@@ -142,15 +138,15 @@ public class ServicesProvider : IServicesProvider
         try
         {
             _serviceLock.EnterWriteLock();
-            ServiceContainer?.Compile();
-            foreach (var typeDef in _systemTypeDefs.Values.SelectMany(type => type))
+            ServiceContainer!.Compile();
+            if (!_systemInstances.IsDefaultOrEmpty)
             {
-                if (_systemInstances.ContainsKey(typeDef))
-                {
-                    continue;
-                }
-                _systemInstances[typeDef] = (ISystem)ServiceContainer?.TryGetInstance(typeDef);
+                ThrowHelper.ThrowInvalidOperationException($"Systems are already instanced!");
             }
+
+            _systemInstances = ServiceContainer.GetAllInstances(typeof(ISystem))
+                .Select(obj => (ISystem)obj)
+                .ToImmutableArray();
         }
         finally
         {
@@ -250,7 +246,7 @@ public class ServicesProvider : IServicesProvider
         try
         {
             _serviceLock.EnterWriteLock();
-            foreach (var system in _systemInstances.Values)
+            foreach (var system in _systemInstances)
             {
                 try
                 {
@@ -261,8 +257,7 @@ public class ServicesProvider : IServicesProvider
                     // ignored, no logging services available.
                 }
             }
-            _systemInstances.Clear();
-            _systemTypeDefs.Clear();
+            _systemInstances = ImmutableArray<ISystem>.Empty;
             _serviceContainerInst?.Dispose();
             _serviceContainerInst = new ServiceContainer();
         }

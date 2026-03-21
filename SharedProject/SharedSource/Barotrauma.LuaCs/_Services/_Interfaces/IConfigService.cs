@@ -19,6 +19,7 @@ public partial interface IConfigService : IReusableService, ILuaConfigService
     Task<FluentResults.Result> LoadConfigsProfilesAsync(ImmutableArray<IConfigResourceInfo> configProfileResources);
     FluentResults.Result LoadSavedValueForConfig(ISettingBase setting);
     FluentResults.Result LoadSavedConfigsValues();
+    FluentResults.Result ApplyConfigProfile(ContentPackage package, string internalName);
     FluentResults.Result SaveConfigValue(ISettingBase setting);
     FluentResults.Result DisposePackageData(ContentPackage package);
     FluentResults.Result DisposeAllPackageData();

@@ -21,7 +21,7 @@ using Platform = Barotrauma.LuaCs.Data.Platform;
 // ReSharper disable ConvertClosureToMethodGroup
 
 // This file is cursed, we put everything in it, and I'm not sorry about it.
-namespace Barotrauma.LuaCs
+namespace Barotrauma
 {
 
     public static class ModUtils
@@ -74,27 +74,27 @@ namespace Barotrauma.LuaCs
             public static void PrintMessage(string s)
             {
 #if SERVER
-                GameMain.LuaCs.Logger.LogMessage($"{s}");
+                LuaCsSetup.Instance.Logger.LogMessage($"{s}");
 #else
-                GameMain.LuaCs.Logger.LogMessage($"{s}");
+                LuaCsSetup.Instance.Logger.LogMessage($"{s}");
 #endif
             }
 
             public static void PrintWarning(string s)
             {
 #if SERVER
-                GameMain.LuaCs.Logger.Log($"{s}", Color.Yellow);
+                LuaCsSetup.Instance.Logger.Log($"{s}", Color.Yellow);
 #else
-                GameMain.LuaCs.Logger.Log($"{s}", Color.Yellow);
+                LuaCsSetup.Instance.Logger.Log($"{s}", Color.Yellow);
 #endif
             }
 
             public static void PrintError(string s)
             {
 #if SERVER
-                GameMain.LuaCs.Logger.LogError($"{s}");
+                LuaCsSetup.Instance.Logger.LogError($"{s}");
 #else
-                GameMain.LuaCs.Logger.LogError($"{s}");
+                LuaCsSetup.Instance.Logger.LogError($"{s}");
 #endif
             }
         }

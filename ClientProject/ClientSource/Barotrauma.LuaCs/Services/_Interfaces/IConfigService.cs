@@ -10,8 +10,5 @@ namespace Barotrauma.LuaCs;
 
 public partial interface IConfigService
 {
-    ImmutableArray<IDisplayableConfigBase> GetDisplayableConfigs();
-    ImmutableArray<IDisplayableConfigBase> GetDisplayableConfigsForPackage(ContentPackage package);
-    
-    FluentResults.Result<ISettingControl> AddConfigControl(IConfigInfo configInfo);
+    ImmutableArray<ISettingBase> GetDisplayableConfigs();
 }

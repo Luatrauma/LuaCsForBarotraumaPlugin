@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using static Barotrauma.ContentPackageManager;
+using static Barotrauma.InteractionLabelManager;
 
 namespace Barotrauma.LuaCs;
 
@@ -42,7 +43,7 @@ internal class HarmonyEventPatchesService : IService
 #if CLIENT
     [HarmonyPatch(typeof(GameSession), nameof(GameSession.StartRound), new Type[]
     {
-        typeof(LevelData), typeof(bool), typeof(SubmarineInfo), typeof(SubmarineInfo)
+        typeof(LevelData), typeof(bool)
     }), HarmonyPostfix]
     public static void GameSession_StartRound_Post()
     {

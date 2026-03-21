@@ -354,5 +354,25 @@ public partial class EventService : IEventService
     {
         _luaPatcher.HookMethod(identifier, method, patch, hookType, owner);
     }
+
+    public void HookMethod(string identifier, string className, string methodName, string[] parameterNames, LuaCsPatch patch, LuaCsHook.HookMethodType hookMethodType = LuaCsHook.HookMethodType.Before)
+    {
+        _luaPatcher.HookMethod(identifier, className, methodName, parameterNames, patch, hookMethodType);
+    }
+
+    public void HookMethod(string identifier, string className, string methodName, LuaCsPatch patch, LuaCsHook.HookMethodType hookMethodType = LuaCsHook.HookMethodType.Before)
+    {
+        _luaPatcher.HookMethod(identifier, className, methodName, patch, hookMethodType);
+    }
+
+    public void HookMethod(string className, string methodName, LuaCsPatch patch, LuaCsHook.HookMethodType hookMethodType = LuaCsHook.HookMethodType.Before)
+    {
+        _luaPatcher.HookMethod(className, methodName, patch, hookMethodType);
+    }
+
+    public void HookMethod(string className, string methodName, string[] parameterNames, LuaCsPatch patch, LuaCsHook.HookMethodType hookMethodType = LuaCsHook.HookMethodType.Before)
+    {
+        _luaPatcher.HookMethod(className, methodName, parameterNames, patch, hookMethodType);
+    }
     #endregion
 }

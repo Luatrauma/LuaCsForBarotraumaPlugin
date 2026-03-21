@@ -93,12 +93,14 @@ public class PluginManagementService : IAssemblyManagementService
             if (_baseMetadataReferences.IsDefaultOrEmpty)
             {
                 _baseMetadataReferences = Basic.Reference.Assemblies.Net80.References.All
-                    .Union(AssemblyLoadContext.Default.Assemblies
+                    .Union(
+                        AssemblyLoadContext.Default.Assemblies
+                        .Union(AssemblyLoadContext.GetLoadContext(typeof(LuaCsSetup).Assembly).Assemblies)
                         .Where(ass =>
                             !ass.IsDynamic &&
-                            !ass.GetName().FullName.EndsWith("Barotrauma.Core") &&
-                            !ass.GetName().FullName.EndsWith("Barotrauma") &&
-                            !ass.GetName().FullName.EndsWith("DedicatedServer"))
+                            !ass.GetName().FullName.StartsWith("BarotraumaCore") &&
+                            !ass.GetName().FullName.StartsWith("Barotrauma") &&
+                            !ass.GetName().FullName.StartsWith("DedicatedServer"))
                         .Select(MetadataReference (ass) => MetadataReference.CreateFromFile(ass.Location)))
                     .Where(ar => ar is not null)
                     .ToImmutableArray();
@@ -163,7 +165,7 @@ public class PluginManagementService : IAssemblyManagementService
                     foreach (var ass in loader.Value.Assemblies)
                     {
                         _logger?.LogWarning($"{nameof(PluginManagementService)}: Fallback manual unsubscription of assemblies: {ass.GetName()}");
-                        ReflectionUtils.RemoveAssemblyFromCache(ass);
+                        //ReflectionUtils.RemoveAssemblyFromCache(ass);
                     }
                 }
             }
@@ -356,6 +358,8 @@ public class PluginManagementService : IAssemblyManagementService
         {
             return FluentResults.Result.Ok();
         }
+
+        _logger.LogMessage($"Activating {nameof(IAssemblyPlugin)} instances");
         
         var loadedPackagePlugins =
             ImmutableArray.CreateBuilder<(ContentPackage Package, ImmutableArray<IAssemblyPlugin> Plugins)>();
@@ -368,6 +372,7 @@ public class PluginManagementService : IAssemblyManagementService
             {
                 try
                 {
+                    _logger.LogMessage($"- Instantiating {pluginType.Name}");
                     var plugin = (IAssemblyPlugin)Activator.CreateInstance(pluginType);
                     _pluginInjectorContainer.InjectProperties(plugin);
                     _pluginInjectorContainer.Register(pluginType, fac => plugin);
@@ -456,7 +461,7 @@ public class PluginManagementService : IAssemblyManagementService
             LoadAndCompileScriptAssemblies(contentPack);
             foreach (var ass in _assemblyLoaders[contentPack.Key].Assemblies)
             {
-                ReflectionUtils.AddNonAbstractAssemblyTypes(ass);
+                //ReflectionUtils.AddNonAbstractAssemblyTypes(ass);
             }
         }
         
@@ -560,9 +565,12 @@ public class PluginManagementService : IAssemblyManagementService
                         compileWithInternalName = resourceInfo.UseInternalAccessName;
                 
                         CancellationToken token = CancellationToken.None;
-                
+
+                        string sourceCode = loadRes.Value;
+                        sourceCode = DoSourceCodeTextCompatibilityPass(sourceCode);
+
                         syntaxTreesBuilder.Add(SyntaxFactory.ParseSyntaxTree(
-                            text: loadRes.Value,
+                            text: sourceCode,
                             options: ScriptParseOptions,
                             path: null,
                             encoding: Encoding.Default,
@@ -576,9 +584,7 @@ public class PluginManagementService : IAssemblyManagementService
                     continue;
                 }
                 
-#if DEBUG
-                _logger.Log($"[DEBUG] Compiling assembly for {scripts.Key}, in ContentPackage {contentPackRes.Key.Name}");
-#endif
+                _logger.LogMessage($"Compiling assembly for {scripts.Key}, in ContentPackage {contentPackRes.Key.Name}");
                 
                 result.WithReasons(assemblyLoader.CompileScriptAssembly(
                     assemblyName: scripts.Key,
@@ -613,6 +619,11 @@ public class PluginManagementService : IAssemblyManagementService
         }
     }
 
+    private string DoSourceCodeTextCompatibilityPass(string sourceCode)
+    {
+        return sourceCode.Replace("GameMain.LuaCs", "LuaCsSetup.Instance");
+    }
+
     private IntPtr OnAssemblyLoaderResolvingUnmanaged(Assembly arg1, string arg2)
     {
         // TODO: Implement extern assembly lookup for Native/Unmanaged Assemblies.
@@ -621,9 +632,17 @@ public class PluginManagementService : IAssemblyManagementService
 
     private Assembly OnAssemblyLoaderResolvingManaged(IAssemblyLoaderService requestingLoader, AssemblyName searchName)
     {
-        using var lck = _operationsLock.AcquireReaderLock().ConfigureAwait(false).GetAwaiter().GetResult();
+        //using var lck = _operationsLock.AcquireReaderLock().ConfigureAwait(false).GetAwaiter().GetResult();
         IService.CheckDisposed(this);
-        
+
+        foreach (var assembly in AssemblyLoadContext.GetLoadContext(typeof(LuaCsSetup).Assembly).Assemblies)
+        {
+            if (assembly.GetName().FullName == searchName.FullName)
+            {
+                return assembly;
+            }
+        }
+
         foreach (var loader in _assemblyLoaders.Where(kvp => kvp.Value != requestingLoader)
                      .Select(kvp => kvp.Value).ToImmutableArray())
         {
@@ -671,7 +690,7 @@ public class PluginManagementService : IAssemblyManagementService
         
         results.WithReasons(UnsafeDisposeManagedTypeInstances().Reasons);
         
-        ReflectionUtils.ResetCache();
+        //ReflectionUtils.ResetCache();
         foreach (var loaderService in _assemblyLoaders)
         {
             try

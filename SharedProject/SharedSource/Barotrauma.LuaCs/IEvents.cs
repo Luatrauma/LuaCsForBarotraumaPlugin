@@ -1,10 +1,13 @@
 ﻿using Barotrauma.Items.Components;
 using Barotrauma.LuaCs.Data;
 using Barotrauma.Networking;
+using FarseerPhysics.Dynamics;
 using Microsoft.Xna.Framework;
+using MoonSharp.Interpreter;
 using Steamworks.Ugc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Barotrauma.LuaCs.Events;
@@ -136,6 +139,408 @@ internal interface IEventCharacterCreated : IEvent<IEventCharacterCreated>
     }
 }
 
+// TODO: harmony-fy
+internal interface IEventHumanCPRSuccess : IEvent<IEventHumanCPRSuccess>
+{
+    void OnCharacterCPRSuccess(HumanoidAnimController animController);
+
+    static IEventHumanCPRSuccess IEvent<IEventHumanCPRSuccess>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc)
+        => new LuaWrapper(luaFunc);
+
+    public sealed class LuaWrapper : LuaWrapperBase, IEventHumanCPRSuccess
+    {
+        public LuaWrapper(IDictionary<string, LuaCsFunc> luaFuncs) : base(luaFuncs)
+        {
+        }
+
+        public void OnCharacterCPRSuccess(HumanoidAnimController animController)
+        {
+            LuaFuncs[nameof(OnCharacterCPRSuccess)](animController);
+        }
+    }
+}
+
+// TODO: harmony-fy
+internal interface IEventHumanCPRFailed : IEvent<IEventHumanCPRFailed>
+{
+    void OnCharacterCPRFailed(HumanoidAnimController animController);
+
+    static IEventHumanCPRFailed IEvent<IEventHumanCPRFailed>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc)
+        => new LuaWrapper(luaFunc);
+
+    public sealed class LuaWrapper : LuaWrapperBase, IEventHumanCPRFailed
+    {
+        public LuaWrapper(IDictionary<string, LuaCsFunc> luaFuncs) : base(luaFuncs)
+        {
+        }
+
+        public void OnCharacterCPRFailed(HumanoidAnimController animController)
+        {
+            LuaFuncs[nameof(OnCharacterCPRFailed)](animController);
+        }
+    }
+}
+
+// TODO: harmony-fy
+internal interface IEventClientControlHusk : IEvent<IEventClientControlHusk>
+{
+    void OnClientControlHusk(Client client, Character husk);
+
+    static IEventClientControlHusk IEvent<IEventClientControlHusk>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc)
+        => new LuaWrapper(luaFunc);
+
+    public sealed class LuaWrapper : LuaWrapperBase, IEventClientControlHusk
+    {
+        public LuaWrapper(IDictionary<string, LuaCsFunc> luaFuncs) : base(luaFuncs)
+        {
+        }
+
+        public void OnClientControlHusk(Client client, Character husk)
+        {
+            LuaFuncs[nameof(OnClientControlHusk)](client, husk);
+        }
+    }
+}
+
+// TODO: harmony-fy
+internal interface IEventMeleeWeaponHandleImpact : IEvent<IEventMeleeWeaponHandleImpact>
+{
+    void OnMeleeWeaponHandleImpact(MeleeWeapon meleeWeapon, Body target);
+
+    static IEventMeleeWeaponHandleImpact IEvent<IEventMeleeWeaponHandleImpact>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc)
+        => new LuaWrapper(luaFunc);
+
+    public sealed class LuaWrapper : LuaWrapperBase, IEventMeleeWeaponHandleImpact
+    {
+        public LuaWrapper(IDictionary<string, LuaCsFunc> luaFuncs) : base(luaFuncs)
+        {
+        }
+
+        public void OnMeleeWeaponHandleImpact(MeleeWeapon meleeWeapon, Body target)
+        {
+            LuaFuncs[nameof(OnMeleeWeaponHandleImpact)](meleeWeapon, target);
+        }
+    }
+}
+
+// TODO: harmony-fy
+internal interface IEventServerLog : IEvent<IEventServerLog>
+{
+    void OnServerLog(string line, ServerLog.MessageType messageType);
+
+    static IEventServerLog IEvent<IEventServerLog>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc)
+        => new LuaWrapper(luaFunc);
+
+    public sealed class LuaWrapper : LuaWrapperBase, IEventServerLog
+    {
+        public LuaWrapper(IDictionary<string, LuaCsFunc> luaFuncs) : base(luaFuncs)
+        {
+        }
+
+        public void OnServerLog(string line, ServerLog.MessageType messageType)
+        {
+            LuaFuncs[nameof(OnServerLog)](line, messageType);
+        }
+    }
+}
+
+// TODO: harmony-fy
+internal interface IEventChatMessage : IEvent<IEventChatMessage>
+{
+    bool? OnChatMessage(string messageText, Client sender, ChatMessageType type, ChatMessage message);
+
+    static IEventChatMessage IEvent<IEventChatMessage>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc)
+        => new LuaWrapper(luaFunc);
+
+    public sealed class LuaWrapper : LuaWrapperBase, IEventChatMessage
+    {
+        public LuaWrapper(IDictionary<string, LuaCsFunc> luaFuncs) : base(luaFuncs)
+        {
+        }
+
+        public bool? OnChatMessage(string messageText, Client sender, ChatMessageType type, ChatMessage message)
+        {
+            object result = LuaFuncs[nameof(OnChatMessage)](messageText, sender, type, message);
+            if (result is DynValue dynValue && dynValue.Type == DataType.Boolean)
+            {
+                return dynValue.Boolean;
+            }
+
+            return null;
+        }
+    }
+}
+
+// TODO: harmony-fy
+internal interface IEventTryClientChangeName : IEvent<IEventTryClientChangeName>
+{
+    bool? OnTryClienChangeName(Client client, string newName, Identifier newJob, CharacterTeamType newTeam);
+
+    static IEventTryClientChangeName IEvent<IEventTryClientChangeName>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc)
+        => new LuaWrapper(luaFunc);
+
+    public sealed class LuaWrapper : LuaWrapperBase, IEventTryClientChangeName
+    {
+        public LuaWrapper(IDictionary<string, LuaCsFunc> luaFuncs) : base(luaFuncs)
+        {
+        }
+
+        public bool? OnTryClienChangeName(Client client, string newName, Identifier newJob, CharacterTeamType newTeam)
+        {
+            var result = LuaFuncs[nameof(OnTryClienChangeName)](client, newName, newJob, newTeam);
+            if (result is DynValue dynValue && dynValue.Type == DataType.Boolean)
+            {
+                return dynValue.Boolean;
+            }
+
+            return null;
+        }
+    }
+}
+
+// TODO: harmony-fy
+internal interface IEventChangeFallDamage : IEvent<IEventChangeFallDamage>
+{
+    float? OnChangeFallDamage(float impactDamage, Character character, Vector2 impactPos, Vector2 velocity);
+
+    static IEventChangeFallDamage IEvent<IEventChangeFallDamage>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc)
+        => new LuaWrapper(luaFunc);
+
+    public sealed class LuaWrapper : LuaWrapperBase, IEventChangeFallDamage
+    {
+        public LuaWrapper(IDictionary<string, LuaCsFunc> luaFuncs) : base(luaFuncs)
+        {
+        }
+
+        public float? OnChangeFallDamage(float impactDamage, Character character, Vector2 impactPos, Vector2 velocity)
+        {
+            var result = LuaFuncs[nameof(OnChangeFallDamage)](impactDamage, character, impactPos, velocity);
+            if (result is DynValue dynValue && dynValue.Type == DataType.Number)
+            {
+                return (float)dynValue.Number;
+            }
+
+            return null;
+        }
+    }
+}
+
+// TODO: harmony-fy
+internal interface IEventGapOxygenUpdate : IEvent<IEventGapOxygenUpdate>
+{
+    bool? OnGapOxygenUpdate(Gap gap, Hull hull1, Hull hull2);
+
+    static IEventGapOxygenUpdate IEvent<IEventGapOxygenUpdate>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc)
+        => new LuaWrapper(luaFunc);
+
+    public sealed class LuaWrapper : LuaWrapperBase, IEventGapOxygenUpdate
+    {
+        public LuaWrapper(IDictionary<string, LuaCsFunc> luaFuncs) : base(luaFuncs)
+        {
+        }
+
+        public bool? OnGapOxygenUpdate(Gap gap, Hull hull1, Hull hull2)
+        {
+            var result = LuaFuncs[nameof(OnGapOxygenUpdate)](gap, hull1, hull2);
+            if (result is DynValue dynValue && dynValue.Type == DataType.Boolean)
+            {
+                return dynValue.Boolean;
+            }
+
+            return null;
+        }
+    }
+}
+
+// TODO: harmony-fy
+internal interface IEventCharacterApplyDamage : IEvent<IEventCharacterApplyDamage>
+{
+    bool? OnCharacterApplyDamage(CharacterHealth characterHealth, AttackResult attackResult, Limb hitLimb, bool allowStacking);
+
+    static IEventCharacterApplyDamage IEvent<IEventCharacterApplyDamage>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc)
+        => new LuaWrapper(luaFunc);
+
+    public sealed class LuaWrapper : LuaWrapperBase, IEventCharacterApplyDamage
+    {
+        public LuaWrapper(IDictionary<string, LuaCsFunc> luaFuncs) : base(luaFuncs)
+        {
+        }
+
+        public bool? OnCharacterApplyDamage(CharacterHealth characterHealth, AttackResult attackResult, Limb hitLimb, bool allowStacking)
+        {
+            var result = LuaFuncs[nameof(OnCharacterApplyDamage)](characterHealth, attackResult, hitLimb, allowStacking);
+            if (result is DynValue dynValue && dynValue.Type == DataType.Boolean)
+            {
+                return dynValue.Boolean;
+            }
+
+            return null;
+        }
+    }
+}
+
+// TODO: harmony-fy
+internal interface IEventCharacterApplyAffliction : IEvent<IEventCharacterApplyAffliction>
+{
+    bool? OnCharacterApplyAffliction(CharacterHealth characterHealth, CharacterHealth.LimbHealth limbHealth, Affliction newAffliction, bool allowStacking);
+
+    static IEventCharacterApplyAffliction IEvent<IEventCharacterApplyAffliction>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc)
+        => new LuaWrapper(luaFunc);
+
+    public sealed class LuaWrapper : LuaWrapperBase, IEventCharacterApplyAffliction
+    {
+        public LuaWrapper(IDictionary<string, LuaCsFunc> luaFuncs) : base(luaFuncs)
+        {
+        }
+
+        public bool? OnCharacterApplyAffliction(CharacterHealth characterHealth, CharacterHealth.LimbHealth limbHealth, Affliction newAffliction, bool allowStacking)
+        {
+            var result = LuaFuncs[nameof(OnCharacterApplyAffliction)](characterHealth, limbHealth, newAffliction, allowStacking);
+            if (result is DynValue dynValue && dynValue.Type == DataType.Boolean)
+            {
+                return dynValue.Boolean;
+            }
+
+            return null;
+        }
+    }
+}
+
+// TODO: harmony-fy
+internal interface IEventItemReadPropertyChange : IEvent<IEventItemReadPropertyChange>
+{
+    bool? OnItemReadPropertyChange(Item item, SerializableProperty property, object parentObject, bool allowEditing, Client sender);
+
+    static IEventItemReadPropertyChange IEvent<IEventItemReadPropertyChange>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc)
+        => new LuaWrapper(luaFunc);
+
+    public sealed class LuaWrapper : LuaWrapperBase, IEventItemReadPropertyChange
+    {
+        public LuaWrapper(IDictionary<string, LuaCsFunc> luaFuncs) : base(luaFuncs)
+        {
+        }
+
+        public bool? OnItemReadPropertyChange(Item item, SerializableProperty property, object parentObject, bool allowEditing, Client sender)
+        {
+            var result = LuaFuncs[nameof(OnItemReadPropertyChange)](item, property, parentObject, allowEditing, sender);
+            if (result is DynValue dynValue && dynValue.Type == DataType.Boolean)
+            {
+                return dynValue.Boolean;
+            }
+
+            return null;
+        }
+    }
+}
+
+// TODO: harmony-fy
+internal interface IEventCanUseVoiceRadio : IEvent<IEventCanUseVoiceRadio>
+{
+    bool? OnCanUseVoiceRadio(Client sender, Client recipient);
+
+    static IEventCanUseVoiceRadio IEvent<IEventCanUseVoiceRadio>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc)
+        => new LuaWrapper(luaFunc);
+
+    public sealed class LuaWrapper : LuaWrapperBase, IEventCanUseVoiceRadio
+    {
+        public LuaWrapper(IDictionary<string, LuaCsFunc> luaFuncs) : base(luaFuncs)
+        {
+        }
+
+        public bool? OnCanUseVoiceRadio(Client sender, Client recipient)
+        {
+            var result = LuaFuncs[nameof(OnCanUseVoiceRadio)](sender, recipient);
+            if (result is DynValue dynValue && dynValue.Type == DataType.Boolean)
+            {
+                return dynValue.Boolean;
+            }
+
+            return null;
+        }
+    }
+}
+
+// TODO: harmony-fy
+internal interface IEventChangeLocalVoiceRange : IEvent<IEventChangeLocalVoiceRange>
+{
+    float? OnChangeLocalVoiceRange(Client sender, Client recipient);
+
+    static IEventChangeLocalVoiceRange IEvent<IEventChangeLocalVoiceRange>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc)
+        => new LuaWrapper(luaFunc);
+
+    public sealed class LuaWrapper : LuaWrapperBase, IEventChangeLocalVoiceRange
+    {
+        public LuaWrapper(IDictionary<string, LuaCsFunc> luaFuncs) : base(luaFuncs)
+        {
+        }
+
+        public float? OnChangeLocalVoiceRange(Client sender, Client recipient)
+        {
+            var result = LuaFuncs[nameof(OnChangeLocalVoiceRange)](sender, recipient);
+            if (result is DynValue dynValue && dynValue.Type == DataType.Number)
+            {
+                return (float)dynValue.Number;
+            }
+
+            return null;
+        }
+    }
+}
+
+// TODO: harmony-fy
+internal interface IEventItemDeconstructed : IEvent<IEventItemDeconstructed>
+{
+    bool? OnItemDeconstructed(Item item, Deconstructor deconstructor, Character user, bool allowRemove);
+
+    static IEventItemDeconstructed IEvent<IEventItemDeconstructed>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc)
+        => new LuaWrapper(luaFunc);
+
+    public sealed class LuaWrapper : LuaWrapperBase, IEventItemDeconstructed
+    {
+        public LuaWrapper(IDictionary<string, LuaCsFunc> luaFuncs) : base(luaFuncs)
+        {
+        }
+
+        public bool? OnItemDeconstructed(Item item, Deconstructor deconstructor, Character user, bool allowRemove)
+        {
+            var result = LuaFuncs[nameof(OnItemDeconstructed)](item, deconstructor, user, allowRemove);
+            if (result is DynValue dynValue && dynValue.Type == DataType.Boolean)
+            {
+                return dynValue.Boolean;
+            }
+
+            return null;
+        }
+    }
+}
+
+// TODO: harmony-fy
+internal interface IEventWifiSignalTransmitted : IEvent<IEventWifiSignalTransmitted>
+{
+    bool? OnWifiSignalTransmitted(WifiComponent wifiComponent, Signal signal, bool sentFromChat);
+
+    static IEventWifiSignalTransmitted IEvent<IEventWifiSignalTransmitted>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc)
+        => new LuaWrapper(luaFunc);
+
+    public sealed class LuaWrapper : LuaWrapperBase, IEventWifiSignalTransmitted
+    {
+        public LuaWrapper(IDictionary<string, LuaCsFunc> luaFuncs) : base(luaFuncs)
+        {
+        }
+
+        public bool? OnWifiSignalTransmitted(WifiComponent wifiComponent, Signal signal, bool sentFromChat)
+        {
+            var result = LuaFuncs[nameof(OnWifiSignalTransmitted)](wifiComponent, signal, sentFromChat);
+            if (result is DynValue dynValue && dynValue.Type == DataType.Boolean)
+            {
+                return dynValue.Boolean;
+            }
+
+            return null;
+        }
+    }
+}
+
 internal interface IEventCharacterDeath : IEvent<IEventCharacterDeath>
 {
     void OnCharacterDeath(Character character, Affliction causeOfDeathAffliction, CauseOfDeathType causeOfDeathType);
@@ -155,29 +560,6 @@ internal interface IEventCharacterDeath : IEvent<IEventCharacterDeath>
         }
     }
 }
-
-/*
-internal interface IEventHumanCPRFailed : IEvent<IEventHumanCPRFailed>
-{
-    void OnHumanCPRFailed(Character character);
-    static IEventHumanCPRFailed IEvent<IEventHumanCPRFailed>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc) => new
-    {
-        IsLuaRunner = Return<bool>.Arguments(() => true),
-        OnHumanCPRFailed = ReturnVoid.Arguments((Character character) => luaFunc[nameof(OnHumanCPRFailed)](character))
-    }.ActLike<IEventHumanCPRFailed>();
-}
-
-
-internal interface IEventHumanCPRSuccess : IEvent<IEventHumanCPRSuccess>
-{
-    void OnHumanCPRSuccess(Character character);
-    static IEventHumanCPRSuccess IEvent<IEventHumanCPRSuccess>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc) => new
-    {
-        IsLuaRunner = Return<bool>.Arguments(() => true),
-        OnHumanCPRSuccess = ReturnVoid.Arguments((Character character) => luaFunc[nameof(OnHumanCPRSuccess)](character))
-    }.ActLike<IEventHumanCPRSuccess>();
-}
-*/
 
 public interface IEventKeyUpdate : IEvent<IEventKeyUpdate>
 {
@@ -409,14 +791,12 @@ interface IEventItemUse : IEvent<IEventItemUse>
         public bool? OnItemUsed(Item item, Character user, Limb targetLimb, Entity useTarget)
         {
             var result = LuaFuncs[nameof(OnItemUsed)](item, user, targetLimb, useTarget);
-            if (result is bool b)
+            if (result is DynValue dynValue && dynValue.Type == DataType.Boolean)
             {
-                return b;
+                return dynValue.Boolean;
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
     }
 }
@@ -437,14 +817,12 @@ interface IEventItemSecondaryUse : IEvent<IEventItemSecondaryUse>
         public bool? OnItemSecondaryUsed(Item item, Character user)
         {
             var result = LuaFuncs[nameof(OnItemSecondaryUsed)](item, user);
-            if (result is bool b)
+            if (result is DynValue dynValue && dynValue.Type == DataType.Boolean)
             {
-                return b;
+                return dynValue.Boolean;
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
     }
 }
@@ -464,15 +842,18 @@ interface IEventCharacterDamageLimb : IEvent<IEventCharacterDamageLimb>
 
         public AttackResult? OnCharacterDamageLimb(Character character, Vector2 worldPosition, Limb hitLimb, IEnumerable<Affliction> afflictions, float stun, bool playSound, Vector2 attackImpulse, Character attacker = null, float damageMultiplier = 1, bool allowStacking = true, float penetration = 0f, bool shouldImplode = false)
         {
-            var result = LuaFuncs[nameof(OnCharacterDamageLimb)](character, worldPosition, hitLimb, afflictions, stun, playSound, attackImpulse, attacker, damageMultiplier, allowStacking, penetration, shouldImplode);
+            object result = LuaFuncs[nameof(OnCharacterDamageLimb)](character, worldPosition, hitLimb, afflictions, stun, playSound, attackImpulse, attacker, damageMultiplier, allowStacking, penetration, shouldImplode);
+            if (result is DynValue dynValue)
+            {
+                result = dynValue.ToObject();
+            }
+
             if (result is AttackResult attackResult)
             {
                 return attackResult;
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
     }
 }
@@ -493,14 +874,12 @@ interface IEventInventoryPutItem : IEvent<IEventInventoryPutItem>
         public bool? OnInventoryPutItem(Inventory inventory, Item item, Character user, int i, bool removeItem)
         {
             var result = LuaFuncs[nameof(OnInventoryPutItem)](inventory, item, user, i, removeItem);
-            if (result is bool b)
+            if (result is DynValue dynValue && dynValue.Type == DataType.Boolean)
             {
-                return b;
+                return dynValue.Boolean;
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
     }
 }
@@ -521,14 +900,12 @@ interface IEventInventoryItemSwap : IEvent<IEventInventoryItemSwap>
         public bool? OnInventoryItemSwap(Inventory inventory, Item item, Character user, int i, bool swapWholeStack)
         {
             var result = LuaFuncs[nameof(OnInventoryItemSwap)](inventory, item, user, i, swapWholeStack);
-            if (result is bool b)
+            if (result is DynValue dynValue && dynValue.Type == DataType.Boolean)
             {
-                return b;
+                return dynValue.Boolean;
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
     }
 }
@@ -541,7 +918,28 @@ interface IEventInventoryItemSwap : IEvent<IEventInventoryItemSwap>
 #if SERVER
 public interface IEventClientRawNetMessageReceived : IEvent<IEventClientRawNetMessageReceived>
 {
-    void OnReceivedClientNetMessage(IReadMessage netMessage, ClientPacketHeader serverPacketHeader, NetworkConnection sender);
+    void OnReceivedClientNetMessage(IReadMessage netMessage, ClientPacketHeader clientPacketHeader, NetworkConnection sender);
+
+    static IEventClientRawNetMessageReceived IEvent<IEventClientRawNetMessageReceived>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc)
+        => new LuaWrapper(luaFunc);
+
+    public sealed class LuaWrapper : LuaWrapperBase, IEventClientRawNetMessageReceived
+    {
+        public LuaWrapper(IDictionary<string, LuaCsFunc> luaFuncs) : base(luaFuncs)
+        {
+        }
+
+        public void OnReceivedClientNetMessage(IReadMessage netMessage, ClientPacketHeader clientPacketHeader, NetworkConnection sender)
+        {
+            if (GameMain.Server == null) { return; }
+
+            Client client = GameMain.Server.ConnectedClients.FirstOrDefault(c => c.Connection == sender);
+
+            if (client == null) { return; }
+
+            LuaFuncs[nameof(OnReceivedClientNetMessage)](netMessage, clientPacketHeader, client);
+        }
+    }
 }
 
 /// <summary>
@@ -631,6 +1029,21 @@ interface IEventJobsAssigned : IEvent<IEventJobsAssigned>
 public interface IEventServerRawNetMessageReceived : IEvent<IEventServerRawNetMessageReceived>
 {
     void OnReceivedServerNetMessage(IReadMessage netMessage, ServerPacketHeader serverPacketHeader);
+
+    static IEventServerRawNetMessageReceived IEvent<IEventServerRawNetMessageReceived>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc)
+    => new LuaWrapper(luaFunc);
+
+    public sealed class LuaWrapper : LuaWrapperBase, IEventServerRawNetMessageReceived
+    {
+        public LuaWrapper(IDictionary<string, LuaCsFunc> luaFuncs) : base(luaFuncs)
+        {
+        }
+
+        public void OnReceivedServerNetMessage(IReadMessage netMessage, ServerPacketHeader serverPacketHeader)
+        {
+            LuaFuncs[nameof(OnReceivedServerNetMessage)](netMessage, serverPacketHeader);
+        }
+    }
 }
 
 /// <summary>

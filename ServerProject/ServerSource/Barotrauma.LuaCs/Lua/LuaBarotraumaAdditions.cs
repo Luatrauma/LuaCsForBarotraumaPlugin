@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-
-// TODO Lua shims
 /*
 namespace Barotrauma.Networking
 {
@@ -107,4 +105,5 @@ namespace Barotrauma.Items.Components
 		}
 	}
 }
+
 */

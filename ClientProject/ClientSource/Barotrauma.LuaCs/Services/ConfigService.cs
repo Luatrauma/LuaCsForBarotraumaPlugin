@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Barotrauma.LuaCs.Configuration;
 using Barotrauma.LuaCs.Data;
 using Barotrauma.Networking;
@@ -9,18 +10,14 @@ namespace Barotrauma.LuaCs;
 
 public sealed partial class ConfigService
 {
-    public ImmutableArray<IDisplayableConfigBase> GetDisplayableConfigs()
+    public ImmutableArray<ISettingBase> GetDisplayableConfigs()
     {
-        throw new NotImplementedException();
-    }
+        using var _ = _operationLock.AcquireReaderLock().ConfigureAwait(false).GetAwaiter().GetResult();
+        IService.CheckDisposed(this);
 
-    public ImmutableArray<IDisplayableConfigBase> GetDisplayableConfigsForPackage(ContentPackage package)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Result<ISettingControl> AddConfigControl(IConfigInfo configInfo)
-    {
-        throw new NotImplementedException();
+        return _settingsInstances.Values
+            .Where(s => !s.IsDisposed)
+            .Where(s => s.GetDisplayInfo().ShowInMenus)
+            .ToImmutableArray();
     }
 }

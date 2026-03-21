@@ -252,9 +252,8 @@ public sealed class ModConfigService : IModConfigService
                 .ToImmutableArray();
         }
     }
-    
-    
-    
+
+
     private async Task<Result<IModConfigInfo>> CreateFromLegacyAsync(ContentPackage src)
     {
         return new ModConfigInfo()
@@ -303,7 +302,7 @@ public sealed class ModConfigService : IModConfigService
             }
 
             var sharedResult = _storageService.FindFilesInPackage(src,
-                Path.Combine(src.Dir, "CSharp/Shared"),
+                Path.Combine("CSharp/Shared"),
                 "*.cs", true);
             var sharedFiles = sharedResult.IsSuccess && !sharedResult.Value.IsDefaultOrEmpty 
                 ? sharedResult.Value.Select(fp => 
@@ -402,6 +401,5 @@ public sealed class ModConfigService : IModConfigService
             
             return builder.ToImmutable();
         }
-        
     }
 }

@@ -87,7 +87,10 @@ public class LuaUserDataService : ILuaUserDataService
             throw new ScriptRuntimeException($"tried to register a type that doesn't exist: {typeName}.");
         }
 
-        return UserData.RegisterType(type);
+        var descriptor = UserData.RegisterType(type);
+        descriptors.TryAdd(typeName, descriptor);
+
+        return descriptor;
     }
 
     public void RegisterExtensionType(string typeName)

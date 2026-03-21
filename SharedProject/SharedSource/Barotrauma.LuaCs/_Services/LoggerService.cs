@@ -1,4 +1,5 @@
-﻿using Barotrauma.Networking;
+﻿using Barotrauma.LuaCs.Events;
+using Barotrauma.Networking;
 using FluentResults;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
@@ -59,7 +60,7 @@ public partial class LoggerService : ILoggerService
                     if (!_isInsideLogCall)
                     {
                         _isInsideLogCall = true;
-                        GameMain.LuaCs?.Hook?.Call("serverLog", logMessage, log.MessageType);
+                        LuaCsSetup.Instance?.EventService.PublishEvent<IEventServerLog>(x => x.OnServerLog(logMessage, log.MessageType));
                         _isInsideLogCall = false;
                     }
                 }

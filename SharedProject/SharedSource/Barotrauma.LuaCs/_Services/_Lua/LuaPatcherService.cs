@@ -280,7 +280,7 @@ namespace Barotrauma.LuaCs
 
             // The assembly names are hardcoded, otherwise it would
             // break unit tests.
-            var assembliesToExpose = new[] { "Barotrauma", "DedicatedServer" };
+            var assembliesToExpose = new[] { "Barotrauma", "DedicatedServer", "LuaCsForBarotraumaClient", "LuaCsForBarotraumaServer" };
             foreach (var name in assembliesToExpose)
             {
                 var attr = new CustomAttributeBuilder(
@@ -294,7 +294,7 @@ namespace Barotrauma.LuaCs
 
         private static MethodBase ResolveMethod(string className, string methodName, string[] parameters)
         {
-            var classType = GameMain.LuaCs.PluginManagementService.GetType(className);
+            var classType = LuaCsSetup.Instance.PluginManagementService.GetType(className);
             if (classType == null) throw new ScriptRuntimeException($"invalid class name '{className}'");
 
             const BindingFlags BINDING_FLAGS = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
@@ -309,7 +309,7 @@ namespace Barotrauma.LuaCs
 
                     for (int i = 0; i < parameters.Length; i++)
                     {
-                        Type type = GameMain.LuaCs.PluginManagementService.GetType(parameters[i]);
+                        Type type = LuaCsSetup.Instance.PluginManagementService.GetType(parameters[i]);
                         if (type == null)
                         {
                             throw new ScriptRuntimeException($"invalid parameter type '{parameters[i]}'");
@@ -670,7 +670,7 @@ namespace Barotrauma.LuaCs
             }
 
             var type = typeBuilder.CreateType();
-            type.GetField(FIELD_LUACS, BindingFlags.Public | BindingFlags.Static).SetValue(null, GameMain.LuaCs);
+            type.GetField(FIELD_LUACS, BindingFlags.Public | BindingFlags.Static).SetValue(null, LuaCsSetup.Instance);
             return type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
         }
 

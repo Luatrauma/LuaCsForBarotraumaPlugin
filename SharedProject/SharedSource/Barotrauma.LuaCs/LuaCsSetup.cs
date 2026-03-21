@@ -13,6 +13,9 @@ using AssemblyLoader = Barotrauma.LuaCs.AssemblyLoader;
 
 [assembly: InternalsVisibleTo("ImpromptuInterfaceDynamicAssembly")]
 [assembly: InternalsVisibleTo("Dynamitey")]
+[assembly: IgnoresAccessChecksTo("Barotrauma")]
+[assembly: IgnoresAccessChecksTo("DedicatedServer")]
+[assembly: IgnoresAccessChecksTo("BarotraumaCore")]
 namespace Barotrauma
 {
     internal delegate void LuaCsMessageLogger(string message);
@@ -22,8 +25,16 @@ namespace Barotrauma
     partial class LuaCsSetup : IDisposable, IEventScreenSelected, IEventEnabledPackageListChanged, 
         IEventReloadAllPackages
     {
-        public LuaCsSetup()
+        private static LuaCsSetup _luaCsSetup;
+        public static LuaCsSetup Instance => _luaCsSetup ??= new LuaCsSetup();
+
+        private LuaCsSetup()
         {
+            if (_luaCsSetup != null)
+            {
+                throw new Exception("Tried to create another LuaCsSetup instance");
+            }
+
             // == startup
             _servicesProvider = SetupServicesProvider();
             _runStateMachine = SetupStateMachine();
@@ -181,7 +192,8 @@ namespace Barotrauma
             servicesProvider.RegisterServiceType<INetworkingService, NetworkingService>(ServiceLifetime.Singleton);
             servicesProvider.RegisterServiceType<INetworkIdProvider, NetworkingIdProvider>(ServiceLifetime.Transient);
             servicesProvider.RegisterServiceType<HarmonyEventPatchesService, HarmonyEventPatchesService>(ServiceLifetime.Singleton);
-
+            servicesProvider.RegisterServiceType<IConsoleCommandsService, ConsoleCommandsService>(ServiceLifetime.Transient);
+            
             // Extension/Sub Services
             servicesProvider.RegisterServiceType<IAssemblyLoaderService.IFactory, AssemblyLoader.Factory>(ServiceLifetime.Transient);
             servicesProvider.RegisterServiceType<ISettingsRegistrationProvider, SettingsEntryRegistrar>(ServiceLifetime.Transient);
@@ -267,7 +279,7 @@ namespace Barotrauma
                 SetRunState(RunState.LoadedNoExec);
             }
             
-            this.Logger.LogResults(PackageManagementService.SyncLoadedPackagesList(packages));
+            this.Logger.LogResults(PackageManagementService.SyncLoadedPackagesList(GetLuaCsEnabledPackagesList(packages)));
             SetRunState(state); // restore
         }
         
@@ -281,8 +293,11 @@ namespace Barotrauma
         }
 
         private ImmutableArray<ContentPackage> GetEnabledPackagesList()
+            => GetLuaCsEnabledPackagesList(ContentPackageManager.EnabledPackages.Regular
+                .ToImmutableArray<ContentPackage>());
+        
+        private ImmutableArray<ContentPackage> GetLuaCsEnabledPackagesList(ImmutableArray<ContentPackage> enabledRegular)
         {
-            var enabledRegular = ContentPackageManager.EnabledPackages.Regular.ToImmutableArray<ContentPackage>();
             if (!enabledRegular.Any(
                     p => p.Name.Equals("LuaCsForBarotrauma", StringComparison.InvariantCultureIgnoreCase) 
                          || p.Name.Equals("Lua for Barotrauma", StringComparison.InvariantCultureIgnoreCase)))
@@ -313,6 +328,8 @@ namespace Barotrauma
             // ReSharper disable InconsistentNaming
             void RunStateUnloaded_OnEnter(State<RunState> currentState)
             {
+                Logger.LogMessage("LuaCs unloaded state entered");
+
                 if (PackageManagementService.IsAnyPackageRunning())
                 {
                     Logger.LogResults(PackageManagementService.StopRunningPackages());
@@ -330,6 +347,8 @@ namespace Barotrauma
                 PackageManagementService.Reset();
                 NetworkingService.Reset();
 
+                Logger.LogMessage("Services have been reset");
+
                 SubscribeToLuaCsEvents();
 
                 CurrentRunState = RunState.Unloaded;
@@ -337,6 +356,8 @@ namespace Barotrauma
 
             void RunStateLoadedNoExec_OnEnter(State<RunState> currentState)
             {
+                Logger.LogMessage("LuaCs no execution state entered");
+
                 if (PackageManagementService.IsAnyPackageRunning())
                 {
                     Logger.LogResults(PackageManagementService.StopRunningPackages());
@@ -359,6 +380,9 @@ namespace Barotrauma
                 
             void RunStateRunning_OnEnter(State<RunState> currentState)
             {
+                string csEnabled = IsCsEnabled ? "enabled" : "disabled";
+                Logger.LogMessage($"LuaCs running state entered. Running under commit {AssemblyInfo.GitRevision}, CSharp is {csEnabled}");
+
                 if (!PackageManagementService.IsAnyPackageLoaded())
                 {
                     foreach (var registrationProvider in _servicesProvider.GetAllServices<ISettingsRegistrationProvider>())
@@ -384,10 +408,15 @@ namespace Barotrauma
 #endif
                 CurrentRunState = RunState.Running;
             }
-                
+
+
             void RunStateRunning_OnExit(State<RunState> currentState)
             {
+                EventService.Call("stop");
+
                 Logger.LogResults(PackageManagementService.StopRunningPackages());
+
+                Logger.LogMessage("LuaCs running state exited");
             }
             // ReSharper restore InconsistentNaming
         }
@@ -431,6 +460,8 @@ namespace Barotrauma
                 Console.WriteLine(e);
                 throw;
             }
+
+            _luaCsSetup = null;
             
             GC.SuppressFinalize(this);
         }

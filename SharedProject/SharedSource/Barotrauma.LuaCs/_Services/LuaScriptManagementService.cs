@@ -49,6 +49,7 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService
     private readonly IDefaultLuaRegistrar _defaultLuaRegistrar;
     private readonly IPluginManagementService _pluginManagementService;
     private readonly INetworkingService _networkingService;
+    private readonly IConsoleCommandsService _commandsService;
     //private readonly ILuaCsUtility _luaCsUtility;
 
     public LuaScriptManagementService(
@@ -63,7 +64,8 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService
         LuaGame luaGame,
         IEventService eventService,
         //ILuaCsUtility luaCsUtility,
-        ILuaCsTimer luaCsTimer
+        ILuaCsTimer luaCsTimer,
+        IConsoleCommandsService commandsService
         )
     {
         _luaScriptLoader = loader;
@@ -77,11 +79,84 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService
 
         _luaGame = luaGame;
         _eventService = eventService;
-        //_luaCsNetworking = luaCsNetworking;
-        //_luaCsUtility = luaCsUtility;
+        _commandsService = commandsService;
         _luaCsTimer = luaCsTimer;
 
         RegisterLuaEvents();
+        RegisterConsoleCommands(_commandsService);
+    }
+
+    private void RegisterConsoleCommands(IConsoleCommandsService commands)
+    {
+#if CLIENT
+        commands.RegisterCommand("cl_reloadlua|cl_reloadcs|cl_reloadluacs", "Re-initializes the LuaCs environment.", (string[] args) =>
+        {
+            LuaCsSetup.Instance.EventService.PublishEvent<IEventReloadAllPackages>(sub => sub.OnReloadAllPackages());
+        });
+
+        commands.RegisterCommand("cl_lua", $"cl_lua: Runs a string on the client.", (string[] args) =>
+        {
+            if (GameMain.Client != null && !GameMain.Client.HasPermission(ClientPermissions.ConsoleCommands))
+            {
+                DebugConsole.ThrowError("Command not permitted.");
+                return;
+            }
+
+            if (LuaCsSetup.Instance.CurrentRunState != RunState.Running)
+            {
+                DebugConsole.ThrowError("LuaCs not initialized, use the console command cl_reloadluacs to force initialization.");
+                return;
+            }
+
+            var result = LuaCsSetup.Instance.LuaScriptManagementService.DoString(string.Join(" ", args));
+            LuaCsSetup.Instance.Logger.LogResults(result.ToResult());
+        });
+
+        commands.RegisterCommand("cl_toggleluadebug", "Toggles the MoonSharp Debug Server.", (string[] args) =>
+        {
+            int port = 41912;
+
+            if (args.Length > 0)
+            {
+                int.TryParse(args[0], out port);
+            }
+
+            throw new NotImplementedException();
+            //GameMain.LuaCs.ToggleDebugger(port);
+        });
+
+#elif SERVER
+        commands.RegisterCommand("lua", "lua: Runs a string.", (string[] args) =>
+        {
+            var result = LuaCsSetup.Instance.LuaScriptManagementService.DoString(string.Join(" ", args));
+            LuaCsSetup.Instance.Logger.LogResults(result.ToResult());
+        });
+
+        commands.RegisterCommand("reloadlua|reloadcs|reloadluacs", "Re-initializes the LuaCs environment.", (string[] args) =>
+        {
+            LuaCsSetup.Instance.EventService.PublishEvent<IEventReloadAllPackages>(sub => sub.OnReloadAllPackages());
+        });
+
+        commands.RegisterCommand("toggleluadebug", "Toggles the MoonSharp Debug Server.", (string[] args) =>
+        {
+            int port = 41912;
+
+            if (args.Length > 0)
+            {
+                int.TryParse(args[0], out port);
+            }
+
+            throw new NotImplementedException();
+            //GameMain.LuaCs.ToggleDebugger(port);
+        });
+#endif
+
+#if SERVER
+        commands.RegisterCommand("install_cl_lua|install_cl|install_cl_cs|install_cl_luacs", "Installs Client-Side LuaCs into your client.", (string[] args) =>
+        {
+            LuaCsInstaller.Install();
+        });
+#endif
     }
 
     public bool IsDisposed { get; private set; }
@@ -178,6 +253,27 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService
         _eventService.RegisterLuaEventAlias<IEventCharacterDeath>("character.death", nameof(IEventCharacterDeath.OnCharacterDeath));
         _eventService.RegisterLuaEventAlias<IEventCharacterDamageLimb>("character.damageLimb", nameof(IEventCharacterDamageLimb.OnCharacterDamageLimb));
         _eventService.RegisterLuaEventAlias<IEventGiveCharacterJobItems>("character.giveJobItems", nameof(IEventGiveCharacterJobItems.OnGiveCharacterJobItems));
+        _eventService.RegisterLuaEventAlias<IEventHumanCPRSuccess>("character.CPRSuccess", nameof(IEventHumanCPRSuccess.OnCharacterCPRSuccess));
+        _eventService.RegisterLuaEventAlias<IEventHumanCPRFailed>("character.CPRFailed", nameof(IEventHumanCPRFailed.OnCharacterCPRFailed));
+        _eventService.RegisterLuaEventAlias<IEventCharacterApplyDamage>("character.applyDamage", nameof(IEventCharacterApplyDamage.OnCharacterApplyDamage));
+        _eventService.RegisterLuaEventAlias<IEventCharacterApplyAffliction>("character.applyAffliction", nameof(IEventCharacterApplyAffliction.OnCharacterApplyAffliction));
+
+        _eventService.RegisterLuaEventAlias<IEventGapOxygenUpdate>("gapOxygenUpdate", nameof(IEventGapOxygenUpdate.OnGapOxygenUpdate));
+
+        _eventService.RegisterLuaEventAlias<IEventClientControlHusk>("husk.clientControlHusk", nameof(IEventClientControlHusk.OnClientControlHusk));
+
+        _eventService.RegisterLuaEventAlias<IEventMeleeWeaponHandleImpact>("meleeWeapon.handleImpact", nameof(IEventMeleeWeaponHandleImpact.OnMeleeWeaponHandleImpact));
+
+        _eventService.RegisterLuaEventAlias<IEventServerLog>("serverLog", nameof(IEventServerLog.OnServerLog));
+
+        _eventService.RegisterLuaEventAlias<IEventTryClientChangeName>("tryChangeClientName", nameof(IEventTryClientChangeName.OnTryClienChangeName));
+
+        _eventService.RegisterLuaEventAlias<IEventChangeFallDamage>("changeFallDamage", nameof(IEventChangeFallDamage.OnChangeFallDamage));
+
+        _eventService.RegisterLuaEventAlias<IEventChatMessage>("chatMessage", nameof(IEventChatMessage.OnChatMessage));
+
+        _eventService.RegisterLuaEventAlias<IEventCanUseVoiceRadio>("canUseVoiceRadio", nameof(IEventCanUseVoiceRadio.OnCanUseVoiceRadio));
+        _eventService.RegisterLuaEventAlias<IEventChangeLocalVoiceRange>("changeLocalVoiceRange", nameof(IEventChangeLocalVoiceRange.OnChangeLocalVoiceRange));
 
         _eventService.RegisterLuaEventAlias<IEventRoundStarted>("roundStart", nameof(IEventRoundStarted.OnRoundStart));
         _eventService.RegisterLuaEventAlias<IEventRoundEnded>("roundEnd", nameof(IEventRoundEnded.OnRoundEnd));
@@ -189,14 +285,28 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService
         _eventService.RegisterLuaEventAlias<IEventItemRemoved>("item.removed", nameof(IEventItemRemoved.OnItemRemoved));
         _eventService.RegisterLuaEventAlias<IEventItemUse>("item.use", nameof(IEventItemUse.OnItemUsed));
         _eventService.RegisterLuaEventAlias<IEventItemSecondaryUse>("item.secondaryUse", nameof(IEventItemSecondaryUse.OnItemSecondaryUsed));
+        _eventService.RegisterLuaEventAlias<IEventItemReadPropertyChange>("item.readPropertyChange", nameof(IEventItemReadPropertyChange.OnItemReadPropertyChange));
+        _eventService.RegisterLuaEventAlias<IEventItemDeconstructed>("item.deconstructed", nameof(IEventItemDeconstructed.OnItemDeconstructed));
 
         _eventService.RegisterLuaEventAlias<IEventInventoryPutItem>("inventoryPutItem", nameof(IEventInventoryPutItem.OnInventoryPutItem));
         _eventService.RegisterLuaEventAlias<IEventInventoryItemSwap>("inventoryItemSwap", nameof(IEventInventoryItemSwap.OnInventoryItemSwap));
+
+        // Compatibility
+        _eventService.RegisterLuaEventAlias<IEventCharacterCreated>("characterCreated", nameof(IEventCharacterCreated.OnCharacterCreated));
+        _eventService.RegisterLuaEventAlias<IEventCharacterDeath>("characterDeath", nameof(IEventCharacterDeath.OnCharacterDeath));
 
 #if SERVER
         _eventService.RegisterLuaEventAlias<IEventClientConnected>("client.connected", nameof(IEventClientConnected.OnClientConnected));
         _eventService.RegisterLuaEventAlias<IEventClientDisconnected>("client.disconnected", nameof(IEventClientDisconnected.OnClientDisconnected));
         _eventService.RegisterLuaEventAlias<IEventJobsAssigned>("jobsAssigned", nameof(IEventJobsAssigned.OnJobsAssigned));
+
+        _eventService.RegisterLuaEventAlias<IEventClientRawNetMessageReceived>("netMessageReceived", nameof(IEventClientRawNetMessageReceived.OnReceivedClientNetMessage));
+
+        // Compatibility
+        _eventService.RegisterLuaEventAlias<IEventClientConnected>("clientConnected", nameof(IEventClientConnected.OnClientConnected));
+        _eventService.RegisterLuaEventAlias<IEventClientDisconnected>("clientDisconnected", nameof(IEventClientDisconnected.OnClientDisconnected));
+#elif CLIENT
+        _eventService.RegisterLuaEventAlias<IEventServerRawNetMessageReceived>("netMessageReceived", nameof(IEventServerRawNetMessageReceived.OnReceivedServerNetMessage));
 #endif
     }
 
@@ -290,7 +400,7 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService
             return FluentResults.Result.Fail("Tried to execute Lua scripts without unloading first."); 
         }
 
-        _loggerService.LogMessage("Executing Lua scripts");
+        _loggerService.LogMessage("[Lua] Executing scripts");
 
         SetupEnvironment(enableSandbox);
 
@@ -315,7 +425,7 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService
             {
                 try
                 {
-                    _loggerService.LogMessage($"Run {filePath.Value}");
+                    _loggerService.LogMessage($"[Lua] - Run {filePath.Value}");
                     _script.Call(_script.LoadFile(filePath.FullPath), resource.OwnerPackage.Dir);
                 }
                 catch(Exception e)
@@ -376,6 +486,7 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService
 
     public FluentResults.Result Reset()
     {
+        IService.CheckDisposed(this);
         _luaScriptLoader.ClearCaches();
         _userDataService.Reset();
         _luaCsTimer.Reset();
@@ -385,9 +496,10 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService
 
     public void Dispose()
     {
+        IsDisposed = true;
         _userDataService.Dispose();
         _luaScriptLoader.Dispose();
-        IsDisposed = true;
+        _commandsService.Dispose();
     }
 
     public object? GetGlobalTableValue(string tableName)

@@ -20,6 +20,8 @@ namespace Barotrauma
         /// <returns>Returns whether the IsCsEnabled has been changed to true/enabled. Returns false if already enabled.</returns>
         public bool CheckCsEnabled()
         {
+            return false;
+
             // fast exit if enabled or unavailable.
             if (this.IsCsEnabled)
             {
@@ -40,6 +42,7 @@ namespace Barotrauma
                     sb.AppendLine($"- {cp.Name} (Not On Workshop)");
             }
 
+
             if (GameMain.Client == null || GameMain.Client.IsServerOwner)
             {
                 new GUIMessageBox("", $"You have CSharp mods enabled but don't have the CSharp Scripting enabled, those mods might not work, go to the Main Menu, click on LuaCs Settings and check Enable CSharp Scripting.\n\n{sb}");
@@ -53,15 +56,39 @@ namespace Barotrauma
 
             msg.Buttons[0].OnClicked = (GUIButton button, object obj) =>
             {
-                this.IsCsEnabled = true;
-                isCsValueChanged = true;
-                return true;
+                try
+                {
+                    this.IsCsEnabled = true;
+                    isCsValueChanged = true;
+                    CoroutineManager.Invoke(() =>
+                    {
+                        if (CurrentRunState >= RunState.Running)
+                        {
+                            var currentRunState = CurrentRunState;
+                            SetRunState(RunState.LoadedNoExec);
+                            SetRunState(currentRunState);
+                        }
+                    }, 0f);
+                    return true;
+                }
+                finally
+                {
+                    msg.Close();
+                }
             };
 
             msg.Buttons[1].OnClicked = (GUIButton button, object obj) =>
             {
-                this.IsCsEnabled = false;
-                return true;
+                try
+                {
+                    // avoid a TOCTOU scenario.
+                    this.IsCsEnabled = false;
+                    return true;
+                }
+                finally
+                {
+                    msg.Close();
+                }
             };
 
             return isCsValueChanged;
@@ -74,6 +101,7 @@ namespace Barotrauma
             //serviceProvider.RegisterServiceType<IUIStylesCollection, UIStylesCollection>(ServiceLifetime.Transient);
             serviceProvider.RegisterServiceType<IParserServiceAsync<ResourceParserInfo, IStylesResourceInfo>, ModConfigFileParserService>(ServiceLifetime.Transient);
             serviceProvider.RegisterServiceType<IUIStylesCollection.IFactory, UIStylesCollection.Factory>(ServiceLifetime.Transient);
+            serviceProvider.RegisterServiceType<ISettingsMenuSystem, SettingsMenuSystem>(ServiceLifetime.Singleton);
         }
 
         /// <summary>
