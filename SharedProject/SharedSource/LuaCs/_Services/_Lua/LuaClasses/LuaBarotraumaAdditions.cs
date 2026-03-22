@@ -5,6 +5,7 @@ using MoonSharp.Interpreter;
 using Microsoft.Xna.Framework;
 using Barotrauma.Networking;
 
+/*
 namespace Barotrauma.Networking
 {
     partial class Client
@@ -108,3 +109,4 @@ namespace Barotrauma.Items.Components
     {
     }
 }
+*/

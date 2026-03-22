@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
+/*
 namespace Barotrauma.Networking
 {
 	partial class Client
@@ -105,3 +106,4 @@ namespace Barotrauma.Items.Components
 		}
 	}
 }
+*/
