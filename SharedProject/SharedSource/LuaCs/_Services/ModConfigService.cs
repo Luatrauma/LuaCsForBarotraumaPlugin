@@ -12,7 +12,6 @@ using Barotrauma.Extensions;
 using Barotrauma.LuaCs.Data;
 using FluentResults;
 using Microsoft.Toolkit.Diagnostics;
-using MoonSharp.VsCodeDebugger.SDK;
 
 namespace Barotrauma.LuaCs;
 
