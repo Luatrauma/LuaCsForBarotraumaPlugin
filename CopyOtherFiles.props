@@ -1,6 +1,17 @@
 <Project>
   <Target Name="CopyOtherFiles" AfterTargets="Build">
     <ItemGroup>
+      <Files Include="MoonSharp.Interpreter.dll" />
+      <Files Include="MoonSharp.Interpreter.pdb" />
+      <Files Include="Sigil.dll" />
+      <Files Include="LightInject.dll" />
+      <Files Include="OneOf.dll" />
+      <Files Include="FluentResults.dll" />
+      <Files Include="Microsoft.Toolkit.Diagnostics.dll" />
+      <Files Include="Microsoft.CodeAnalysis.CSharp.dll" />
+      <Files Include="Microsoft.CodeAnalysis.dll" />
+      <Files Include="Microsoft.Extensions.Logging.Abstractions.dll" />
+      <Files Include="Basic.Reference.Assemblies.Net80.dll" />
       <!-- 
       Add any files you need copied from the output folder
       <Files Include="MyLibrary.dll" />
