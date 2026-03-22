@@ -64,14 +64,14 @@ public abstract class SettingBase : ISettingBase
 #if CLIENT
     public virtual void AddDisplayComponent(GUILayoutGroup layoutGroup, Vector2 relativeSize, Action<string> onSerializedValue)
     {
-        new GUITextBox(new RectTransform(relativeSize, layoutGroup.RectTransform), font: GUIStyle.SmallFont)
+        var textBox = new GUITextBox(new RectTransform(relativeSize, layoutGroup.RectTransform), font: GUIStyle.SmallFont)
         {
             Text = GetStringValue(),
-            OnTextChangedDelegate = (box, txt) =>
-            {
-                onSerializedValue?.Invoke(txt);
-                return true;
-            }
+        };
+        textBox.OnTextChanged += (box, txt) =>
+        {
+            onSerializedValue?.Invoke(txt);
+            return true;
         };
     }
 #endif

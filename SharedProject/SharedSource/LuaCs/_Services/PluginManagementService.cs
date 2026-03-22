@@ -166,7 +166,7 @@ public class PluginManagementService : IAssemblyManagementService
                     foreach (var ass in loader.Value.Assemblies)
                     {
                         _logger?.LogWarning($"{nameof(PluginManagementService)}: Fallback manual unsubscription of assemblies: {ass.GetName()}");
-                        ReflectionUtils.RemoveAssemblyFromCache(ass);
+                        //ReflectionUtils.RemoveAssemblyFromCache(ass);
                     }
                 }
             }
@@ -477,7 +477,7 @@ public class PluginManagementService : IAssemblyManagementService
             LoadAndCompileScriptAssemblies(contentPack);
             foreach (var ass in _assemblyLoaders[contentPack.Key].Assemblies)
             {
-                ReflectionUtils.AddNonAbstractAssemblyTypes(ass);
+                //ReflectionUtils.AddNonAbstractAssemblyTypes(ass);
             }
         }
         
@@ -731,7 +731,7 @@ public class PluginManagementService : IAssemblyManagementService
         
         results.WithReasons(UnsafeDisposeManagedTypeInstances().Reasons);
         
-        ReflectionUtils.ResetCache();
+        //ReflectionUtils.ResetCache();
         foreach (var loaderService in _assemblyLoaders)
         {
             try

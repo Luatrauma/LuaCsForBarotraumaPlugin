@@ -147,6 +147,8 @@ namespace Barotrauma.LuaCs
         public bool disableSpamFilter = false;
         public bool disableDisconnectCharacter = false;
         public bool enableControlHusk = false;
+
+        /*
         public int MapEntityUpdateInterval
         {
             get { return MapEntity.MapEntityUpdateInterval; }
@@ -170,7 +172,7 @@ namespace Barotrauma.LuaCs
             get { return Character.CharacterUpdateInterval; }
             set { Character.CharacterUpdateInterval = value; }
         }
-
+        */
 
         public HashSet<Item> UpdatePriorityItems = new HashSet<Item>();
         public HashSet<Character> UpdatePriorityCharacters = new HashSet<Character>();
@@ -494,7 +496,7 @@ namespace Barotrauma.LuaCs
 
         public static void DispatchRespawnSub()
         {
-            GameMain.Server.RespawnManager.DispatchShuttle(GameMain.Server.RespawnManager.GetTeamSpecificState(CharacterTeamType.Team1));
+            //GameMain.Server.RespawnManager.DispatchShuttle(GameMain.Server.RespawnManager.GetTeamSpecificState(CharacterTeamType.Team1));
         }
 
         public static GameServer.TryStartGameResult StartGame()
@@ -514,8 +516,8 @@ namespace Barotrauma.LuaCs
 
         public void Stop()
         {
-            MapEntityUpdateInterval = 1;
-            CharacterUpdateInterval = 1;
+            //MapEntityUpdateInterval = 1;
+            //CharacterUpdateInterval = 1;
 
             _consoleCommands.RemoveRegisteredCommands();
         }

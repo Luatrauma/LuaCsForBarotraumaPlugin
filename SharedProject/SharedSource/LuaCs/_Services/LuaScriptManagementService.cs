@@ -11,7 +11,6 @@ using MonoMod.RuntimeDetour;
 using MoonSharp.Interpreter;
 using MoonSharp.Interpreter.Interop;
 using MoonSharp.Interpreter.Loaders;
-using RestSharp.Validation;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
