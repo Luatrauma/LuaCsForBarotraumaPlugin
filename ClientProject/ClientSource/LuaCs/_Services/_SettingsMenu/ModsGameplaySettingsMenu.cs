@@ -113,13 +113,11 @@ internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenuBase
         GUIUtil.Label(searchBarLayoutGroup, "Search: ", GUIStyle.SubHeadingFont, new Vector2(SearchBarLabelWidth, 1f));
         var searchBar = new GUITextBox(
             new RectTransform(new Vector2(SearchBarTextBoxWidth, 0.1f), searchBarLayoutGroup.RectTransform, Anchor.TopLeft),
-            createClearButton: true)
+            createClearButton: true);
+        searchBar.OnTextChanged += (btn, txt) =>
         {
-            OnTextChangedDelegate = (btn, txt) =>
-            {
-                GenerateDisplayFromFilter(txt);
-                return true;
-            }
+            GenerateDisplayFromFilter(txt);
+            return true;
         };
         
         // main display area
