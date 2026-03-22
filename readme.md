@@ -46,12 +46,10 @@ Before opening the project, a few configuration steps are required.
 
 ### Required Configuration
 
-- Edit the file `BuildData.props` and replace `ExampleMod` with your actual mod name.
+- Edit the file `BuildData.props` and replace `BaseMod` with your actual mod name.
 - Locate the file `UserBuildData.props.example` and create a copy named `UserBuildData.props`.
   - Edit `UserBuildData.props`.
   - Update the `ModDeployDir` value so it points to the **LocalMods** directory of your Barotrauma installation.
-  - (TODO rethink this when we figure out assembly distribution) Update the `RefDir` value so it points to your Barotrauma installation folder.
-
 ## Opening the Project
 
 You can now open the solution file `WindowsSolution.sln` (or the appropriate solution for your platform).
