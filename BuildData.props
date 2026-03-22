@@ -3,14 +3,14 @@
     <!-- 
     IMPORTANT: Don't make use of special (ie: spaces / : ; , \ < > ?) (periods "." are good) and non-english characters in the ModName.
      -->    
-    <ModName>BaseMod</ModName>
-    <RepositoryURL></RepositoryURL>
+    <ModName>LuaCsForBarotrauma</ModName>
+    <RepositoryURL>https://github.com/Luatrauma/LuaCsForBarotraumaPlugin</RepositoryURL>
 
     <!-- 
     Enables the use of Publicized assemblies in place of the standard Barotrauma assemblies, allowing access to members that were 
     previously restricted by access modifiers. Enable only if you know what you are doing.
      -->
-    <UsePublicizedAssemblies>false</UsePublicizedAssemblies>
+    <UsePublicizedAssemblies>true</UsePublicizedAssemblies>
   </PropertyGroup>
 
   <Import Project="UserBuildData.props" />
