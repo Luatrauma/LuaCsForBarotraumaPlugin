@@ -19,7 +19,7 @@ namespace Barotrauma
             }
             set
             {
-                Timing.AccumulatorMax = value;
+                //Timing.AccumulatorMax = value;
             }
         }
 

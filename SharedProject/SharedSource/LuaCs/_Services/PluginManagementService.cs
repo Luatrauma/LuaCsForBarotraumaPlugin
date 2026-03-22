@@ -552,7 +552,7 @@ public class PluginManagementService : IAssemblyManagementService
             LoadAndCompileScriptAssemblies(contentPack);
             foreach (var ass in _assemblyLoaders[contentPack.Key].Assemblies)
             {
-                ReflectionUtils.AddNonAbstractAssemblyTypes(ass);
+                //ReflectionUtils.AddNonAbstractAssemblyTypes(ass);
             }
         }
         
@@ -880,7 +880,7 @@ public class PluginManagementService : IAssemblyManagementService
         }
         _pluginInjectorContainer = null;
         
-        ReflectionUtils.ResetCache();
+        //ReflectionUtils.ResetCache();
         foreach (var loaderService in _assemblyLoaders)
         {
             try
