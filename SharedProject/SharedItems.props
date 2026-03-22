@@ -25,7 +25,7 @@
 
   <Target Name="ReadGameVersion" AfterTargets="ResolveAssemblyReferences"
     BeforeTargets="GenerateAssemblyInfo">
-    <GetAssemblyIdentity AssemblyFiles="$(BarotraumaPackageAssembly)\assemblies\Barotrauma.dll">
+    <GetAssemblyIdentity AssemblyFiles="$(BarotraumaPackageAssembly)\assemblies\Windows\Barotrauma.dll">
       <Output TaskParameter="Assemblies" ItemName="GameAssemblyIdentity" />
     </GetAssemblyIdentity>
 
