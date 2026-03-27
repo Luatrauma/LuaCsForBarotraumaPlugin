@@ -397,7 +397,7 @@ internal partial class NetworkingService : INetworkingService, IEventSettingInst
     public int FileSenderMaxPacketsPerUpdate
     {
         get { return FileSender.FileTransferOut.MaxPacketsPerUpdate; }
-        set { FileSender.FileTransferOut.MaxPacketsPerUpdate = value; }
+        set { /*FileSender.FileTransferOut.MaxPacketsPerUpdate = value;*/ }
     }
 #endif
 

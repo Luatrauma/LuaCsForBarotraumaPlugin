@@ -1,8 +1,13 @@
 ﻿using Barotrauma;
 using Barotrauma.Plugins;
 using Microsoft.Xna.Framework;
+using System.Runtime.CompilerServices;
 
-namespace ExampleMod;
+[assembly: IgnoresAccessChecksTo("Barotrauma")]
+[assembly: IgnoresAccessChecksTo("DedicatedServer")]
+[assembly: IgnoresAccessChecksTo("BarotraumaCore")]
+
+namespace Barotrauma.LuaCs;
 
 public partial class Plugin : IBarotraumaPlugin
 {
@@ -13,6 +18,8 @@ public partial class Plugin : IBarotraumaPlugin
         DebugConsole.NewMessage("Plugin loaded", Color.Lime);
 
         InitProjectSpecific();
+
+        LuaCsSetup.Instance.GetType();
     }
 
     public partial void InitProjectSpecific();
