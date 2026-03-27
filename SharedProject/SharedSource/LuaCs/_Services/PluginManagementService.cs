@@ -94,7 +94,9 @@ public class PluginManagementService : IAssemblyManagementService
             if (_baseMetadataReferences.IsDefaultOrEmpty)
             {
                 _baseMetadataReferences = Basic.Reference.Assemblies.Net80.References.All
-                    .Union(AssemblyLoadContext.Default.Assemblies
+                    .Union(
+                        AssemblyLoadContext.Default.Assemblies
+                        .Union(AssemblyLoadContext.GetLoadContext(typeof(LuaCsSetup).Assembly).Assemblies)
                         .Where(ass =>
                             !ass.IsDynamic &&
                             !ass.GetName().FullName.StartsWith("BarotraumaCore") &&
@@ -683,7 +685,15 @@ public class PluginManagementService : IAssemblyManagementService
         // This method is used during assembly instantiation, we cannot put a lock here.
         //using var lck = _operationsLock.AcquireReaderLock().ConfigureAwait(false).GetAwaiter().GetResult();
         IService.CheckDisposed(this);
-        
+
+        foreach (var assembly in AssemblyLoadContext.GetLoadContext(typeof(LuaCsSetup).Assembly).Assemblies)
+        {
+            if (assembly.GetName().FullName == searchName.FullName)
+            {
+                return assembly;
+            }
+        }
+
         foreach (var loader in _assemblyLoaders.Where(kvp => kvp.Value != requestingLoader)
                      .Select(kvp => kvp.Value).ToImmutableArray())
         {

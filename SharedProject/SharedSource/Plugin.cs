@@ -25,7 +25,9 @@ public partial class Plugin : IBarotraumaPlugin
     public partial void InitProjectSpecific();
 
     public void Dispose() 
-    { 
+    {
+        LuaCsSetup.Instance.Dispose();
+
         DebugConsole.NewMessage("Plugin unloaded", Color.Red); 
     }
 
