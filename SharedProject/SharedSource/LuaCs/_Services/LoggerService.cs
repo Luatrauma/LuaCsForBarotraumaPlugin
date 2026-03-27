@@ -55,7 +55,7 @@ public partial class LoggerService : ILoggerService
                 if (GameMain.Server.ServerSettings.SaveServerLogs)
                 {
                     string logMessage = "[LuaCs] " + log.Message;
-                    GameMain.Server.ServerSettings.ServerLog.WriteLine(logMessage, log.MessageType, false);
+                    // GameMain.Server.ServerSettings.ServerLog.WriteLine(logMessage, log.MessageType, false);
 
                     if (!_isInsideLogCall)
                     {

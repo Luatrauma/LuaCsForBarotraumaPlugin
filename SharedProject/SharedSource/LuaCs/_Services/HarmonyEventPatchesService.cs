@@ -63,7 +63,7 @@ internal class HarmonyEventPatchesService : ISystem
 #if CLIENT
     [HarmonyPatch(typeof(GameSession), nameof(GameSession.StartRound), new Type[]
     {
-        typeof(LevelData), typeof(bool), typeof(SubmarineInfo), typeof(SubmarineInfo)
+        typeof(LevelData), typeof(bool)
     }), HarmonyPostfix]
     public static void GameSession_StartRound_Post()
     {
