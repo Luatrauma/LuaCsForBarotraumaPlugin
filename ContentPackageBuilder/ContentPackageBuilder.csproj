@@ -29,49 +29,21 @@
       <ModFiles Include="$(MSBuildThisFileDirectory)filelist.xml" />
       <ModFiles Include="$(MSBuildThisFileDirectory)PluginInfo.xml" />
       <ModFiles Include="$(MSBuildThisFileDirectory)ModConfig.xml" />
+      <ModContentFiles Include="$(MSBuildThisFileDirectory)Content\**\*" />
+      <ModLuaFiles Include="$(MSBuildThisFileDirectory)Lua\**\*" />
+      <ModTextsFiles Include="$(MSBuildThisFileDirectory)Texts\**\*" />
+      <ModConfigFiles Include="$(MSBuildThisFileDirectory)Config\**\*" />
 
-      <ContentFiles Include="$(MSBuildThisFileDirectory)Content\**\*" />
-      <LuaFiles Include="$(MSBuildThisFileDirectory)Lua\**\*" />
-      <TextFiles Include="$(MSBuildThisFileDirectory)Texts\**\*" />
-      <ConfigFiles Include="$(MSBuildThisFileDirectory)Config\**\*" />
+      <ModFilesDest Include="@(ModFiles->'$(ModDeployDir)\$(ModName)\%(Filename)%(Extension)')" />
     </ItemGroup>
 
-    <Copy
-      SourceFiles="@(ModFiles)"
-      DestinationFolder="$(ModDeployDir)\$(ModName)"
-      SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ModFiles)" DestinationFolder="$(ModDeployDir)\$(ModName)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ModContentFiles)" DestinationFiles="@(ModContentFiles->'$(ModDeployDir)\$(ModName)\Content\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ModLuaFiles)" DestinationFiles="@(ModLuaFiles->'$(ModDeployDir)\$(ModName)\Lua\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ModTextsFiles)" DestinationFiles="@(ModTextsFiles->'$(ModDeployDir)\$(ModName)\Texts\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ModConfigFiles)" DestinationFiles="@(ModConfigFiles->'$(ModDeployDir)\$(ModName)\Config\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
 
-    <Copy
-      SourceFiles="@(ContentFiles)"
-      DestinationFiles="@(ContentFiles->'$(ModDeployDir)\$(ModName)\Content\%(RecursiveDir)%(Filename)%(Extension)')"
-      SkipUnchangedFiles="true" />
-
-    <Copy
-      SourceFiles="@(LuaFiles)"
-      DestinationFiles="@(LuaFiles->'$(ModDeployDir)\$(ModName)\Lua\%(RecursiveDir)%(Filename)%(Extension)')"
-      SkipUnchangedFiles="true" />
-
-    <Copy
-      SourceFiles="@(TextFiles)"
-      DestinationFiles="@(TextFiles->'$(ModDeployDir)\$(ModName)\Texts\%(RecursiveDir)%(Filename)%(Extension)')"
-      SkipUnchangedFiles="true" />
-
-    <Copy
-      SourceFiles="@(ConfigFiles)"
-      DestinationFiles="@(ConfigFiles->'$(ModDeployDir)\$(ModName)\Config\%(RecursiveDir)%(Filename)%(Extension)')"
-      SkipUnchangedFiles="true" />
-
-    <ItemGroup>
-      <FilesToPatch Include="
-        @(ContentFiles->'$(ModDeployDir)\$(ModName)\Content\%(RecursiveDir)%(Filename)%(Extension)');
-        @(LuaFiles->'$(ModDeployDir)\$(ModName)\Lua\%(RecursiveDir)%(Filename)%(Extension)');
-        @(TextFiles->'$(ModDeployDir)\$(ModName)\Texts\%(RecursiveDir)%(Filename)%(Extension)');
-        @(ConfigFiles->'$(ModDeployDir)\$(ModName)\Config\%(RecursiveDir)%(Filename)%(Extension)')" />
-    </ItemGroup>
-
-    <ReplaceTokenInFile
-      FilePath="%(FilesToPatch.Identity)"
-      Token="%ModName%"
-      Value="$(ModName)" />
+    <!-- Replace %ModName% with the actual mod name -->
+    <ReplaceTokenInFile FilePath="%(ModFilesDest.Identity)" Token="%ModName%" Value="$(ModName)" />
   </Target>
 </Project>
