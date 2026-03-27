@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<infotexts language="English" nowhitespace="false" translatedname="English">
+  <LuaCsForBarotrauma.SettingsMenu.ModControlsButton>Mod Controls Settings</LuaCsForBarotrauma.SettingsMenu.ModControlsButton>
+  <LuaCsForBarotrauma.SettingsMenu.ModGameplayButton>Mod Gameplay Settings</LuaCsForBarotrauma.SettingsMenu.ModGameplayButton>
+  <!-- Settings -->
+  <LuaCsForBarotrauma.DisableErrorGUIOverlay.DisplayName>Suppress GUI Popup on Error</LuaCsForBarotrauma.DisableErrorGUIOverlay.DisplayName>
+  <LuaCsForBarotrauma.DisableErrorGUIOverlay.DisplayCategory>General</LuaCsForBarotrauma.DisableErrorGUIOverlay.DisplayCategory>
+  <LuaCsForBarotrauma.IsCsEnabled.DisplayName>Are C# Mods Allowed</LuaCsForBarotrauma.IsCsEnabled.DisplayName>
+  <LuaCsForBarotrauma.IsCsEnabled.Tooltip>Should unsandboxed scripts and dlls be allowed to run.</LuaCsForBarotrauma.IsCsEnabled.Tooltip>
+  <LuaCsForBarotrauma.IsCsEnabled.DisplayCategory>General</LuaCsForBarotrauma.IsCsEnabled.DisplayCategory>
+  <LuaCsForBarotrauma.HideUserNamesInLogs.DisplayName>Hide Local OS Account Name In Logs</LuaCsForBarotrauma.HideUserNamesInLogs.DisplayName>
+  <LuaCsForBarotrauma.HideUserNamesInLogs.DisplayCategory>General</LuaCsForBarotrauma.HideUserNamesInLogs.DisplayCategory>
+  <LuaCsForBarotrauma.RestrictMessageSize.DisplayName>Limit Network Message Size</LuaCsForBarotrauma.RestrictMessageSize.DisplayName>
+  <LuaCsForBarotrauma.RestrictMessageSize.Tooltip>Limits the maximum network message size to avoid buffer size issues.</LuaCsForBarotrauma.RestrictMessageSize.Tooltip>
+  <LuaCsForBarotrauma.RestrictMessageSize.DisplayCategory>Networking</LuaCsForBarotrauma.RestrictMessageSize.DisplayCategory>
+</infotexts>
