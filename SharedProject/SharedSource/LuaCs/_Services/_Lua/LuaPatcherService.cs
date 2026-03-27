@@ -280,7 +280,7 @@ namespace Barotrauma.LuaCs
 
             // The assembly names are hardcoded, otherwise it would
             // break unit tests.
-            var assembliesToExpose = new[] { "Barotrauma", "DedicatedServer" };
+            var assembliesToExpose = new[] { "Barotrauma", "DedicatedServer", "LuaCsForBarotraumaClient", "LuaCsForBarotraumaServer" };
             foreach (var name in assembliesToExpose)
             {
                 var attr = new CustomAttributeBuilder(
