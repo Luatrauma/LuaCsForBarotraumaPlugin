@@ -1,5 +1,8 @@
 <Project>
   <ItemGroup>
+    <!-- TODO: Remove when we upgrade to NET 10 -->
+    <PackageReference Include="System.Collections.Immutable" Version="9.0.0" />
     <!-- Add misc references here -->
+
   </ItemGroup>
 </Project>
