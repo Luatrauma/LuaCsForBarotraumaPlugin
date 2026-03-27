@@ -215,6 +215,7 @@ public class StorageService : IStorageService
     {
         return contentPath.FullPath.StartsWith(ConfigData.WorkshopModsDirectory)
             || contentPath.FullPath.StartsWith(ConfigData.LocalModsDirectory)
+            || contentPath.FullPath.StartsWith(ConfigData.DlcModsDirectory)
 #if CLIENT
             || contentPath.FullPath.StartsWith(ConfigData.TempDownloadsDirectory)
 #endif
