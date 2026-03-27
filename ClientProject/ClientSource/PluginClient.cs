@@ -1,7 +1,7 @@
 ﻿using Barotrauma;
 using Barotrauma.Plugins;
 
-namespace ExampleMod;
+namespace Barotrauma.LuaCs;
 
 public partial class Plugin
 {
