@@ -20,6 +20,7 @@ namespace Barotrauma.LuaCs.Data;
 public interface IStorageServiceConfig : IService
 {
     string LocalModsDirectory { get; }
+    string DlcModsDirectory { get; }
     string WorkshopModsDirectory { get; }
     string GameSettingsConfigPath { get; }
 #if CLIENT
@@ -35,6 +36,7 @@ public record StorageServiceConfig : IStorageServiceConfig
     private static readonly string ExecutionLocation = Directory.GetCurrentDirectory().CleanUpPathCrossPlatform();
 
     public string LocalModsDirectory { get; init; } = System.IO.Path.GetFullPath(ContentPackage.LocalModsDir).CleanUpPath();
+    public string DlcModsDirectory { get; init; } = System.IO.Path.GetFullPath(ContentPackage.DlcDir).CleanUpPath();
     public string WorkshopModsDirectory { get; init; } = System.IO.Path.GetFullPath(ContentPackage.WorkshopModsDir).CleanUpPath();
     public string GameSettingsConfigPath { get; init; } = System.IO.Path.GetFullPath(
         string.IsNullOrEmpty(GameSettings.CurrentConfig.SavePath)
