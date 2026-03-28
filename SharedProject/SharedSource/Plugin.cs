@@ -15,7 +15,14 @@ public partial class Plugin : IBarotraumaPlugin
 
     public void Init()
     {
-        DebugConsole.NewMessage("Plugin loaded", Color.Lime);
+        ContentPackage package = LuaCsSetup.GetLuaCsPackage();
+        if (PluginLoader.IsPluginFileUnloading(package.GetFiles<PluginInfoFile>().First()))
+        {
+            DebugConsole.NewMessage("Detected that LuaCsForBarotrauma is still loaded, skipping load so we don't load twice", Color.Lime);
+            return;
+        }
+
+        DebugConsole.NewMessage("LuaCsForBarotrauma loaded", Color.Lime);
 
         InitProjectSpecific();
 
@@ -28,7 +35,7 @@ public partial class Plugin : IBarotraumaPlugin
     {
         //LuaCsSetup.Instance.Dispose();
 
-        DebugConsole.NewMessage("Plugin unloaded", Color.Red); 
+        DebugConsole.NewMessage("LuaCsForBarotrauma unloaded", Color.Red); 
     }
 
     public void OnContentLoaded()
