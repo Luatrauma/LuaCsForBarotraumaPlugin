@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<PluginInfos notsyncedinmultiplayer="false" >
+<PluginInfos notsyncedinmultiplayer="true" >
   <MainAssemblyInfo assemblypath="%ModDir%/Windows/%ModName%Server.dll" platforms="Windows" targets="Server" />
   <MainAssemblyInfo assemblypath="%ModDir%/Windows/%ModName%Client.dll" platforms="Windows" targets="Client" />
 
