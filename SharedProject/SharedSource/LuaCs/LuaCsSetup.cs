@@ -3,6 +3,7 @@ using Barotrauma.LuaCs.Compatibility;
 using Barotrauma.LuaCs.Data;
 using Barotrauma.LuaCs.Events;
 using LightInject;
+using MoonSharp.Interpreter;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -82,7 +83,6 @@ namespace Barotrauma
         private LuaGame _game;
         public LuaGame Game => _game ??= _servicesProvider.GetService<LuaGame>();
         
-        internal IStorageService StorageService => _servicesProvider.GetService<IStorageService>();
 
         /// <summary>
         /// Whether C# plugin code is enabled.
@@ -96,16 +96,6 @@ namespace Barotrauma
         private ISettingBase<bool> _isCsEnabled;
 
         /// <summary>
-        /// Whether the popup error GUI should be hidden/suppressed.
-        /// </summary>
-        public bool DisableErrorGUIOverlay
-        {
-            get => _disableErrorGUIOverlay?.Value ?? false;
-            internal set => _disableErrorGUIOverlay?.TrySetValue(value);
-        }
-        private ISettingBase<bool> _disableErrorGUIOverlay;
-
-        /// <summary>
         /// Whether usernames are anonymized or show in logs. 
         /// </summary>
         public bool HideUserNamesInLogs
@@ -115,65 +105,24 @@ namespace Barotrauma
         }
         private ISettingBase<bool> _hideUserNamesInLogs;
 
-        /// <summary>
-        /// The SteamId of the Workshop LuaCs CPackage in use, if available.
-        /// </summary>
-        public ulong LuaForBarotraumaSteamId
+        public static ContentPackage GetLuaCsPackage()
         {
-            get => _luaForBarotraumaSteamId?.Value ?? 0;
-            internal set => _luaForBarotraumaSteamId?.TrySetValue(value);
-        }
-        private ISettingBase<ulong> _luaForBarotraumaSteamId;
-
-        /// <summary>
-        /// Whether the maximum message size over the network should be restricted.
-        /// </summary>
-        public bool RestrictMessageSize
-        {
-            get => _restrictMessageSize?.Value ?? false;
-            internal set => _restrictMessageSize?.TrySetValue(value);
-        }
-        private ISettingBase<bool> _restrictMessageSize;
-
-        /// <summary>
-        /// The local save path for all local data storage for mods.
-        /// </summary>
-        public string LocalDataSavePath
-        {
-            get => _localDataSavePath?.Value ?? Path.Combine(Directory.GetCurrentDirectory(), "/Data/Mods");
-            internal set => _localDataSavePath?.TrySetValue(value);
-        }
-        private ISettingBase<string> _localDataSavePath;
-
-        void LoadLuaCsConfig()
-        {
-            var luaCsPackage = ContentPackageManager.EnabledPackages.Regular.FirstOrDefault(cp => cp.NameMatches(PackageId), null)
+            return ContentPackageManager.EnabledPackages.Regular.FirstOrDefault(cp => cp.NameMatches(PackageId), null)
                 ?? ContentPackageManager.LocalPackages.FirstOrDefault(cp => cp.NameMatches(PackageId))
                 ?? ContentPackageManager.WorkshopPackages.FirstOrDefault(cp => cp.NameMatches(PackageId));
+        }
+        
+        void LoadLuaCsConfig()
+        {
+            var luaCsPackage = GetLuaCsPackage();
             
             _isCsEnabled = 
                 ConfigService.TryGetConfig<ISettingBase<bool>>(luaCsPackage, "IsCsEnabled", out var val1)
                     ? val1
                     : null;
-            _disableErrorGUIOverlay =
-                ConfigService.TryGetConfig<ISettingBase<bool>>(luaCsPackage, "DisableErrorGUIOverlay", out var val3)
-                    ? val3
-                    : null;
             _hideUserNamesInLogs =
                 ConfigService.TryGetConfig<ISettingBase<bool>>(luaCsPackage, "HideUserNamesInLogs", out var val4)
                     ? val4
-                    : null;
-            _luaForBarotraumaSteamId =
-                ConfigService.TryGetConfig<ISettingBase<ulong>>(luaCsPackage, "LuaForBarotraumaSteamId", out var val5)
-                    ? val5
-                    : null;
-            _restrictMessageSize =
-                ConfigService.TryGetConfig<ISettingBase<bool>>(luaCsPackage, "RestrictMessageSize", out var val7)
-                    ? val7
-                    : null;
-            _localDataSavePath =
-                ConfigService.TryGetConfig<ISettingBase<string>>(luaCsPackage, "LocalDataSavePath", out var val8)
-                    ? val8
                     : null;
         }
         
@@ -435,6 +384,7 @@ namespace Barotrauma
         public ILuaCsHook Hook => this.EventService;
         public INetworkingService Networking => this.NetworkingService;
         public ILuaCsTimer Timer => _servicesProvider.GetService<ILuaCsTimer>();
+        public DynValue CallLuaFunction(object function, params object[] args) => LuaScriptManagementService.CallFunctionSafe(function, args);
 
         #endregion
 
@@ -485,10 +435,7 @@ namespace Barotrauma
         void DisposeLuaCsConfig()
         {
             _isCsEnabled = null;
-            _disableErrorGUIOverlay = null;
             _hideUserNamesInLogs = null;
-            _luaForBarotraumaSteamId = null;
-            _restrictMessageSize = null;
         }
     }
 

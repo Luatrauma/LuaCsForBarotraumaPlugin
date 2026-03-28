@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Text;
 using System.Threading;
@@ -195,10 +196,13 @@ public class PluginManagementService : IAssemblyManagementService
     private Lazy<IEventService> _eventService;
     private Lazy<IConfigService> _configService;
     private Lazy<ILuaScriptManagementService> _luaScriptManagementService;
+    private IEventService _pluginEventService;
+    private Lazy<ILuaPatcher> _pluginLuaPatcherService;
     private readonly ConcurrentDictionary<ContentPackage, IAssemblyLoaderService> _assemblyLoaders = new();
     private readonly ConcurrentDictionary<Type, ContentPackage> _pluginPackageLookup = new();
     private readonly ConcurrentDictionary<ContentPackage, ImmutableArray<IAssemblyPlugin>> _pluginInstances = new();
     private readonly ConditionalWeakTable<IAssemblyLoaderService, ContentPackage> _unloadingAssemblyLoaders = new();
+    private readonly ConcurrentBag<IntPtr> _loadedNativeLibraries = new();
     private readonly AsyncReaderWriterLock _operationsLock = new();
     private ServiceContainer _pluginInjectorContainer;
     
@@ -208,7 +212,8 @@ public class PluginManagementService : IAssemblyManagementService
         ILoggerService logger, 
         Lazy<IEventService> eventService, 
         Lazy<ILuaScriptManagementService> luaScriptManagementService, 
-        Lazy<IConfigService> configService)
+        Lazy<IConfigService> configService, 
+        Lazy<ILuaPatcher> pluginLuaPatcherService)
     {
         _assemblyLoaderFactory = assemblyLoaderFactory;
         _storageService = storageService;
@@ -216,19 +221,22 @@ public class PluginManagementService : IAssemblyManagementService
         _eventService = eventService;
         _luaScriptManagementService = luaScriptManagementService;
         _configService = configService;
+        _pluginLuaPatcherService = pluginLuaPatcherService;
     }
 
     private ServiceContainer CreatePluginServiceContainer()
     {
         var container = new ServiceContainer(new ContainerOptions()
         {
-            EnablePropertyInjection = true,
-            
+            EnablePropertyInjection = true
         });
 
+        _pluginEventService ??= new EventService(_logger, _pluginLuaPatcherService.Value);
+        _eventService.Value.AddDispatcherEventService(_pluginEventService);
+        
         container.Register<ILoggerService>(fac => _logger);
         container.Register<IStorageService>(fac => _storageService);
-        container.Register<IEventService>(fac => _eventService.Value);
+        container.Register<IEventService>(fac => _pluginEventService);
         container.Register<IPluginManagementService>(fac => this);
         container.Register<ILuaScriptManagementService>(fac => _luaScriptManagementService.Value);
         container.Register<IConfigService>(fac => _configService.Value);
@@ -629,13 +637,44 @@ public class PluginManagementService : IAssemblyManagementService
 
     private string DoSourceCodeTextCompatibilityPass(string sourceCode)
     {
-        return sourceCode.Replace("GameMain.LuaCs", "LuaCsSetup.Instance");
+        return sourceCode
+            .Replace("GameMain.LuaCs", "LuaCsSetup.Instance")
+            .Replace("Client.ClientList", "ModUtils.Client.ClientList");
     }
 
-    private IntPtr OnAssemblyLoaderResolvingUnmanaged(Assembly arg1, string arg2)
+    private IntPtr OnAssemblyLoaderResolvingUnmanaged(Assembly callerAssembly, string targetAssemblyName)
     {
-        // TODO: Implement extern assembly lookup for Native/Unmanaged Assemblies.
-        throw new NotImplementedException();
+        Guard.IsNull(callerAssembly, nameof(callerAssembly));
+        Guard.IsNullOrWhiteSpace(targetAssemblyName, nameof(targetAssemblyName));
+        
+        if (AssemblyLoadContext.GetLoadContext(callerAssembly) is not IAssemblyLoaderService loaderService)
+        {
+            return IntPtr.Zero;
+        }
+
+        var targetDirectory = Path.GetFullPath(loaderService.OwnerPackage.Dir);
+        if (!targetAssemblyName.TrimEnd().EndsWith(".dll"))
+        {
+            targetAssemblyName += ".dll";
+        }
+
+        var res = _storageService.FindFilesInPackage(loaderService.OwnerPackage, string.Empty, targetAssemblyName, true);
+
+        if (res.IsFailed || !res.Value.Any())
+        {
+            return IntPtr.Zero;
+        }
+
+        foreach (var path in res.Value)
+        {
+            if (System.Runtime.InteropServices.NativeLibrary.TryLoad(path, out IntPtr asmPtr))
+            {
+                _loadedNativeLibraries.Add(asmPtr);
+                return asmPtr;
+            }
+        }
+
+        return IntPtr.Zero;
     }
 
     private Assembly OnAssemblyLoaderResolvingManaged(IAssemblyLoaderService requestingLoader, AssemblyName searchName)
@@ -707,6 +746,56 @@ public class PluginManagementService : IAssemblyManagementService
 
         _assemblyLoaders.Clear();
         GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true);
+
+#if DEBUG
+        // Print still loaded assembly load ctx after giving some time
+        CoroutineManager.Invoke(() =>
+        {
+            if (!_unloadingAssemblyLoaders.Any())
+            {
+                return;
+            }
+            
+            StringBuilder sb = new StringBuilder();
+
+            sb.AppendLine("The following ContentPackages have not unloaded their assemblies:");
+            
+            foreach (var kvp in _unloadingAssemblyLoaders.ToImmutableArray())
+            {
+                sb.AppendLine($"- '{kvp.Value.Name}'");
+            }
+            
+            
+            // Use DebugConsole in case logger is null by the time this executes.
+            if (_logger is null)
+            {
+                DebugConsole.LogError(sb.ToString());
+            }
+            else
+            {
+                _logger.LogWarning(sb.ToString());
+            }
+        }, 3.0f);
+#endif
+        
+        // clear native libraries
+        if (_loadedNativeLibraries.Any())
+        {
+            foreach (var ptr in _loadedNativeLibraries)
+            {
+                try
+                {
+                    System.Runtime.InteropServices.NativeLibrary.Free(ptr);
+                }
+                catch 
+                {
+                    // ignored
+                    continue;
+                }
+            }
+            
+            _loadedNativeLibraries.Clear();
+        }
         
         return results;
     }
@@ -714,24 +803,29 @@ public class PluginManagementService : IAssemblyManagementService
     private FluentResults.Result UnsafeDisposeManagedTypeInstances()
     {
         var results = new FluentResults.Result();
+        
+        if (!_pluginInstances.IsEmpty)
+        {
+            foreach (var instance in _pluginInstances.SelectMany(kvp => kvp.Value))
+            {
+                try
+                {
+                    instance.Dispose();
+                }
+                catch (Exception e)
+                {
+                    results.WithError(new ExceptionalError(e));
+                    continue;
+                }
+            }
+        }
+        
+        if (_pluginEventService is not null)
+        {
+            _eventService.Value.RemoveDispatcherEventService(_pluginEventService);
+            _pluginEventService = null;
+        }
         _pluginInjectorContainer = null;
-        if (_pluginInstances.IsEmpty)
-        {
-            return FluentResults.Result.Ok();
-        }
-
-        foreach (var instance in _pluginInstances.SelectMany(kvp => kvp.Value))
-        {
-            try
-            {
-                instance.Dispose();
-            }
-            catch (Exception e)
-            {
-                results.WithError(new ExceptionalError(e));
-                continue;
-            }
-        }
         
         _pluginInstances.Clear();
         _pluginPackageLookup.Clear();
@@ -741,6 +835,36 @@ public class PluginManagementService : IAssemblyManagementService
 
     public Result<Assembly> GetLoadedAssembly(OneOf<AssemblyName, string> assemblyName, in Guid[] excludedContexts)
     {
-        throw new NotImplementedException();
+        using var _ = _operationsLock.AcquireReaderLock().ConfigureAwait(false).GetAwaiter().GetResult();
+        IService.CheckDisposed(this);
+
+        var guids = excludedContexts;
+        return assemblyName.Match<Assembly>((AssemblyName asm) =>
+            {
+                foreach (var ass in _assemblyLoaders.Values
+                             .Where(al => guids.Length == 0 || !guids.Contains(al.Id))
+                             .SelectMany(al => al.Assemblies)
+                             .ToImmutableArray())
+                {
+                    if (ass.GetName() == asm)
+                    {
+                        return ass;
+                    }
+                }
+
+                return null;
+            },
+            (string asmName) =>
+            {
+                foreach (var ass in _assemblyLoaders.Values.SelectMany(al => al.Assemblies))
+                {
+                    if (ass.GetName().Name?.Equals(asmName) ?? ass.GetName().FullName.Equals(asmName))
+                    {
+                        return ass;
+                    }
+                }
+
+                return null;
+            });
     }
 }

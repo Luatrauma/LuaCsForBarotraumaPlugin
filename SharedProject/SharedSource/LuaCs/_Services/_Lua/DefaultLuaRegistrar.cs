@@ -1,8 +1,11 @@
 ﻿using Barotrauma.LuaCs.Data;
 using Barotrauma.Networking;
 using MoonSharp.Interpreter;
+using MoonSharp.Interpreter.Interop;
+using MoonSharp.Interpreter.Interop.BasicDescriptors;
 using Sigil;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
@@ -23,6 +26,30 @@ public class DefaultLuaRegistrar : IDefaultLuaRegistrar
     private readonly ISafeLuaUserDataService _safeUserDataService;
     private readonly ILoggerService _loggerService;
 
+    private class SteamIDMemberDescriptor : IMemberDescriptor
+    {
+        public bool IsStatic => false;
+
+        public string Name => "SteamID";
+
+        public MemberDescriptorAccess MemberAccess => MemberDescriptorAccess.CanRead;
+
+        public DynValue GetValue(Script script, object obj)
+        {
+            if (obj is Client client)
+            {
+                return DynValue.FromObject(script, ModUtils.Client.GetSteamId(client));
+            }
+
+            throw new System.NotImplementedException();
+        }
+
+        public void SetValue(Script script, object obj, DynValue value)
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+
     public DefaultLuaRegistrar(ILoggerService loggerService, ILuaUserDataService userDataService, ISafeLuaUserDataService safeUserDataService)
     {
         _userDataService = userDataService;
@@ -41,6 +68,8 @@ public class DefaultLuaRegistrar : IDefaultLuaRegistrar
         _userDataService.RegisterType("Barotrauma.Failure`2");
         _userDataService.RegisterType("Barotrauma.Range`1");
         _userDataService.RegisterType("Barotrauma.ItemPrefab");
+
+        _userDataService.RegisterType("Barotrauma.InputType");
 
         List<Assembly> assembliesToScan = [typeof(DefaultLuaRegistrar).Assembly, typeof(Identifier).Assembly, typeof(Microsoft.Xna.Framework.Vector2).Assembly];
 
@@ -149,6 +178,28 @@ public class DefaultLuaRegistrar : IDefaultLuaRegistrar
         _userDataService.RegisterType("Barotrauma.PrefabCollection`1");
         _userDataService.RegisterType("Barotrauma.PrefabSelector`1");
         _userDataService.RegisterType("Barotrauma.Pair`2");
+
+        _userDataService.RegisterExtensionType("Barotrauma.MathUtils");
+        _userDataService.RegisterExtensionType("Barotrauma.XMLExtensions");
+
+        var itemPrefabDescriptor = (StandardUserDataDescriptor)_userDataService.RegisterType("Barotrauma.ItemPrefab");
+        itemPrefabDescriptor.AddMember("GetItemPrefab", new MethodMemberDescriptor(typeof(ModUtils.Item).GetMethod(nameof(ModUtils.Item.GetItemPrefab), BindingFlags.NonPublic | BindingFlags.Static)));
+
+        var clientDescriptor = (StandardUserDataDescriptor)_userDataService.RegisterType("Barotrauma.Networking.Client");
+        clientDescriptor.AddMember("ClientList", new PropertyMemberDescriptor(typeof(ModUtils.Client).GetProperty(nameof(ModUtils.Client.ClientList), BindingFlags.NonPublic | BindingFlags.Static), InteropAccessMode.LazyOptimized));
+        clientDescriptor.AddMember("SteamID", new SteamIDMemberDescriptor());
+
+
+#if SERVER
+        clientDescriptor.AddMember("UnbanPlayer", new MethodMemberDescriptor(typeof(ModUtils.Client).GetMethod(nameof(ModUtils.Client.UnbanPlayer), BindingFlags.NonPublic | BindingFlags.Static), InteropAccessMode.LazyOptimized));
+        clientDescriptor.AddMember("BanPlayer", new MethodMemberDescriptor(typeof(ModUtils.Client).GetMethod(nameof(ModUtils.Client.BanPlayer), BindingFlags.NonPublic | BindingFlags.Static), InteropAccessMode.LazyOptimized));
+#endif
+
+        _userDataService.RegisterExtensionType(typeof(ClientExtensions).FullName);
+        _userDataService.RegisterExtensionType(typeof(ItemExtensions).FullName);
+        _userDataService.RegisterExtensionType(typeof(MapEntityExtensions).FullName);
+        _userDataService.RegisterExtensionType(typeof(QualityExtensions).FullName);
+
 
         var toolBox = UserData.RegisterType(typeof(ToolBox));
 #if CLIENT           
