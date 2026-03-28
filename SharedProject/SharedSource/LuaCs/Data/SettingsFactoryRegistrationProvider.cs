@@ -22,8 +22,6 @@ public class SettingsEntryRegistrar : ISettingsRegistrationProvider
 
     public void RegisterTypeProviders(IConfigService configService, Func<OneOf<string, XElement, object>, bool> valueChangePredicate)
     {
-        // TODO: Replace this with a proper IFactory lookup pattern.
-        // ISettingBase<T>
         RegisterSettingEntry<bool>(configService, "bool", valueChangePredicate);
         RegisterSettingEntry<byte>(configService, "byte", valueChangePredicate);
         RegisterSettingEntry<sbyte>(configService, "sbyte", valueChangePredicate);
@@ -58,8 +56,31 @@ public class SettingsEntryRegistrar : ISettingsRegistrationProvider
                 IsValueChangeAllowed(cfgInfo.Info, val, valueChangePredicate));
         });
 #endif
+        
+        RegisterSettingList<bool>(configService, "listBool", valueChangePredicate);
+        RegisterSettingList<byte>(configService, "listByte", valueChangePredicate);
+        RegisterSettingList<sbyte>(configService, "listSbyte", valueChangePredicate);
+        RegisterSettingList<short>(configService, "listShort", valueChangePredicate);
+        RegisterSettingList<ushort>(configService, "listUshort", valueChangePredicate);
+        RegisterSettingList<int>(configService, "listInt", valueChangePredicate);
+        RegisterSettingList<uint>(configService, "listUint", valueChangePredicate);
+        RegisterSettingList<long>(configService, "listLong", valueChangePredicate);
+        RegisterSettingList<ulong>(configService, "listUlong", valueChangePredicate);
+        RegisterSettingList<string>(configService, "listString", valueChangePredicate);
+        RegisterSettingList<float>(configService, "listFloat", valueChangePredicate);
+        RegisterSettingList<float>(configService, "listSingle", valueChangePredicate);
+        RegisterSettingList<double>(configService, "listDouble", valueChangePredicate);
     }
 
+    private void RegisterSettingList<T>(IConfigService configService, string typeName, Func<OneOf<string, XElement, object>, bool> valueChangePredicate) where T : IEquatable<T>, IConvertible
+    {
+        configService.RegisterSettingTypeInitializer(typeName, cfgInfo =>
+        {
+            return new SettingList<T>.LFactory().CreateInstance(cfgInfo.Info, (val) =>
+                IsValueChangeAllowed(cfgInfo.Info, val, valueChangePredicate));
+        });
+    }
+    
     private void RegisterSettingEntry<T>(IConfigService configService, string typeName, Func<OneOf<string, XElement, object>, bool> valueChangePredicate) where T : IEquatable<T>, IConvertible
     {
         configService.RegisterSettingTypeInitializer(typeName, cfgInfo =>

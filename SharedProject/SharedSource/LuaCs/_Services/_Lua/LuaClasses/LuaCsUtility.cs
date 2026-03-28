@@ -52,19 +52,17 @@ namespace Barotrauma
 
         public static bool CanWriteToPath(string path)
         {
+            const long LuaCsPackageId = 2559634234;
+            
             string getFullPath(string p) => System.IO.Path.GetFullPath(p).CleanUpPath();
 
             path = getFullPath(path);
 
             bool pathStartsWith(string prefix) => path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
 
-            foreach (var package in ContentPackageManager.AllPackages)
+            if (pathStartsWith(getFullPath(LuaCsSetup.GetLuaCsPackage().Path)))
             {
-                if (package.UgcId.ValueEquals(new SteamWorkshopId(LuaCsSetup.Instance.LuaForBarotraumaSteamId)) 
-                    && pathStartsWith(getFullPath(package.Path)))
-                {
-                    return false;
-                }
+                return false;
             }
 
             if (pathStartsWith(getFullPath(string.IsNullOrEmpty(GameSettings.CurrentConfig.SavePath) ? SaveUtil.DefaultSaveFolder : GameSettings.CurrentConfig.SavePath)))

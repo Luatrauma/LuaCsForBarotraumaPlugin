@@ -322,10 +322,11 @@ public class LuaUserDataService : ILuaUserDataService
         descriptor.RemoveMember(methodName);
         descriptor.AddMember(methodName, new ObjectCallbackMemberDescriptor(methodName, (object arg1, ScriptExecutionContext arg2, CallbackArguments arg3) =>
         {
-            /*if (GameMain.LuaCs != null)
-                return GameMain.LuaCs.CallLuaFunction(function, arg3.GetArray());
-            return null;*/
-            throw new NotImplementedException();
+            if (LuaCsSetup.Instance != null)
+            {
+                return LuaCsSetup.Instance.CallLuaFunction(function, arg3.GetArray());
+            }
+            return null;
         }));
     }
 

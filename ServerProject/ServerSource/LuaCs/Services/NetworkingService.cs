@@ -170,7 +170,7 @@ partial class NetworkingService : INetworkingService, IEventClientRawNetMessageR
     {
         if (connection == null)
         {
-            foreach (NetworkConnection conn in Client.ClientList.Select(c => c.Connection))
+            foreach (NetworkConnection conn in ModUtils.Client.ClientList.Select(c => c.Connection))
             {
                 GameMain.Server.ServerPeer.Send(netMessage, conn, deliveryMethod);
             }

@@ -26,6 +26,66 @@ namespace Barotrauma
 
     public static class ModUtils
     {
+        public static class Item
+        {
+            internal static ItemPrefab GetItemPrefab(string itemNameOrId)
+            {
+                ItemPrefab itemPrefab =
+                (MapEntityPrefab.Find(itemNameOrId, identifier: null, showErrorMessages: false) ??
+                MapEntityPrefab.Find(null, identifier: itemNameOrId, showErrorMessages: false)) as ItemPrefab;
+
+                return itemPrefab;
+            }
+        }
+
+        public static class Client
+        {
+            internal static ulong GetSteamId(Barotrauma.Networking.Client client)
+            {
+                if (client.AccountId.TryUnwrap(out AccountId outValue) && outValue is SteamId steamId)
+                {
+                    return steamId.Value;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+
+#if SERVER
+            internal static void UnbanPlayer(string playerName)
+            {
+                GameMain.Server.UnbanPlayer(playerName);
+            }
+
+            internal static void BanPlayer(string player, string reason, bool range = false, float seconds = -1)
+            {
+                if (seconds == -1)
+                {
+                    GameMain.Server.BanPlayer(player, reason, null);
+                }
+                else
+                {
+                    GameMain.Server.BanPlayer(player, reason, TimeSpan.FromSeconds(seconds));
+                }
+            }
+#endif
+
+            internal static IReadOnlyList<Barotrauma.Networking.Client> ClientList
+            {
+                get
+                {
+                    if (GameMain.IsSingleplayer) { return new List<Barotrauma.Networking.Client>(); }
+
+#if SERVER
+                    return GameMain.Server.ConnectedClients;
+#else
+                    return GameMain.Client.ConnectedClients;
+#endif
+                }
+            }
+        }
+
         public static class Definitions
         {
             public const string LuaCsForBarotrauma = nameof(LuaCsForBarotrauma);

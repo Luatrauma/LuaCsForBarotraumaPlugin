@@ -79,6 +79,39 @@ internal interface IEventSettingInstanceLifetime : IEvent<IEventSettingInstanceL
 
 #region GameEvents
 
+#if SERVER
+/// <summary>
+/// Allows the user to modify a chat message on the server before it is sent to clients, or reject the message altogether.
+/// </summary>
+/// <remarks>Legacy Lua Event Name: "modifyChatMessage"</remarks>
+internal interface IEventModifyChatMessage : IEvent<IEventModifyChatMessage>
+{
+    bool? OnModifyMessagePredicate(ChatMessage message, WifiComponent senderRadio);
+    
+    static IEventModifyChatMessage IEvent<IEventModifyChatMessage>.GetLuaRunner(IDictionary<string, LuaCsFunc> luaFunc) =>
+        new LuaWrapper(luaFunc);
+
+    public sealed class LuaWrapper : LuaWrapperBase, IEventModifyChatMessage
+    {
+        public LuaWrapper(IDictionary<string, LuaCsFunc> luaFuncs) : base(luaFuncs)
+        {
+        }
+        
+        /// <summary>
+        /// Called before a chat message is sent to clients.
+        /// </summary>
+        /// <param name="message">Message to be sent.</param>
+        /// <param name="senderRadio"><b>[CanBeNull]</b> The source <see cref="ItemComponent"/>, if any.</param>
+        /// <returns>Whether to <b><i>reject</i></b> the message.</returns>
+        public bool? OnModifyMessagePredicate(ChatMessage message, WifiComponent senderRadio)
+        {
+            return (bool?)LuaFuncs[nameof(OnModifyMessagePredicate)](message, senderRadio);
+        }
+    } 
+}
+
+#endif
+
 internal interface IEventAfflictionUpdate : IEvent<IEventAfflictionUpdate>
 {
     void OnAfflictionUpdate(Affliction affliction, CharacterHealth characterHealth, Limb targetLimb, float deltaTime);

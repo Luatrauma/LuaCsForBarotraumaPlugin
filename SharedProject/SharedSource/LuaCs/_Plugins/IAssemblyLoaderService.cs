@@ -44,6 +44,10 @@ public interface IAssemblyLoaderService : IService
     /// </summary>
     Guid Id { get; }
     /// <summary>
+    /// The owner content package.
+    /// </summary>
+    ContentPackage OwnerPackage { get; }
+    /// <summary>
     /// Indicates that the assemblies in this load context are metadata references only and not
     /// intended for execution.
     /// </summary>

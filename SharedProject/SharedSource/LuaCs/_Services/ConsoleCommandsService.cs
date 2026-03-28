@@ -11,7 +11,7 @@ namespace Barotrauma.LuaCs;
 
 internal class ConsoleCommandsService : IConsoleCommandsService
 {
-    private readonly ConcurrentDictionary<string, DebugConsole.Command> _registeredCommands = new();
+    private readonly List<DebugConsole.Command> _registeredCommands = new();
     
     public void Dispose()
     {
@@ -20,7 +20,7 @@ internal class ConsoleCommandsService : IConsoleCommandsService
             return;
         }
 
-        foreach (var cmd in _registeredCommands.Values.ToImmutableArray())
+        foreach (var cmd in _registeredCommands.ToImmutableArray())
         {
             DebugConsole.Commands.Remove(cmd);
         }
@@ -38,11 +38,14 @@ internal class ConsoleCommandsService : IConsoleCommandsService
     public void RegisterCommand(string name, string help, Action<string[]> onExecute, Func<string[][]> getValidArgs = null, bool isCheat = false)
     {
         IService.CheckDisposed(this);
-        var cmd = new DebugConsole.Command(name, help, onExecute, getValidArgs, isCheat);
-        if (!_registeredCommands.TryAdd(name, cmd))
+     
+        if (DebugConsole.Commands.Any(cmd => cmd.Names.Contains(name)))
         {
-            throw new ArgumentException($"A command with the name '{name}' is already registered.");
+            LuaCsSetup.Instance.Logger.LogWarning($"Registering console command {name} more than once!");
         }
+        
+        var cmd = new DebugConsole.Command(name, help, onExecute, getValidArgs, isCheat);
+        _registeredCommands.Add(cmd);
         DebugConsole.Commands.Add(cmd);
     }
 
@@ -77,16 +80,15 @@ internal class ConsoleCommandsService : IConsoleCommandsService
     public void RemoveCommand(string name)
     {
         IService.CheckDisposed(this);
-        if (_registeredCommands.TryRemove(name, out DebugConsole.Command cmd))
-        {
-            DebugConsole.Commands.Remove(cmd);
-        }
+
+        _registeredCommands.RemoveAll(cmd => cmd.Names.Contains(name));
+        DebugConsole.Commands.RemoveAll(cmd => cmd.Names.Contains(name));
     }
 
     public void RemoveRegisteredCommands()
     {
         IService.CheckDisposed(this);
-        foreach (var cmd in _registeredCommands.Values.ToImmutableArray())
+        foreach (var cmd in _registeredCommands.ToImmutableArray())
         {
             DebugConsole.Commands.Remove(cmd);
         }

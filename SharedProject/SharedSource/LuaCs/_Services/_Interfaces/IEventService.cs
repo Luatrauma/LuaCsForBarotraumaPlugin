@@ -37,4 +37,16 @@ public interface IEventService : IReusableService, ILuaEventService
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
     FluentResults.Result PublishEvent<T>(Action<T> action) where T : class, IEvent<T>;
+    
+    /// <summary>
+    /// Adds an event service that will receive all published events.
+    /// </summary>
+    /// <param name="eventService"></param>
+    void AddDispatcherEventService(IEventService eventService);
+    
+    /// <summary>
+    /// Removes an event service from the dispatcher list.
+    /// </summary>
+    /// <param name="eventService"></param>
+    void RemoveDispatcherEventService(IEventService eventService);
 }

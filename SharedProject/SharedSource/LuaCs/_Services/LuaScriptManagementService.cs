@@ -116,7 +116,8 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
 
         commands.RegisterCommand("cl_toggleluadebug", "Toggles the MoonSharp Debug Server.", (string[] args) =>
         {
-            int port = 41912;
+            DebugConsole.Log($"This command is currently not implemented. Please open a github issue if you need this feature.");
+            /*int port = 41912;
 
             if (args.Length > 0)
             {
@@ -124,7 +125,7 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
             }
 
             throw new NotImplementedException();
-            //GameMain.LuaCs.ToggleDebugger(port);
+            //GameMain.LuaCs.ToggleDebugger(port);*/
         });
 
 #elif SERVER
@@ -214,11 +215,13 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
 
         if (!LuaCsFile.CanReadFromPath(file))
         {
+            // TODO: Replace with LuaScriptLoader IsFileAccessible.
             throw new ScriptRuntimeException($"dofile: File access to {file} not allowed.");
         }
 
         if (!LuaCsFile.Exists(file))
         {
+            // TODO: Replace with LuaScriptLoader IsFileAccessible.
             throw new ScriptRuntimeException($"dofile: File {file} not found.");
         }
 
@@ -247,6 +250,8 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
 
     private void RegisterLuaEvents()
     {
+        _eventService.Subscribe<IEventAssemblyUnloading>(this);
+
         _eventService.RegisterLuaEventAlias<IEventUpdate>("think", nameof(IEventUpdate.OnUpdate));
         _eventService.RegisterLuaEventAlias<IEventKeyUpdate>("keyUpdate", nameof(IEventKeyUpdate.OnKeyUpdate));
         _eventService.RegisterLuaEventAlias<IEventAfflictionUpdate>("afflictionUpdate", nameof(IEventAfflictionUpdate.OnAfflictionUpdate));
@@ -307,6 +312,7 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
         // Compatibility
         _eventService.RegisterLuaEventAlias<IEventClientConnected>("clientConnected", nameof(IEventClientConnected.OnClientConnected));
         _eventService.RegisterLuaEventAlias<IEventClientDisconnected>("clientDisconnected", nameof(IEventClientDisconnected.OnClientDisconnected));
+        _eventService.RegisterLuaEventAlias<IEventModifyChatMessage>("modifyChatMessage", nameof(IEventModifyChatMessage.OnModifyMessagePredicate));
 #elif CLIENT
         _eventService.RegisterLuaEventAlias<IEventServerRawNetMessageReceived>("netMessageReceived", nameof(IEventServerRawNetMessageReceived.OnReceivedServerNetMessage));
 #endif
