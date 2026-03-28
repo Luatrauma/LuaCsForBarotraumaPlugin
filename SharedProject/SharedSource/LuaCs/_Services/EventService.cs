@@ -103,7 +103,7 @@ public partial class EventService : IEventService
 
     #region LuaEventSystem
 
-    public void Add(string eventName, string identifier, LuaCsFunc callback)
+    public void Add(string eventName, string identifier, LuaCsFunc callback, object owner = null)
     {
         Guard.IsNotNullOrWhiteSpace(eventName, nameof(eventName));
         Guard.IsNotNullOrWhiteSpace(identifier, nameof(identifier));
@@ -123,7 +123,7 @@ public partial class EventService : IEventService
         }
     }
 
-    public void Add(string eventName, LuaCsFunc callback)
+    public void Add(string eventName, LuaCsFunc callback, object owner = null)
     {
         // random ident, we hope for no conflicts :barodev:.
         Add(eventName, Random.Shared.NextInt64().ToString() ,callback); 
