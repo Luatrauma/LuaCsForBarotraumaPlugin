@@ -183,7 +183,7 @@ public class DefaultLuaRegistrar : IDefaultLuaRegistrar
         _userDataService.RegisterExtensionType("Barotrauma.XMLExtensions");
 
         var itemPrefabDescriptor = (StandardUserDataDescriptor)_userDataService.RegisterType("Barotrauma.ItemPrefab");
-        itemPrefabDescriptor.AddMember("GetItemPrefab", new MethodMemberDescriptor(typeof(ModUtils.Item).GetMethod(nameof(ModUtils.Item.GetItemPrefab), BindingFlags.NonPublic | BindingFlags.Static)));
+        itemPrefabDescriptor.AddMember("GetItemPrefab", new MethodMemberDescriptor(typeof(ModUtils.ItemPrefab).GetMethod(nameof(ModUtils.ItemPrefab.GetItemPrefab), BindingFlags.NonPublic | BindingFlags.Static)));
 
         var clientDescriptor = (StandardUserDataDescriptor)_userDataService.RegisterType("Barotrauma.Networking.Client");
         clientDescriptor.AddMember("ClientList", new PropertyMemberDescriptor(typeof(ModUtils.Client).GetProperty(nameof(ModUtils.Client.ClientList), BindingFlags.NonPublic | BindingFlags.Static), InteropAccessMode.LazyOptimized));

@@ -639,7 +639,8 @@ public class PluginManagementService : IAssemblyManagementService
     {
         return sourceCode
             .Replace("GameMain.LuaCs", "LuaCsSetup.Instance")
-            .Replace("Client.ClientList", "ModUtils.Client.ClientList");
+            .Replace("Client.ClientList", "ModUtils.Client.ClientList")
+            .Replace("ItemPrefab.GetItemPrefab", "ModUtils.ItemPrefab.GetItemPrefab");
     }
 
     private IntPtr OnAssemblyLoaderResolvingUnmanaged(Assembly callerAssembly, string targetAssemblyName)

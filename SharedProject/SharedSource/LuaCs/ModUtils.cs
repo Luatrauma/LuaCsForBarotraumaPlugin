@@ -26,13 +26,13 @@ namespace Barotrauma
 
     public static class ModUtils
     {
-        public static class Item
+        public static class ItemPrefab
         {
-            internal static ItemPrefab GetItemPrefab(string itemNameOrId)
+            internal static Barotrauma.ItemPrefab GetItemPrefab(string itemNameOrId)
             {
-                ItemPrefab itemPrefab =
-                (MapEntityPrefab.Find(itemNameOrId, identifier: null, showErrorMessages: false) ??
-                MapEntityPrefab.Find(null, identifier: itemNameOrId, showErrorMessages: false)) as ItemPrefab;
+                Barotrauma.ItemPrefab itemPrefab =
+                (Barotrauma.MapEntityPrefab.Find(itemNameOrId, identifier: null, showErrorMessages: false) ??
+                Barotrauma.MapEntityPrefab.Find(null, identifier: itemNameOrId, showErrorMessages: false)) as Barotrauma.ItemPrefab;
 
                 return itemPrefab;
             }
