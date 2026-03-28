@@ -291,8 +291,7 @@ public sealed partial class ConfigService : IConfigService
                 ContentPackageManager.RegularPackages.Select(p => p.Name).ToArray()
             }, false);
     }
-
-
+    
     public void RegisterSettingTypeInitializer<T>(string typeIdentifier, Func<(IConfigService ConfigService, IConfigInfo Info), T> settingFactory) where T : class, ISettingBase
     {
         Guard.IsNotNullOrWhiteSpace(typeIdentifier, nameof(typeIdentifier));
@@ -307,6 +306,16 @@ public sealed partial class ConfigService : IConfigService
         
         _instanceFactory[typeIdentifier] = settingFactory;
     }
+    
+    private static ImmutableArray<T> SelectCompatible<T>(ImmutableArray<T> resources) where T : IBaseResourceInfo
+    {
+        return resources
+            .Where(r => r.SupportedPlatforms.HasFlag(ModUtils.Environment.CurrentPlatform))
+            .Where(r => r.SupportedTargets.HasFlag(ModUtils.Environment.CurrentTarget))
+            .OrderBy(r => r.Optional ? 1 : 0)   // optional content last
+            .ThenBy(r => r.LoadPriority)
+            .ToImmutableArray();
+    }
 
     public async Task<FluentResults.Result> LoadConfigsAsync(ImmutableArray<IConfigResourceInfo> configResources)
     {
@@ -320,7 +329,7 @@ public sealed partial class ConfigService : IConfigService
         var taskBuilder = ImmutableArray.CreateBuilder<Task<ImmutableArray<IConfigInfo>>>();
         var toProcessErrors = new ConcurrentStack<IError>();
         
-        foreach (var resource in configResources)
+        foreach (var resource in SelectCompatible(configResources))
         {
             taskBuilder.Add(await Task.Factory.StartNew<Task<ImmutableArray<IConfigInfo>>>(async Task<ImmutableArray<IConfigInfo>> () =>
             {
@@ -408,7 +417,7 @@ public sealed partial class ConfigService : IConfigService
 
         var result = new FluentResults.Result();
         
-        foreach (var resource in configProfileResources)
+        foreach (var resource in SelectCompatible(configProfileResources))
         {
             var r = await _configProfileInfoParserService.TryParseResourcesAsync(resource);
             if (r.IsFailed)
@@ -450,17 +459,21 @@ public sealed partial class ConfigService : IConfigService
 
         if (_storageService.LoadLocalXml(setting.OwnerPackage, SaveDataFileName) is not { } saveFileResult)
         {
+#if DEBUG
             return FluentResults.Result.Fail(
                 $"{nameof(LoadSavedValueForConfig)}: Could not open save file for setting [{setting.OwnerPackage.Name}.{setting.InternalName}]");
+#endif
+            return FluentResults.Result.Ok();
         }
         
         if (saveFileResult is { IsFailed: true })
         {
 #if DEBUG
             _logger.LogResults(saveFileResult.ToResult());
-#endif
             return FluentResults.Result.Fail(
                 $"{nameof(LoadSavedValueForConfig)}: Could not open save file for setting [{setting.OwnerPackage.Name}.{setting.InternalName}]");
+#endif
+            return FluentResults.Result.Ok();
         }
 
         if (saveFileResult.Value.Root is not {} rootElement
@@ -472,7 +485,10 @@ public sealed partial class ConfigService : IConfigService
         if (rootElement.GetChildElement(XmlConvert.EncodeLocalName(setting.OwnerPackage.Name.Trim()), StringComparison.InvariantCultureIgnoreCase)
             ?.GetChildElement(setting.InternalName, StringComparison.InvariantCultureIgnoreCase) is not {} cfgValueElement)
         {
+#if DEBUG
             return FluentResults.Result.Fail($"{nameof(LoadSavedValueForConfig)}: Could not find saved value for setting:[{setting.OwnerPackage.Name}.{setting.InternalName}]");
+#endif
+            return FluentResults.Result.Ok();
         }
 
         return FluentResults.Result.OkIf(setting.TrySetValue(cfgValueElement), new Error($"Failed to set value for [{setting.OwnerPackage.Name}.{setting.InternalName}]"));
