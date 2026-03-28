@@ -655,7 +655,7 @@ public class PluginManagementService : IAssemblyManagementService
             return IntPtr.Zero;
         }
 
-        var targetDirectory = Path.GetFullPath(loaderService.OwnerPackage.Dir);
+        var targetDirectory = System.IO.Path.GetFullPath(loaderService.OwnerPackage.Dir);
         if (!targetAssemblyName.TrimEnd().EndsWith(".dll"))
         {
             targetAssemblyName += ".dll";
