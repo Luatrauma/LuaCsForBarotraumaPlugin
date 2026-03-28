@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<ContentPackage name="%ModName%" modversion="1.0.0" corepackage="False" gameversion="1.15.4.0">
+<ContentPackage name="%ModName%" modversion="1.0.0" steamworkshopid="3693624471" corepackage="False" gameversion="1.15.4.0" >
   <PluginInfo file="%ModDir%/PluginInfo.xml" />
 </ContentPackage>
