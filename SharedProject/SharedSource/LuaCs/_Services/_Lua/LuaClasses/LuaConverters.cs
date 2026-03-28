@@ -167,6 +167,11 @@ namespace Barotrauma
                 return ulong.Parse(v.String);
             });
 
+            Script.GlobalOptions.CustomConverters.SetScriptToClrCustomConversion(DataType.String, typeof(Identifier), v =>
+            {
+                return new Identifier(v.String);
+            });
+
             Script.GlobalOptions.CustomConverters.SetScriptToClrCustomConversion(
                 scriptDataType: DataType.UserData,
                 clrDataType: typeof(sbyte),
