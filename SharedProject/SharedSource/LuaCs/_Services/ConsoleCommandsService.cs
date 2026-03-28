@@ -39,7 +39,7 @@ internal class ConsoleCommandsService : IConsoleCommandsService
     {
         IService.CheckDisposed(this);
      
-        if (DebugConsole.Commands.Any(cmd => cmd.Names.Contains(name)))
+        if (DebugConsole.Commands.Any(cmd => cmd.Names.Contains(name.ToIdentifier())))
         {
             LuaCsSetup.Instance.Logger.LogWarning($"Registering console command {name} more than once!");
         }
@@ -81,8 +81,8 @@ internal class ConsoleCommandsService : IConsoleCommandsService
     {
         IService.CheckDisposed(this);
 
-        _registeredCommands.RemoveAll(cmd => cmd.Names.Contains(name));
-        DebugConsole.Commands.RemoveAll(cmd => cmd.Names.Contains(name));
+        _registeredCommands.RemoveAll(cmd => cmd.Names.Contains(name.ToIdentifier()));
+        DebugConsole.Commands.RemoveAll(cmd => cmd.Names.Contains(name.ToIdentifier()));
     }
 
     public void RemoveRegisteredCommands()
