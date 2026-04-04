@@ -56,6 +56,20 @@ namespace Barotrauma.LuaCs
             _storageService?.PurgeCache();
         }
 
+        public void SetCachingPolicy(bool useCaching)
+        {
+            if (_storageService is null)
+            {
+                return;
+            }
+
+            if (!useCaching)
+            {
+                _storageService.PurgeCache();
+            }
+            _storageService.UseCaching = useCaching;
+        }
+
         public async Task<Result<ImmutableArray<(ContentPath Path, Result<string>)>>> CacheResourcesAsync(ImmutableArray<ILuaScriptResourceInfo> resourceInfos)
         {
             IService.CheckDisposed(this);

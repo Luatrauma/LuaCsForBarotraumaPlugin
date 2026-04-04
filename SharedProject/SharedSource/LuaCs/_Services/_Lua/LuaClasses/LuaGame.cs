@@ -273,6 +273,7 @@ namespace Barotrauma.LuaCs
 
         public LuaGame(IConsoleCommandsService consoleCommands)
         {
+            UserData.RegisterType(typeof(GameSettings));
             Settings = UserData.CreateStatic(typeof(GameSettings));
             _consoleCommands = consoleCommands;
         }
