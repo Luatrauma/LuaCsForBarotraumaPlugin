@@ -355,7 +355,26 @@ public class PluginManagementService : IAssemblyManagementService
 
         if (includeDefaultContext)
         {
-            var type = Type.GetType(typeName, false, false);
+            // The custom resolution is needed because we turned into a plugin and all Lua mods were
+            // resolving types assuming the execution assembly was Barotrauma
+            var type = Type.GetType(
+                typeName,
+                assemblyName =>
+                {
+                    return AssemblyLoadContext.Default.Assemblies
+                        .FirstOrDefault(a => a.GetName().Name == assemblyName.Name);
+                },
+                (assembly, name, ignoreCase) =>
+                {
+                    if (assembly != null)
+                        return assembly.GetType(name, false, ignoreCase);
+
+                    return AssemblyLoadContext.Default.Assemblies
+                        .Select(a => a.GetType(name, false, ignoreCase))
+                        .FirstOrDefault(t => t != null);
+                }
+            );
+
             if (type is not null && (includeInterfaces || !type.IsInterface))
             {
                 if (isByRefType)
