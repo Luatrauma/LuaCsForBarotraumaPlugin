@@ -22,6 +22,12 @@ public interface ILuaScriptManagementService : IReusableService
     DynValue? CallFunctionSafe(object luaFunction, params object[] args);
 
     /// <summary>
+    /// Whether to enable/disable the file system caching for lua.
+    /// </summary>
+    /// <param name="useCaching"></param>
+    void SetCachingPolicy(bool useCaching);
+    
+    /// <summary>
     /// Parses and loads script sources (code) into a memory cache without executing it.
     /// </summary>
     /// <param name="resourcesInfo"></param>

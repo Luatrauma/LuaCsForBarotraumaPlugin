@@ -16,6 +16,11 @@ public interface ILuaCsInfoProvider : IService
     public bool HideUserNamesInLogs { get; }
     
     /// <summary>
+    /// Whether file system caching is enabled.
+    /// </summary>
+    public bool UseCaching { get; }
+    
+    /// <summary>
     /// The current state of the Execution State Machine.
     /// </summary>
     public RunState CurrentRunState { get; }

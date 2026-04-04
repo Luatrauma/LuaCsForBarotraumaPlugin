@@ -52,6 +52,7 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
     private readonly IPluginManagementService _pluginManagementService;
     private readonly INetworkingService _networkingService;
     private readonly IConsoleCommandsService _commandsService;
+    private readonly ILuaCsInfoProvider _luaCsInfoProvider;
     //private readonly ILuaCsUtility _luaCsUtility;
 
     public LuaScriptManagementService(
@@ -67,8 +68,8 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
         IEventService eventService,
         //ILuaCsUtility luaCsUtility,
         ILuaCsTimer luaCsTimer,
-        IConsoleCommandsService commandsService
-        )
+        IConsoleCommandsService commandsService,
+        ILuaCsInfoProvider luaCsInfoProvider)
     {
         _luaScriptLoader = loader;
         _userDataService = userDataService;
@@ -82,6 +83,7 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
         _luaGame = luaGame;
         _eventService = eventService;
         _commandsService = commandsService;
+        _luaCsInfoProvider = luaCsInfoProvider;
         _luaCsTimer = luaCsTimer;
 
         RegisterLuaEvents();
@@ -164,11 +166,23 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
 
     public bool IsDisposed { get; private set; }
 
+    public void SetCachingPolicy(bool useCaching)
+    {
+        _luaScriptLoader?.SetCachingPolicy(useCaching);
+    }
+
     public async Task<FluentResults.Result> LoadScriptResourcesAsync(ImmutableArray<ILuaScriptResourceInfo> resourcesInfo)
     {
+        if (!_luaCsInfoProvider.UseCaching)
+        {
+            return FluentResults.Result.Ok();
+        }
+        
         // Do any exception checks you can before acquiring a lock to avoid needlessly holding up resources.
         if (resourcesInfo.IsDefaultOrEmpty)
+        {
             ThrowHelper.ThrowArgumentNullException($"{nameof(LoadScriptResourcesAsync)}: The parameter is empty!");
+        }
         
         // Acquire a lock:
         // Reader = Allow parallel operations (try to avoid nesting acquiring the lock when possible)
@@ -186,7 +200,9 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
         // Aggregate and return results to the caller to deal with. Optionally, log here if you want.
         // Automatically converted to a Task<T> when 'async' is in the method declaration.
         if (cacheRes.IsFailed)
+        {
             return cacheRes.ToResult();
+        }
         return new FluentResults.Result().WithReasons(cacheRes.Value.SelectMany(cr => cr.Item2.Reasons));
     }
 
@@ -325,6 +341,8 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
         {
             _loggerService.LogMessage($"[Lua] {msg}");
         };
+        SetCachingPolicy(_luaCsInfoProvider.UseCaching);
+        
         _script.Options.ScriptLoader = _luaScriptLoader;
         _script.Options.CheckThreadAccess = false;
 
@@ -394,6 +412,7 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
 
         _script.Globals["ExecutionNumber"] = 0;
         _script.Globals["CSActive"] = !enableSandbox;
+        ((Table)_script.Globals["debug"])["breakpoint"] = () => { Debugger.Break(); };
 
         _script.Globals["SERVER"] = LuaCsSetup.IsServer;
         _script.Globals["CLIENT"] = LuaCsSetup.IsClient;
@@ -486,6 +505,7 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
         }
 
         _resourcesInfo.Clear();
+        _luaScriptLoader.ClearCaches();
 
         return FluentResults.Result.Ok();
     }

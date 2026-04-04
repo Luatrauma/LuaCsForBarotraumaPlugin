@@ -12,6 +12,8 @@ internal class MainMenuPatch : ISystem, IEventScreenSelected
 
     private readonly IEventService _eventService;
 
+    private bool mainMenuUIAdded = false;
+
     public MainMenuPatch(IEventService eventService)
     {
         _eventService = eventService;
@@ -39,10 +41,14 @@ internal class MainMenuPatch : ISystem, IEventScreenSelected
 #if CLIENT
     private void AddToMainMenu(MainMenuScreen screen)
     {
+        if (mainMenuUIAdded) { return; }
+
         new GUITextBlock(new RectTransform(new Point(300, 30), screen.Frame.RectTransform, Anchor.TopLeft) { AbsoluteOffset = new Point(10, 10) }, $"Using LuaCsForBarotrauma revision {AssemblyInfo.GitRevision}", Color.Red)
         {
             IgnoreLayoutGroups = false
         };
+
+        mainMenuUIAdded = true;
     }
 #endif
 

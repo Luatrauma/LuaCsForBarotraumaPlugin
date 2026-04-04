@@ -198,6 +198,7 @@ public class PluginManagementService : IAssemblyManagementService
     private Lazy<ILuaScriptManagementService> _luaScriptManagementService;
     private IEventService _pluginEventService;
     private Lazy<ILuaPatcher> _pluginLuaPatcherService;
+    private Func<IConsoleCommandsService> _consoleCommandServiceFactory;
     private readonly ConcurrentDictionary<ContentPackage, IAssemblyLoaderService> _assemblyLoaders = new();
     private readonly ConcurrentDictionary<Type, ContentPackage> _pluginPackageLookup = new();
     private readonly ConcurrentDictionary<ContentPackage, ImmutableArray<IAssemblyPlugin>> _pluginInstances = new();
@@ -213,7 +214,8 @@ public class PluginManagementService : IAssemblyManagementService
         Lazy<IEventService> eventService, 
         Lazy<ILuaScriptManagementService> luaScriptManagementService, 
         Lazy<IConfigService> configService, 
-        Lazy<ILuaPatcher> pluginLuaPatcherService)
+        Lazy<ILuaPatcher> pluginLuaPatcherService, 
+        Func<IConsoleCommandsService> consoleCommandServiceFactory)
     {
         _assemblyLoaderFactory = assemblyLoaderFactory;
         _storageService = storageService;
@@ -222,6 +224,7 @@ public class PluginManagementService : IAssemblyManagementService
         _luaScriptManagementService = luaScriptManagementService;
         _configService = configService;
         _pluginLuaPatcherService = pluginLuaPatcherService;
+        _consoleCommandServiceFactory = consoleCommandServiceFactory;
     }
 
     private ServiceContainer CreatePluginServiceContainer()
@@ -240,6 +243,7 @@ public class PluginManagementService : IAssemblyManagementService
         container.Register<IPluginManagementService>(fac => this);
         container.Register<ILuaScriptManagementService>(fac => _luaScriptManagementService.Value);
         container.Register<IConfigService>(fac => _configService.Value);
+        container.Register<IConsoleCommandsService>(fac => _consoleCommandServiceFactory?.Invoke());
 
         return container;
     }
@@ -588,7 +592,7 @@ public class PluginManagementService : IAssemblyManagementService
                         syntaxTreesBuilder.Add(SyntaxFactory.ParseSyntaxTree(
                             text: sourceCode,
                             options: ScriptParseOptions,
-                            path: null,
+                            path: resourcePath.FullPath,
                             encoding: Encoding.Default,
                             cancellationToken: token
                         ));

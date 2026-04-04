@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
+using System.Text;
 using System.Threading;
 using Barotrauma.Extensions;
 using Barotrauma.LuaCs;
@@ -255,8 +256,7 @@ public sealed class AssemblyLoader : AssemblyLoadContext, IAssemblyLoaderService
         }
     }
 
-    public FluentResults.Result<Assembly> CompileScriptAssembly(
-        [NotNull] string assemblyName,
+    public Result<Assembly> CompileScriptAssembly([NotNull] string assemblyName,
         bool compileWithInternalAccess,
         ImmutableArray<SyntaxTree> syntaxTrees,
         ImmutableArray<MetadataReference> metadataReferences,
@@ -290,7 +290,8 @@ public sealed class AssemblyLoader : AssemblyLoadContext, IAssemblyLoaderService
                 outputKind: OutputKind.DynamicallyLinkedLibrary,
                 optimizationLevel: OptimizationLevel.Release,
                 concurrentBuild: true,
-                reportSuppressedDiagnostics: true,
+                reportSuppressedDiagnostics: false,
+                warningLevel: 0,
                 allowUnsafe: true);
 
             if (!compileWithInternalAccess)
@@ -306,12 +307,22 @@ public sealed class AssemblyLoader : AssemblyLoadContext, IAssemblyLoaderService
 
             using var asmMemoryStream = new MemoryStream();
             var result = CSharpCompilation
-                .Create(compilationAssemblyName, syntaxTrees, metadataReferences, compilationOptions)
+                .Create(compilationAssemblyName, syntaxTrees, 
+                    metadataReferences, compilationOptions)
                 .Emit(asmMemoryStream);
             if (!result.Success)
             {
+                StringBuilder sb =  new StringBuilder();
+                foreach (var resultDiagnostic in result.Diagnostics)
+                {
+                    if (resultDiagnostic.Severity != DiagnosticSeverity.Error)
+                    {
+                        continue;
+                    }
+                    sb.AppendLine($">>> {resultDiagnostic.GetMessage()} | Location: {resultDiagnostic.Location.SourceTree?.GetLineSpan(resultDiagnostic.Location.SourceSpan)} ");
+                }
                 var res = new FluentResults.Result().WithError(
-                    new Error($"Compilation failed for assembly {assemblyName}!")
+                    new Error($"Package Error: {OwnerPackage.Name}: Compilation failed for assembly {assemblyName}! {sb.ToString()}\n")
                         .WithMetadata(MetadataType.ExceptionObject, this)
                         .WithMetadata(MetadataType.RootObject, syntaxTrees));
                 var failuresDiag =
