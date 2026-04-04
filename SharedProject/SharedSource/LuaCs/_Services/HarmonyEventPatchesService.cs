@@ -205,7 +205,7 @@ internal class HarmonyEventPatchesService : ISystem
         _eventService.PublishEvent<IEventCharacterCreated>(x => x.OnCharacterCreated(__result));
     }
 
-    [HarmonyPatch(typeof(Character), nameof(Character.Kill)), HarmonyPostfix]
+    [HarmonyPatch(typeof(Character), "KillProjSpecific"), HarmonyPostfix]
     public static void Character_Kill_Post(Character __instance, Affliction causeOfDeathAffliction, CauseOfDeathType causeOfDeath)
     {
         _eventService.PublishEvent<IEventCharacterDeath>(x => x.OnCharacterDeath(__instance, causeOfDeathAffliction, causeOfDeath));

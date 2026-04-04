@@ -9,13 +9,11 @@ namespace Barotrauma
     {
         public static void Install()
         {
-            throw new NotImplementedException();
-            // TODO: Refactor the installer to not be dependent on LuaCsSetup.
-            /*ContentPackage luaPackage = LuaCsSetup.GetPackage();
+            ContentPackage luaPackage = LuaCsSetup.GetLuaCsPackage();
 
             if (luaPackage == null)
             {
-                GameMain.Server.SendChatMessage("Couldn't find the LuaCs For Barotrauma package.", ChatMessageType.ServerMessageBox);
+                GameMain.Server.SendChatMessage("Couldn't find the LuaCsForBarotrauma content package.", ChatMessageType.ServerMessageBox);
                 return;
             }
 
@@ -47,8 +45,6 @@ namespace Barotrauma
                     File.Copy(Path.Combine(path, "Binary", file), file, true);
                 }
 
-                File.WriteAllText(LuaCsSetup.VersionFile, luaPackage.ModVersion);
-
 #if WINDOWS
                 File.WriteAllText("LuaCsDedicatedServer.bat", "\"%LocalAppData%/Daedalic Entertainment GmbH/Barotrauma/WorkshopMods/Installed/2559634234/Binary/DedicatedServer.exe\"");
 #endif
@@ -66,7 +62,7 @@ namespace Barotrauma
                 return;
             }
 
-            GameMain.Server.SendChatMessage("Client-Side LuaCs installed, restart your game to apply changes.", ChatMessageType.ServerMessageBox);*/
+            GameMain.Server.SendChatMessage("Client-Side LuaCs installed, restart your game to apply changes.", ChatMessageType.ServerMessageBox);
         }
     }
 }

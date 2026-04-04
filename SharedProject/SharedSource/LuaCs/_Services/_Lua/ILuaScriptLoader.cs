@@ -9,5 +9,10 @@ namespace Barotrauma.LuaCs;
 public interface ILuaScriptLoader : IService, IScriptLoader, ISafeStorageValidation
 {
     void ClearCaches();
+    /// <summary>
+    /// Whether caching is enabled/disabled.
+    /// </summary>
+    /// <param name="useCaching"></param>
+    void SetCachingPolicy(bool useCaching);
     Task<Result<ImmutableArray<(ContentPath Path, Result<string>)>>> CacheResourcesAsync(ImmutableArray<ILuaScriptResourceInfo> resourceInfos);
 }
