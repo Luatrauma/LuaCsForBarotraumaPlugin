@@ -12,6 +12,7 @@ namespace Barotrauma.LuaCs;
 public partial class Plugin : IBarotraumaPlugin
 {
     public static readonly IDebugConsole DebugConsole = PluginServiceProvider.GetService<IDebugConsole>();
+    public static readonly IStatusEffectService StatusEffectService = PluginServiceProvider.GetService<IStatusEffectService>();
 
     public void Init()
     {

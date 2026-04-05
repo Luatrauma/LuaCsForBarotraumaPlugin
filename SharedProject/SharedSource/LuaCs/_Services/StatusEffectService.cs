@@ -35,7 +35,7 @@ internal class StatusEffectService : ISystem, IStatusEffectActionFactory
     {
         _eventService = eventService;
 
-        Barotrauma.Plugins.PluginServiceProvider.GetService<IStatusEffectService>().RegisterAction(this);
+        Plugin.StatusEffectService.RegisterAction(this);
     }
 
     public void Dispose()
