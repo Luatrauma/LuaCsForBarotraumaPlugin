@@ -320,6 +320,7 @@ public sealed class ModConfigService : IModConfigService
 
             foreach (var searchPathways in srcSearchInd)
             {
+                // we have architecture dependent files as well
                 if (_storageService.FindFilesInPackage(srcPackage, searchPathways.SubFolder, "*.cs",
                         true) is { IsSuccess: true, Value.IsDefaultOrEmpty: false } result)
                 {
@@ -334,10 +335,29 @@ public sealed class ModConfigService : IModConfigService
                             .Select(fp => ContentPath.FromRaw(srcPackage, 
                                 $"%ModDir%/{Path.GetRelativePath(srcPackage.Dir, fp)}".CleanUpPathCrossPlatform()))
                             .Concat(sharedFiles).ToImmutableArray(),
+                        FriendlyName = IAssemblyLoaderService.InternalsAwareAssemblyName, // give the best chance of success (InternalsAware + Publicizer)
+                        IncompatiblePackages = ImmutableArray<Identifier>.Empty,
+                        RequiredPackages = ImmutableArray<Identifier>.Empty,
+                        UseInternalAccessName = false,  //compile as public and then fallback to internals
+                        IsScript = true,
+                        IsReferenceModeOnly = false
+                    });
+                }
+                // add the shared files by themselves
+                else if (!sharedFiles.IsDefaultOrEmpty)
+                {
+                    builder.Add(new AssemblyResourceInfo()
+                    {
+                        OwnerPackage = srcPackage,
+                        InternalName = searchPathways.SubFolder,
+                        SupportedPlatforms = searchPathways.Platforms,
+                        SupportedTargets = searchPathways.Targets,
+                        LoadPriority = 0,
+                        FilePaths = sharedFiles,
                         FriendlyName = IAssemblyLoaderService.InternalsAwareAssemblyName,
                         IncompatiblePackages = ImmutableArray<Identifier>.Empty,
                         RequiredPackages = ImmutableArray<Identifier>.Empty,
-                        UseInternalAccessName = true,
+                        UseInternalAccessName = false,
                         IsScript = true,
                         IsReferenceModeOnly = false
                     });
@@ -385,6 +405,7 @@ public sealed class ModConfigService : IModConfigService
                     IncompatiblePackages =  ImmutableArray<Identifier>.Empty,
                     RequiredPackages = ImmutableArray<Identifier>.Empty,
                     IsAutorun = true,
+                    RunUnrestricted = false
                 });
                 
                 builder.Add(new LuaScriptsResourceInfo()
@@ -398,6 +419,7 @@ public sealed class ModConfigService : IModConfigService
                     IncompatiblePackages =  ImmutableArray<Identifier>.Empty,
                     RequiredPackages = ImmutableArray<Identifier>.Empty,
                     IsAutorun = false,
+                    RunUnrestricted = false
                 });
             }
             

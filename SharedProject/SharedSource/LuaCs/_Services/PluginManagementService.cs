@@ -87,6 +87,9 @@ public class PluginManagementService : IAssemblyManagementService
         ScriptParseOptions);
 
     private ImmutableArray<MetadataReference> _baseMetadataReferences = ImmutableArray<MetadataReference>.Empty;
+    private ImmutableArray<MetadataReference> _baseMetadataReferencesNonPublicized = ImmutableArray<MetadataReference>.Empty;
+    
+    
     private IEnumerable<MetadataReference> BaseMetadataReferences
     {
         get
@@ -110,6 +113,25 @@ public class PluginManagementService : IAssemblyManagementService
         }
     }
     
+    private IEnumerable<MetadataReference> BaseMetadataReferencesWithBarotrauma
+    {
+        get
+        {
+            if (_baseMetadataReferencesNonPublicized.IsDefaultOrEmpty)
+            {
+                _baseMetadataReferencesNonPublicized = Basic.Reference.Assemblies.Net80.References.All
+                    .Union(AssemblyLoadContext.Default.Assemblies
+                        .Where(ass => !ass.IsDynamic)
+                        .Where(ass => !ass.Location.IsNullOrWhiteSpace())
+                        .Select(MetadataReference (ass) => MetadataReference.CreateFromFile(ass.Location)))
+                    .Where(ar => ar is not null)
+                    .ToImmutableArray();
+            }
+
+            return _baseMetadataReferencesNonPublicized;
+        }
+    }
+    
     #endregion
     
     #region Disposal
@@ -129,6 +151,7 @@ public class PluginManagementService : IAssemblyManagementService
         _logger = null;
         _configService = null;
         _luaScriptManagementService = null;
+        _luaCsInfoProvider = null;
         
         GC.SuppressFinalize(this);
     }
@@ -199,6 +222,7 @@ public class PluginManagementService : IAssemblyManagementService
     private IEventService _pluginEventService;
     private Lazy<ILuaPatcher> _pluginLuaPatcherService;
     private Func<IConsoleCommandsService> _consoleCommandServiceFactory;
+    private ILuaCsInfoProvider _luaCsInfoProvider;
     private readonly ConcurrentDictionary<ContentPackage, IAssemblyLoaderService> _assemblyLoaders = new();
     private readonly ConcurrentDictionary<Type, ContentPackage> _pluginPackageLookup = new();
     private readonly ConcurrentDictionary<ContentPackage, ImmutableArray<IAssemblyPlugin>> _pluginInstances = new();
@@ -215,7 +239,8 @@ public class PluginManagementService : IAssemblyManagementService
         Lazy<ILuaScriptManagementService> luaScriptManagementService, 
         Lazy<IConfigService> configService, 
         Lazy<ILuaPatcher> pluginLuaPatcherService, 
-        Func<IConsoleCommandsService> consoleCommandServiceFactory)
+        Func<IConsoleCommandsService> consoleCommandServiceFactory, 
+        ILuaCsInfoProvider luaCsInfoProvider)
     {
         _assemblyLoaderFactory = assemblyLoaderFactory;
         _storageService = storageService;
@@ -225,6 +250,7 @@ public class PluginManagementService : IAssemblyManagementService
         _configService = configService;
         _pluginLuaPatcherService = pluginLuaPatcherService;
         _consoleCommandServiceFactory = consoleCommandServiceFactory;
+        _luaCsInfoProvider = luaCsInfoProvider;
     }
 
     private ServiceContainer CreatePluginServiceContainer()
@@ -364,18 +390,35 @@ public class PluginManagementService : IAssemblyManagementService
             .Where(al => executionOrder.Contains(al.Key))
             .Where(al => !excludeAlreadyRunningPackages || !_pluginInstances.ContainsKey(al.Key))
             .SelectMany(al => al.Value.Assemblies.Select(ass => (al.Key, ass)))
-            .SelectMany(kvp => kvp.ass.GetSafeTypes()
-                .Where(type =>
-                    type is { IsInterface: false, IsAbstract: false, IsGenericType: false } 
-                    && type.IsAssignableTo(typeof(IAssemblyPlugin)))
-                .Select(type => (kvp.Key, type)))
+            .SelectMany<(ContentPackage Key, Assembly ass), (ContentPackage Key, Type type)>(kvp =>
+            {
+                try
+                {
+                    return kvp.ass.GetTypes()
+                        .Where(type =>
+                            type is { IsInterface: false, IsAbstract: false, IsGenericType: false }
+                            && type.IsAssignableTo(typeof(IAssemblyPlugin)))
+                        .Select(type => (kvp.Key, type));
+                }
+                catch (ReflectionTypeLoadException re)
+                {
+                    results.WithError(new Error($"Failed to get types from Package '{kvp.Key.Name}'"));
+                    results.WithError(new ExceptionalError(re));
+                }
+                catch (Exception e)
+                {
+                    results.WithError(new Error($"Failed to get types from Package '{kvp.Key.Name}'"));
+                    results.WithError(new ExceptionalError(e));
+                }
+                return new List<(ContentPackage Key, Type type)>();
+            })
             .GroupBy(kvp => kvp.Key, kvp => kvp.type)
             .OrderBy(exeGrp => executionOrder.IndexOf(exeGrp.Key))
             .ToImmutableArray();
 
         if (toLoad.Length == 0)
         {
-            return FluentResults.Result.Ok();
+            return results;
         }
 
         _logger.LogMessage($"Activating {nameof(IAssemblyPlugin)} instances");
@@ -400,7 +443,7 @@ public class PluginManagementService : IAssemblyManagementService
                 }
                 catch (Exception e)
                 {
-                    results.WithError(new ExceptionalError(e));
+                    results.WithError(new ExceptionalError($"Failed to instantiate mod: {packageTypes.Key.Name}", e));
                     continue;
                 }
             }
@@ -468,6 +511,12 @@ public class PluginManagementService : IAssemblyManagementService
         }
         using var lck = _operationsLock.AcquireReaderLock().ConfigureAwait(false).GetAwaiter().GetResult();
         IService.CheckDisposed(this);
+
+        _storageService.UseCaching = _luaCsInfoProvider.UseCaching;
+        if (!_luaCsInfoProvider.UseCaching)
+        {
+            _storageService.PurgeCache();
+        }
         
         var orderedContentPacks = resources.GroupBy(res => res.OwnerPackage)
             .OrderBy(res => resources.FindIndex(r2 => r2.OwnerPackage == res.Key))
@@ -537,7 +586,8 @@ public class PluginManagementService : IAssemblyManagementService
                 return;
             }
 
-            var metadataReferences = GetMetadataReferences();
+            var metadataReferences = GetMetadataReferences(false).ToImmutableArray();
+            var metadataReferencesNonPublicized = GetMetadataReferences(true).ToImmutableArray();
             
             var assemblyLoader = _assemblyLoaders.GetOrAdd(contentPackRes.Key, (cp) => _assemblyLoaderFactory.CreateInstance(
                 new IAssemblyLoaderService.LoaderInitData(
@@ -561,7 +611,10 @@ public class PluginManagementService : IAssemblyManagementService
                 
                 foreach (var resourceInfo in scripts)
                 {
-                    if (!hasInternalsAwareBeenAdded && resourceInfo.UseInternalAccessName)
+                    // this should be the same for the entire collection of src files so we just grab it from the collection
+                    compileWithInternalName = resourceInfo.UseInternalAccessName;
+                    
+                    if (!hasInternalsAwareBeenAdded)
                     {
                         hasInternalsAwareBeenAdded = true;
                         syntaxTreesBuilder.Add(BaseAssemblyImports);
@@ -580,9 +633,6 @@ public class PluginManagementService : IAssemblyManagementService
                             _logger.LogResults(loadRes.ToResult());
                             continue;
                         }
-                    
-                        // this should be the same for the entire collection of src files so we just grab it from the collection
-                        compileWithInternalName = resourceInfo.UseInternalAccessName;
                 
                         CancellationToken token = CancellationToken.None;
 
@@ -605,14 +655,35 @@ public class PluginManagementService : IAssemblyManagementService
                 }
                 
                 _logger.LogMessage($"Compiling assembly for {scripts.Key}, in ContentPackage {contentPackRes.Key.Name}");
-                
-                result.WithReasons(assemblyLoader.CompileScriptAssembly(
+
+                var res = assemblyLoader.CompileScriptAssembly(
                     assemblyName: scripts.Key,
                     compileWithInternalAccess: compileWithInternalName,
                     syntaxTrees: syntaxTreesBuilder.ToImmutable(),
-                    metadataReferences: metadataReferences.ToImmutableArray(),
-                    compilationOptions: CompilationOptions)
-                    .Reasons);
+                    metadataReferences: compileWithInternalName ? metadataReferencesNonPublicized : metadataReferences,
+                    compilationOptions: CompilationOptions);
+
+                // try with internal access instead for legacy mods
+                if (!compileWithInternalName && res.IsFailed)
+                {
+                    _logger.LogMessage($"Attempted compilation of {scripts.Key} for package {contentPackRes.Key.Name}. Trying fallback method.");
+                    var res2 = assemblyLoader.CompileScriptAssembly(
+                        assemblyName: scripts.Key,
+                        compileWithInternalAccess: true,
+                        syntaxTrees: syntaxTreesBuilder.ToImmutable(),
+                        metadataReferences: metadataReferencesNonPublicized,
+                        compilationOptions: CompilationOptions);
+
+                    // overwrite result with good compilation
+                    if (res2.IsSuccess)
+                    {
+                        var reasonsStr = res.Reasons.Aggregate("", (accum, reason) => accum + "\n" + reason.Message);
+                        _logger.LogWarning($"Attempted compilation of {scripts.Key} for package {contentPackRes.Key.Name} succeeded. Original errors were: \n {reasonsStr}");
+                        res = res2;
+                    }
+                }
+
+                result.WithReasons(res.Reasons);
             }
         }
         
@@ -627,14 +698,28 @@ public class PluginManagementService : IAssemblyManagementService
             return res;
         }
         
-        IEnumerable<MetadataReference> GetMetadataReferences()
+        IEnumerable<MetadataReference> GetMetadataReferences(bool useNonPublicizedAssemblies)
         {
             var builder = ImmutableArray.CreateBuilder<MetadataReference>();
-            builder.AddRange(BaseMetadataReferences);
-            foreach (var loaderService in _assemblyLoaders)
+            if (useNonPublicizedAssemblies)
             {
-                builder.AddRange(loaderService.Value.AssemblyReferences.Where(ar => ar is not null));
+                builder.AddRange(BaseMetadataReferencesWithBarotrauma);
+                foreach (var loaderService in _assemblyLoaders
+                             .Where(asl => !asl.Key.Name.Equals(LuaCsSetup.PackageName, StringComparison.InvariantCultureIgnoreCase))
+                             .ToImmutableArray())
+                {
+                    builder.AddRange(loaderService.Value.AssemblyReferences.Where(ar => ar is not null));
+                }
             }
+            else
+            {
+                builder.AddRange(BaseMetadataReferences);
+                foreach (var loaderService in _assemblyLoaders)
+                {
+                    builder.AddRange(loaderService.Value.AssemblyReferences.Where(ar => ar is not null));
+                }
+            }
+            
             return builder.ToImmutable();
         }
     }
@@ -643,7 +728,8 @@ public class PluginManagementService : IAssemblyManagementService
     {
         return sourceCode
             .Replace("GameMain.LuaCs", "LuaCsSetup.Instance")
-            .Replace("Client.ClientList", "ModUtils.Client.ClientList")
+            .Replace(" Client.ClientList", " ModUtils.Client.ClientList")
+            .Replace(" Barotrauma.Networking.Client.ClientList", " ModUtils.Client.ClientList")
             .Replace("ItemPrefab.GetItemPrefab", "ModUtils.ItemPrefab.GetItemPrefab");
     }
 
@@ -750,6 +836,7 @@ public class PluginManagementService : IAssemblyManagementService
         }
 
         _assemblyLoaders.Clear();
+        _storageService.PurgeCache();
         GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true);
 
 #if DEBUG

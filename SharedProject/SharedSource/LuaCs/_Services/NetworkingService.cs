@@ -11,10 +11,11 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
+using Barotrauma.LuaCs.Data;
 
 namespace Barotrauma.LuaCs;
 
-internal partial class NetworkingService : INetworkingService
+internal partial class NetworkingService : INetworkingService, IEventSettingInstanceLifetime
 {
     public readonly record struct NetId
     {
@@ -112,7 +113,6 @@ internal partial class NetworkingService : INetworkingService
 #if SERVER
         IsSynchronized = true;
 #endif
-
         SubscribeToEvents();
     }
 
@@ -189,6 +189,7 @@ internal partial class NetworkingService : INetworkingService
 
     private void SubscribeToEvents()
     {
+        _eventService.Subscribe<IEventSettingInstanceLifetime>(this);
 #if CLIENT
         _eventService.Subscribe<IEventServerConnected>(this);
         _eventService.Subscribe<IEventServerRawNetMessageReceived>(this);
@@ -246,7 +247,18 @@ internal partial class NetworkingService : INetworkingService
 #endif
     }
 
-    public void SendNetVar(INetworkSyncVar netVar) => SendNetVar(netVar);
+    public void DeregisterNetVar(INetworkSyncVar netVar)
+    {
+        if (netVar is null)
+        {
+            return;
+        }
+
+        netVar.SetNetworkOwner(null);
+        netVars.TryRemove(netVar, out _);
+    }
+
+    public void SendNetVar(INetworkSyncVar netVar) => SendNetVar(netVar, null);
 
     public void SendNetVar(INetworkSyncVar netVar, NetworkConnection connection = null)
     {
@@ -348,8 +360,17 @@ internal partial class NetworkingService : INetworkingService
         HttpRequest(url, callback, data, "POST", contentType, headers, savePath);
     }
 
+    public void RequestPostHTTP(string url, LuaCsAction callback, string data, string contentType = "application/json", Dictionary<string, string> headers = null, string savePath = null)
+    {
+        HttpRequest(url, callback, data, "POST", contentType, headers, savePath);
+    }
 
     public void HttpGet(string url, LuaCsAction callback, Dictionary<string, string> headers = null, string savePath = null)
+    {
+        HttpRequest(url, callback, null, "GET", null, headers, savePath);
+    }
+
+    public void RequestGetHTTP(string url, LuaCsAction callback, Dictionary<string, string> headers = null, string savePath = null)
     {
         HttpRequest(url, callback, null, "GET", null, headers, savePath);
     }
@@ -381,4 +402,20 @@ internal partial class NetworkingService : INetworkingService
 #endif
 
     #endregion
+
+    public void OnSettingInstanceCreated<T>(T configInstance) where T : ISettingBase
+    {
+        if (configInstance is INetworkSyncVar syncVar)
+        {
+            RegisterNetVar(syncVar);
+        }
+    }
+
+    public void OnSettingInstanceDisposed<T>(T configInstance) where T : ISettingBase
+    {
+        if (configInstance is INetworkSyncVar syncVar)
+        {
+            DeregisterNetVar(syncVar);
+        }
+    }
 }

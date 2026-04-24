@@ -1,29 +1,22 @@
 ﻿#nullable enable
 
-using Barotrauma.LuaCs.Data;
 using Barotrauma.LuaCs.Compatibility;
+using Barotrauma.LuaCs.Data;
+using Barotrauma.LuaCs.Events;
 using Barotrauma.Networking;
 using FluentResults;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Toolkit.Diagnostics;
-using MonoMod.RuntimeDetour;
 using MoonSharp.Interpreter;
 using MoonSharp.Interpreter.Interop;
-using MoonSharp.Interpreter.Loaders;
-using RestSharp.Validation;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Barotrauma.LuaCs;
-using Barotrauma.LuaCs.Events;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Barotrauma.LuaCs;
 
@@ -52,7 +45,9 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
     private readonly IPluginManagementService _pluginManagementService;
     private readonly INetworkingService _networkingService;
     private readonly IConsoleCommandsService _commandsService;
+    private readonly ILuaConfigService _configService;
     private readonly ILuaCsInfoProvider _luaCsInfoProvider;
+    private readonly Lazy<IPackageManagementService> _packageManagementService;
     //private readonly ILuaCsUtility _luaCsUtility;
 
     public LuaScriptManagementService(
@@ -69,7 +64,9 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
         //ILuaCsUtility luaCsUtility,
         ILuaCsTimer luaCsTimer,
         IConsoleCommandsService commandsService,
-        ILuaCsInfoProvider luaCsInfoProvider)
+        ILuaCsInfoProvider luaCsInfoProvider, 
+        ILuaConfigService configService, 
+        Lazy<IPackageManagementService> packageManagementService)
     {
         _luaScriptLoader = loader;
         _userDataService = userDataService;
@@ -84,6 +81,8 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
         _eventService = eventService;
         _commandsService = commandsService;
         _luaCsInfoProvider = luaCsInfoProvider;
+        _configService = configService;
+        _packageManagementService = packageManagementService;
         _luaCsTimer = luaCsTimer;
 
         RegisterLuaEvents();
@@ -278,6 +277,8 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
         _eventService.RegisterLuaEventAlias<IEventGiveCharacterJobItems>("character.giveJobItems", nameof(IEventGiveCharacterJobItems.OnGiveCharacterJobItems));
         _eventService.RegisterLuaEventAlias<IEventHumanCPRSuccess>("character.CPRSuccess", nameof(IEventHumanCPRSuccess.OnCharacterCPRSuccess));
         _eventService.RegisterLuaEventAlias<IEventHumanCPRFailed>("character.CPRFailed", nameof(IEventHumanCPRFailed.OnCharacterCPRFailed));
+        _eventService.RegisterLuaEventAlias<IEventHumanCPRSuccess>("human.CPRSuccess", nameof(IEventHumanCPRSuccess.OnCharacterCPRSuccess));
+        _eventService.RegisterLuaEventAlias<IEventHumanCPRFailed>("human.CPRFailed", nameof(IEventHumanCPRFailed.OnCharacterCPRFailed));
         _eventService.RegisterLuaEventAlias<IEventCharacterApplyDamage>("character.applyDamage", nameof(IEventCharacterApplyDamage.OnCharacterApplyDamage));
         _eventService.RegisterLuaEventAlias<IEventCharacterApplyAffliction>("character.applyAffliction", nameof(IEventCharacterApplyAffliction.OnCharacterApplyAffliction));
 
@@ -360,6 +361,69 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
         UserData.RegisterType(typeof(IResourceInfo));
         UserData.RegisterType(typeof(IUserDataDescriptor));
         UserData.RegisterType(typeof(INetworkingService));
+        UserData.RegisterType(typeof(ILuaConfigService));
+        UserData.RegisterType(typeof(ILoggerService));
+
+        UserData.RegisterType(typeof(ISettingBase));
+        UserData.RegisterType(typeof(IDataInfo));
+
+        Type[] settingBaseTypes = [
+            typeof(ISettingBase<bool>),
+            typeof(ISettingBase<string>),
+            typeof(ISettingBase<byte>),
+            typeof(ISettingBase<sbyte>),
+            typeof(ISettingBase<ushort>),
+            typeof(ISettingBase<short>),
+            typeof(ISettingBase<char>),
+            typeof(ISettingBase<uint>),
+            typeof(ISettingBase<int>),
+            typeof(ISettingBase<ulong>),
+            typeof(ISettingBase<long>),
+            typeof(ISettingBase<float>),
+            typeof(ISettingBase<double>),
+
+            typeof(ISettingRangeBase<float>),
+            typeof(ISettingRangeBase<int>),
+
+            typeof(ISettingList<string>),
+            typeof(ISettingList<byte>),
+            typeof(ISettingList<sbyte>),
+            typeof(ISettingList<ushort>),
+            typeof(ISettingList<short>),
+            typeof(ISettingList<char>),
+            typeof(ISettingList<uint>),
+            typeof(ISettingList<int>),
+            typeof(ISettingList<ulong>),
+            typeof(ISettingList<long>),
+            typeof(ISettingList<float>),
+            typeof(ISettingList<double>)
+        ];
+
+        Dictionary<string, Dictionary<string, object>> settingsTable = [];
+
+        foreach (Type type in settingBaseTypes)
+        {
+            UserData.RegisterType(type);
+
+            string baseName = type.Name.RemoveFromEnd("`1").Substring(1);
+
+            if (!settingsTable.ContainsKey(baseName))
+            {
+                settingsTable[baseName] = new Dictionary<string, object>();
+            }
+
+            settingsTable[baseName][type.GetGenericArguments()[0].Name] = UserData.CreateStatic(type);
+        }
+        
+        foreach (var keyPair in settingsTable)
+        {
+            _script.Globals[keyPair.Key] = keyPair.Value;
+        }
+
+#if CLIENT
+        UserData.RegisterType(typeof(ISettingControl));
+        _script.Globals["SettingControl"] = UserData.CreateStatic(typeof(ISettingControl));
+#endif
 
         new LuaConverters(this).RegisterLuaConverters();
 
@@ -379,7 +443,11 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
         _script.Globals["Hook"] = _eventService;
         _script.Globals["Timer"] = _luaCsTimer;
         _script.Globals["File"] = UserData.CreateStatic<LuaCsFile>();
+        _script.Globals["ConfigService"] = _configService;
         _script.Globals["Networking"] = _networkingService;
+        _script.Globals["trygetpackage"] = (string name, out ContentPackage package) =>
+            _packageManagementService.Value.TryGetLoadedPackageByName(name, out package);
+        _script.Globals["Logger"] = _loggerService; 
         //_script.Globals["Steam"] = Steam;
 
         if (enableSandbox)
@@ -446,6 +514,61 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
         Table package = (Table)_script.Globals["package"];
         package.Set("path", DynValue.FromObject(_script, packages));
 
+#if CLIENT
+        if (GameMain.NetworkMember is { IsClient: true })
+        {
+            var startMessage = _networkingService.Start("_luastart");
+
+            var packagesToReport = ContentPackageManager.EnabledPackages.All
+                .Where(p => _packageManagementService.Value.PackageContainsAnyRunnableResource(p))
+                .Where(p => !p.NameMatches(LuaCsSetup.PackageName))
+                .ToList();
+
+            startMessage.WriteUInt16((UInt16)packagesToReport.Count());
+
+            foreach (var enabledPackage in packagesToReport)
+            {
+                var id = enabledPackage.UgcId;
+                string hash = enabledPackage.Hash.StringRepresentation ?? "";
+
+                startMessage.WriteString(enabledPackage.Name);
+                startMessage.WriteString(enabledPackage.ModVersion);
+                if (id.TryUnwrap(out ContentPackageId? packageId) && packageId is SteamWorkshopId steamId)
+                {
+                    startMessage.WriteUInt64(steamId.Value);
+                }
+                else
+                {
+                    startMessage.WriteUInt64(0);
+                }
+                startMessage.WriteString(hash);
+            }
+
+            _networkingService.Send(startMessage);
+        }
+#elif SERVER
+        _networkingService.Receive("_luastart", (message, client) =>
+        {
+            var num = message.ReadUInt16();
+            List<Table> packages = new List<Table>();
+
+            for (int i = 0; i < num; i++)
+            {
+                Table table = new Table(_script);
+
+                table.Set("Name", DynValue.NewString(message.ReadString()));
+                table.Set("Version", DynValue.NewString(message.ReadString()));
+                table.Set("Id", DynValue.NewString(message.ReadUInt64().ToString()));
+                table.Set("Hash", DynValue.NewString(message.ReadString()));
+
+                packages.Add(table);
+            }
+
+            _eventService.Call("client.packages", client, packages);
+        });
+#endif
+
+
         foreach (ILuaScriptResourceInfo resource in executionOrder.Where(l => l.IsAutorun))
         {
             foreach (ContentPath filePath in resource.FilePaths)
@@ -461,6 +584,8 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
                 }
             }
         }
+
+        _eventService.Call("loaded");
 
         return result;
     }

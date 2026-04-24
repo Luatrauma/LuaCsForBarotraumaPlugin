@@ -53,9 +53,14 @@ public partial class SettingEntry<T> : SettingBase, ISettingBase<T>, INetworkSyn
 
     public virtual bool TrySetValue(T value)
     {
+        if (value is null || value.Equals(Value))
+        {
+            return false;
+        }
 #if CLIENT
         if (SyncType is NetSync.ServerAuthority && NetworkingService is not null 
                                                 && GameMain.IsMultiplayer
+                                                && GameMain.Client is not null
                                                 && !GameMain.Client.HasPermission(this.WritePermissions))
         {
             return false;
@@ -73,7 +78,7 @@ public partial class SettingEntry<T> : SettingBase, ISettingBase<T>, INetworkSyn
             NetworkingService?.SendNetVar(this);
         }
 #elif SERVER
-        if (GameMain.IsMultiplayer && SyncType is NetSync.TwoWay or NetSync.ServerAuthority)
+        if (SyncType is NetSync.TwoWay or NetSync.ServerAuthority)
         {
             NetworkingService?.SendNetVar(this);
         }
@@ -97,18 +102,55 @@ public partial class SettingEntry<T> : SettingBase, ISettingBase<T>, INetworkSyn
         return true;
     }
 
+    /// <summary>
+    /// handles internal networking rules after reading the net message (to avoid synchro issues).
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    private bool TrySetValueNetwork(T value)
+    {
+        if (NetworkingService is null)
+        {
+            return false;
+        }
+#if CLIENT
+        if (SyncType is NetSync.None or NetSync.ClientOneWay)
+        {
+            return false;
+        }
+#else
+        if (SyncType is NetSync.None or NetSync.ServerAuthority)
+        {
+            return false;
+        }
+#endif
+        if (!TrySetValueInternal(value))
+        {
+            return false;
+        }
+
+#if SERVER
+        if (SyncType is NetSync.TwoWay)
+        {
+            NetworkingService?.SendNetVar(this);
+        }
+#endif
+        
+        OnValueChanged?.Invoke(this);
+        return true;
+    }
+
     protected override void OnDispose()
     {
         ValueChangePredicate = null;
+        NetworkingService?.DeregisterNetVar(this);
     }
 
     public override Type GetValueType() => typeof(T);
+    public override string GetStringValue() => Value?.ToString() ?? string.Empty;
+    public override string GetDefaultStringValue() => DefaultValue?.ToString() ?? string.Empty;
 
-    public override string GetStringValue() => Value.ToString();
-    
-    public override string GetDefaultStringValue() => DefaultValue.ToString();
-
-    public override bool TrySetValue(OneOf<string, XElement> value)
+    public override bool TrySetSerializedValue(OneOf<string, XElement> value)
     {
         bool isFailed = false;
         var typeConvertedValue = value.Match<T>(
@@ -137,7 +179,6 @@ public partial class SettingEntry<T> : SettingBase, ISettingBase<T>, INetworkSyn
                     return default(T);
                 }
             });
-
         return !isFailed && TrySetValue(typeConvertedValue);
     }
 
@@ -151,11 +192,6 @@ public partial class SettingEntry<T> : SettingBase, ISettingBase<T>, INetworkSyn
     public void SetNetworkOwner(IEntityNetworkingService networkingService)
     {
         NetworkingService = networkingService;
-        if (NetworkingService is null)
-        {
-            return;
-        }
-        NetworkingService.RegisterNetVar(this);
     }
 
     public NetSync SyncType => ConfigInfo?.NetSync ?? NetSync.None;
@@ -181,42 +217,42 @@ public partial class SettingEntry<T> : SettingBase, ISettingBase<T>, INetworkSyn
             switch (typeCode)
             {
                  case TypeCode.Boolean:
-                     TrySetValueInternal((T)Convert.ChangeType(message.ReadBoolean(), typeCode));
+                     TrySetValueNetwork((T)Convert.ChangeType(message.ReadBoolean(), typeCode));
                      return;
                  case TypeCode.Byte:
-                     TrySetValueInternal((T)Convert.ChangeType(message.ReadByte(), typeCode));
+                     TrySetValueNetwork((T)Convert.ChangeType(message.ReadByte(), typeCode));
                      return;
                  // SByte not supported by interface
                  case TypeCode.SByte:
-                     TrySetValueInternal((T)Convert.ChangeType(message.ReadInt16(), typeCode));
+                     TrySetValueNetwork((T)Convert.ChangeType(message.ReadInt16(), typeCode));
                      return;
                  case TypeCode.Int16:
-                     TrySetValueInternal((T)Convert.ChangeType(message.ReadInt16(), typeCode));
+                     TrySetValueNetwork((T)Convert.ChangeType(message.ReadInt16(), typeCode));
                      return;
                  case TypeCode.Char:
                  case TypeCode.UInt16:
-                     TrySetValueInternal((T)Convert.ChangeType(message.ReadUInt16(), typeCode));
+                     TrySetValueNetwork((T)Convert.ChangeType(message.ReadUInt16(), typeCode));
                      return;
                  case TypeCode.Int32:
-                     TrySetValueInternal((T)Convert.ChangeType(message.ReadInt32(), typeCode));
+                     TrySetValueNetwork((T)Convert.ChangeType(message.ReadInt32(), typeCode));
                      return;
                  case TypeCode.UInt32:
-                     TrySetValueInternal((T)Convert.ChangeType(message.ReadUInt32(), typeCode));
+                     TrySetValueNetwork((T)Convert.ChangeType(message.ReadUInt32(), typeCode));
                      return;
                  case TypeCode.Int64:
-                     TrySetValueInternal((T)Convert.ChangeType(message.ReadInt64(), typeCode));
+                     TrySetValueNetwork((T)Convert.ChangeType(message.ReadInt64(), typeCode));
                      return;
                  case TypeCode.UInt64:
-                     TrySetValueInternal((T)Convert.ChangeType(message.ReadUInt64(), typeCode));
+                     TrySetValueNetwork((T)Convert.ChangeType(message.ReadUInt64(), typeCode));
                      return;
                  case TypeCode.Single:
-                     TrySetValueInternal((T)Convert.ChangeType(message.ReadSingle(), typeCode));
+                     TrySetValueNetwork((T)Convert.ChangeType(message.ReadSingle(), typeCode));
                      return;
                  case TypeCode.Double:
-                     TrySetValueInternal((T)Convert.ChangeType(message.ReadDouble(), typeCode));
+                     TrySetValueNetwork((T)Convert.ChangeType(message.ReadDouble(), typeCode));
                      return;
                  case TypeCode.String:
-                     TrySetValueInternal((T)Convert.ChangeType(message.ReadString(), typeCode));
+                     TrySetValueNetwork((T)Convert.ChangeType(message.ReadString(), typeCode));
                      return;
                  case TypeCode.Decimal: 
                  default:

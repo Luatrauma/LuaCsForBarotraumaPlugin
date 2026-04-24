@@ -13,14 +13,30 @@ partial class NetworkingService : INetworkingService, IEventServerConnected, IEv
 
     public void OnServerConnected()
     {
+        ActivateNetVars();
         SendSyncMessage();
     }
 
-    public void OnReceivedServerNetMessage(IReadMessage netMessage, ServerPacketHeader serverPacketHeader)
+    private void ActivateNetVars()
+    {
+        if (GameMain.Client == null)
+        {
+            return;
+        }
+        
+        // re-activate net vars
+        // todo: unregister net vars on client disconnect, currently handled by unloading the state machine.
+        foreach (var networkSyncVar in netVars.Keys)
+        {
+            networkSyncVar.SetNetworkOwner(this);
+        }
+    }
+
+    public bool? OnReceivedServerNetMessage(IReadMessage netMessage, ServerPacketHeader serverPacketHeader)
     {
         if (serverPacketHeader != ServerHeader)
         {
-            return;
+            return null;
         }
 
         ServerToClient luaCsHeader = (ServerToClient)netMessage.ReadByte();
@@ -39,12 +55,14 @@ partial class NetworkingService : INetworkingService, IEventServerConnected, IEv
                 ReadIds(netMessage);
                 break;
         }
+
+        return true;
     }
 
     private void SendSyncMessage()
     {
         if (GameMain.Client == null) { return; }
-
+        
         WriteOnlyMessage message = new WriteOnlyMessage();
         message.WriteByte((byte)ClientHeader);
         message.WriteByte((byte)ClientToServer.RequestSync);

@@ -83,27 +83,6 @@ public class DefaultLuaRegistrar : IDefaultLuaRegistrar
             _userDataService.RegisterType(type.FullName);
         }
 
-        _userDataService.RegisterType(typeof(IConfigService).FullName);
-        _userDataService.RegisterType(typeof(ISettingBase).FullName);
-        _userDataService.RegisterType(typeof(ISettingBase<bool>).FullName);
-        _userDataService.RegisterType(typeof(ISettingBase<string>).FullName);
-        _userDataService.RegisterType(typeof(ISettingBase<byte>).FullName);
-        _userDataService.RegisterType(typeof(ISettingBase<sbyte>).FullName);
-        _userDataService.RegisterType(typeof(ISettingBase<ushort>).FullName);
-        _userDataService.RegisterType(typeof(ISettingBase<short>).FullName);
-        _userDataService.RegisterType(typeof(ISettingBase<char>).FullName);
-        _userDataService.RegisterType(typeof(ISettingBase<uint>).FullName);
-        _userDataService.RegisterType(typeof(ISettingBase<int>).FullName);
-        _userDataService.RegisterType(typeof(ISettingBase<ulong>).FullName);
-        _userDataService.RegisterType(typeof(ISettingBase<long>).FullName);
-        _userDataService.RegisterType(typeof(ISettingBase<float>).FullName);
-        _userDataService.RegisterType(typeof(ISettingBase<double>).FullName);
-        _userDataService.RegisterType(typeof(ISettingRangeBase<float>).FullName);
-        _userDataService.RegisterType(typeof(ISettingRangeBase<int>).FullName);
-#if CLIENT
-        _userDataService.RegisterType(typeof(ISettingControl).FullName);
-#endif
-
         _userDataService.RegisterType("Barotrauma.LuaSByte");
         _userDataService.RegisterType("Barotrauma.LuaByte");
         _userDataService.RegisterType("Barotrauma.LuaInt16");
@@ -174,6 +153,13 @@ public class DefaultLuaRegistrar : IDefaultLuaRegistrar
         _userDataService.RegisterType("FarseerPhysics.Collision.EPAxis");
         _userDataService.RegisterType("FarseerPhysics.Collision.ReferenceFace");
         _userDataService.RegisterType("FarseerPhysics.Collision.Collision");
+
+        _userDataService.RegisterType("Voronoi2.DoubleVector2");
+        _userDataService.RegisterType("Voronoi2.Site");
+        _userDataService.RegisterType("Voronoi2.Edge");
+        _userDataService.RegisterType("Voronoi2.Halfedge");
+        _userDataService.RegisterType("Voronoi2.VoronoiCell");
+        _userDataService.RegisterType("Voronoi2.GraphEdge");
 
         _userDataService.RegisterType("Barotrauma.PrefabCollection`1");
         _userDataService.RegisterType("Barotrauma.PrefabSelector`1");
