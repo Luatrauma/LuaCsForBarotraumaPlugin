@@ -3,7 +3,7 @@
     <!-- 
     IMPORTANT: Don't make use of special (ie: spaces / : ; , \ < > ?) (periods "." are good) and non-english characters in the ModName.
      -->    
-    <ModName>LuaCsForBarotrauma</ModName>
+    <ModName>LuaCsForBarotraumaPlugin</ModName>
     <RepositoryURL>https://github.com/Luatrauma/LuaCsForBarotraumaPlugin</RepositoryURL>
 
     <!-- 
