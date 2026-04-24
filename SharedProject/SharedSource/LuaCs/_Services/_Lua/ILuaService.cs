@@ -1,6 +1,6 @@
 namespace Barotrauma.LuaCs;
 
-public interface ILuaService
+public interface ILuaService : IService
 {
     
 }

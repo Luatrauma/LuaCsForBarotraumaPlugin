@@ -29,6 +29,7 @@ public sealed class PackageManagementService : IPackageManagementService
     // state
     private readonly ConcurrentDictionary<ContentPackage, IModConfigInfo> _loadedPackages = new();
     private readonly ConcurrentDictionary<ContentPackage, IModConfigInfo> _runningPackages = new();
+    private readonly ConcurrentDictionary<string, ContentPackage> _packageNameCache = new();
     // control
     /// <summary>
     /// Service Disposal Lock.
@@ -141,12 +142,25 @@ public sealed class PackageManagementService : IPackageManagementService
 #endif
             _runningPackages.Clear();
             _loadedPackages.Clear();
+            _packageNameCache.Clear();
             return operationResult;
         }
         catch (Exception e)
         {
             return FluentResults.Result.Fail(new ExceptionalError(e));
         }
+    }
+
+    public bool TryGetLoadedPackageByName(string name, out ContentPackage package)
+    {
+        package = null;
+        if (name.IsNullOrWhiteSpace())
+        {
+            return false;
+        }
+        
+        using var _ = _operationsLock.AcquireReaderLock().ConfigureAwait(false).GetAwaiter().GetResult();
+        return _packageNameCache.TryGetValue(name, out package);
     }
 
     public FluentResults.Result LoadPackageInfo(ContentPackage package)
@@ -180,7 +194,7 @@ public sealed class PackageManagementService : IPackageManagementService
         
         IService.CheckDisposed(this);
         var result = new FluentResults.Result();
-        var packages2 = packages.OrderBy(pkg => pkg.Name == "LuaCsForBarotrauma" ? 0 : 1) // always run lua cs first.
+        var packages2 = packages.OrderBy(pkg => pkg.Name == LuaCsSetup.PackageName ? 0 : 1) // always run lua cs first.
             .ThenBy(packages.IndexOf)
             .ToImmutableArray();
             
@@ -232,6 +246,7 @@ public sealed class PackageManagementService : IPackageManagementService
         }
         
         _loadedPackages[package] = config;
+        _packageNameCache[package.Name] = package;
         try
         {
             var res = new FluentResults.Result();
@@ -303,7 +318,7 @@ public sealed class PackageManagementService : IPackageManagementService
         
         // get loading order. Note: packages not in the execution order list will load first.
         var loadingOrderedPackages = _loadedPackages
-            .OrderBy(pkg => pkg.Key.Name == "LuaCsForBarotrauma" ? 0 : 1) // always run lua cs first.
+            .OrderBy(pkg => pkg.Key.Name == LuaCsSetup.PackageName ? 0 : 1) // always run lua cs first.
             .ThenBy(pkg => executionOrder.IndexOf(pkg.Key))
             .ToImmutableArray();
         var loadOrderByPackage = loadingOrderedPackages.Select(p => p.Key).ToImmutableArray();
@@ -330,6 +345,8 @@ public sealed class PackageManagementService : IPackageManagementService
 
         //lua scripts
         var luaScripts = SelectCompatible(loadingOrderedPackages
+            .Where(pkg => executeCsAssemblies 
+                          || !pkg.Value.LuaScripts.Any(scr => scr.RunUnrestricted))
             .SelectMany(pkg => pkg.Value.LuaScripts)
             .ToImmutableArray(), toLoadPackagesIndents, loadOrderByPackage);
             
@@ -342,11 +359,7 @@ public sealed class PackageManagementService : IPackageManagementService
         {
             _runningPackages[package.Key] = package.Value;
         }
-
-        if (result.IsFailed)
-        {
-            _logger.LogResults(result);
-        }
+        
         return result;
     }
     
@@ -435,6 +448,7 @@ public sealed class PackageManagementService : IPackageManagementService
         result.WithReasons(_uiStylesService.UnloadPackage(package).Reasons);  
 #endif
         _loadedPackages.TryRemove(package, out _);
+        _packageNameCache.TryRemove(package.Name, out _);
         return result;
     }
     
@@ -501,14 +515,44 @@ public sealed class PackageManagementService : IPackageManagementService
         return !_runningPackages.IsEmpty;
     }
 
-    public ImmutableArray<ContentPackage> GetLoadedAssemblyPackages()
+    public ImmutableArray<ContentPackage> GetLoadedUnrestrictedPackages()
     {
         using var lck = _operationsLock.AcquireReaderLock().ConfigureAwait(false).GetAwaiter().GetResult();
         IService.CheckDisposed(this);
         if (_loadedPackages.IsEmpty)
             return ImmutableArray<ContentPackage>.Empty;
         return [.._loadedPackages.Values
-                .Where(cfg => !cfg.Assemblies.IsDefaultOrEmpty)
+                .Where(cfg => !cfg.Assemblies.IsDefaultOrEmpty || cfg.LuaScripts.Any(scr => scr.RunUnrestricted))
                 .Select(cfg => cfg.Package)];
+    }
+
+    public bool PackageContainsAnyRunnableResource(ContentPackage package)
+    {
+        using var lck = _operationsLock.AcquireReaderLock().ConfigureAwait(false).GetAwaiter().GetResult();
+        IService.CheckDisposed(this);
+
+        var result = GetModConfigForPackage(package);
+
+        if (result.IsSuccess)
+        {
+            return result.Value.Assemblies.Any() || result.Value.LuaScripts.Any();
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public Result<IModConfigInfo> GetModConfigForPackage(ContentPackage package)
+    {
+        using var lck = _operationsLock.AcquireReaderLock().ConfigureAwait(false).GetAwaiter().GetResult();
+        IService.CheckDisposed(this);
+
+        if (!_loadedPackages.TryGetValue(package, out var modConfig))
+        {
+            return FluentResults.Result.Fail($"Failed to find mod config for package {package.Name}");
+        }
+
+        return new FluentResults.Result<IModConfigInfo>().WithValue(modConfig);
     }
 }
