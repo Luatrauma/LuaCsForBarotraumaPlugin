@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Toolkit.Diagnostics;
@@ -90,7 +91,11 @@ public class SettingList<T> : SettingEntry<T>, ISettingList<T> where T : IEquata
 
     public bool TrySetValueByIndex(int index)
     {
-        throw new NotImplementedException();
+        if (_valuesList.Count <= index)
+        {
+            return false;
+        }
+        return base.TrySetValue(_valuesList[index]);
     }
 
     public IReadOnlyList<T> Options => _valuesList.AsReadOnly();
@@ -100,10 +105,16 @@ public class SettingList<T> : SettingEntry<T>, ISettingList<T> where T : IEquata
 #if CLIENT
     public override void AddDisplayComponent(GUILayoutGroup layoutGroup, Vector2 relativeSize, Action<string> onSerializedValue)
     {
-        GUIUtil.Dropdown(layoutGroup, (T val) => val.ToString(), null, Options, Value, (T val) =>
+        GUIUtil.Dropdown(layoutGroup, (T val) => GetLocalizedString(val.ToString(), val.ToString()), null, Options, Value, (T val) =>
         {
             onSerializedValue?.Invoke(val.ToString());
         }, new Vector2(relativeSize.X, 1f));
+        
+        string GetLocalizedString(string identifier, string defaultValue)
+        {
+            var lstr = TextManager.Get($"{XmlConvert.EncodeLocalName(OwnerPackage.Name)}.{InternalName}.{identifier}.DisplayName");
+            return lstr.IsNullOrWhiteSpace() ? defaultValue : lstr.Value;
+        }
     }
 #endif
     

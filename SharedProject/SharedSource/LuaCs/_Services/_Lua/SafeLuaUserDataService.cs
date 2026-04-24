@@ -81,6 +81,8 @@ public class SafeLuaUserDataService : ISafeLuaUserDataService
         }
 
         if (typeName == "System.Single") { return true; }
+        
+        if (typeName == "System.Console") { return true; }
 
         if (typeName.StartsWith("System.Collections", StringComparison.Ordinal))
             return true;

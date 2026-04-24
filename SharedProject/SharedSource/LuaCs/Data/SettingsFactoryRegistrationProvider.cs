@@ -100,7 +100,7 @@ public class SettingsEntryRegistrar : ISettingsRegistrationProvider
                || valueChangePredicate.Invoke(newValue);
 #else
         // Server has absolute authority.
-        return true;
+        return !info.Element.GetAttributeBool("ReadOnly", false);
 #endif
     }
 
