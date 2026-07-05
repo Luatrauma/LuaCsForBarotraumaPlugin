@@ -27,4 +27,12 @@ dofile(path .. "/Lua/DefaultLib/Utils/String.lua")
 dofile(path .. "/Lua/DefaultLib/Utils/Util.lua")
 dofile(path .. "/Lua/DefaultLib/Utils/SteamApi.lua")
 
+if not CSActive then
+    for k, v in pairs(debug) do
+        if k ~= "getmetatable" and k ~= "setmetatable" and k ~= "traceback" then
+            debug[k] = nil
+        end
+    end
+end
+
 LuaSetup = nil

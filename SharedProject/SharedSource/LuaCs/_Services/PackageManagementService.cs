@@ -415,7 +415,9 @@ public sealed class PackageManagementService : IPackageManagementService
         
         if (_loadedPackages.IsEmpty || _runningPackages.IsEmpty)
         {
+#if DEGUG
             _logger.LogWarning($"{nameof(StopRunningPackages)}: No packages are currently executing.");
+#endif
             return FluentResults.Result.Ok();
         }
         
