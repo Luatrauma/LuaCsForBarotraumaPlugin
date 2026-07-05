@@ -1,0 +1,474 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>BarotraumaCore</name>
+    </assembly>
+    <members>
+        <member name="M:Barotrauma.Extensions.ColorExtensions.IsRedDominant(Microsoft.Xna.Framework.Color,System.Single,System.Byte)">
+            <summary>
+            Is the value of the red channel at least 'minimumRatio' larger than the blue and green
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.ColorExtensions.IsGreenDominant(Microsoft.Xna.Framework.Color,System.Single,System.Byte)">
+            <summary>
+            Is the value of the green channel at least 'minimumRatio' larger than the red and blue
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.ColorExtensions.IsBlueDominant(Microsoft.Xna.Framework.Color,System.Single,System.Byte)">
+            <summary>
+            Is the value of the blue channel at least 'minimumRatio' larger than the red and green
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.EnumExtensions.HasAnyFlag``1(``0,``0)">
+            <summary>
+            Enum.HasFlag() checks if all flags matches. This method checks if any of them matches. It also avoids boxing allocations that the built-in version might still sometimes cause.
+            E.g. when myEnum = SomeEnum.First | SomeEnum.Second, myEnum.HasFlag(SomeEnum.First | SomeEnum.Third) returns false, because not all of the flags match, but HasAnyFlag(SomeEnum.First | SomeEnum.Third) returns true, because some of the flags match.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.EnumExtensions.AddFlag``1(``0,``0)">
+            <summary>
+            Adds a flag value to an enum.
+            Note that enums are value types, so you need to use the value returned from this method.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.EnumExtensions.RemoveFlag``1(``0,``0)">
+            <summary>
+            Removes a flag value from an enum.
+            Note that enums are value types, so you need to use the value returned from this method.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.PointExtensions.Inverse(Microsoft.Xna.Framework.Point)">
+            <summary>
+            Negates the X and Y components.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.PointExtensions.Flip(Microsoft.Xna.Framework.Point)">
+            <summary>
+            Flips the X and Y components.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.RectangleExtensions.ToWorldRect(Microsoft.Xna.Framework.Rectangle)">
+            <summary>
+            Converts the y-coordinate of the rectangle so that up is greater and down is lower 
+            (i.e. so the Location of the rectangle is at the top-left corner in world coordinates).
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.RectangleExtensions.ContainsWorld(Microsoft.Xna.Framework.Rectangle,Microsoft.Xna.Framework.Rectangle)">
+            <summary>
+            Like the XNA method, but treats the y-coordinate so that up is greater and down is lower.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.RectangleExtensions.ContainsWorld(Microsoft.Xna.Framework.Rectangle,Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Like the XNA method, but treats the y-coordinate so that up is greater and down is lower.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.RectangleExtensions.ContainsWorld(Microsoft.Xna.Framework.Rectangle,Microsoft.Xna.Framework.Point)">
+            <summary>
+            Like the XNA method, but treats the y-coordinate so that up is greater and down is lower.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.RectangleExtensions.ClipLine(Microsoft.Xna.Framework.Rectangle,Microsoft.Xna.Framework.Vector2@,Microsoft.Xna.Framework.Vector2@,System.Boolean)">
+            <summary>
+            Clips a line to the boundaries of a rectangle.
+            </summary>
+            <remarks>
+            Adapted from the Liang-Barsky function by Daniel White (<see href="http://www.skytopia.com/project/articles/compsci/clipping.html"/>).
+            </remarks>
+            <returns>
+            - <see langword="true"/> if the line should be drawn.<br/>
+            - <see langword="false"/> if the line shouldn't be drawn.
+            </returns>
+        </member>
+        <member name="M:Barotrauma.Extensions.VectorExtensions.Angle(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Unity's Angle implementation without the conversion to degrees.
+            Returns the angle in radians between two vectors.
+            0 - Pi. Cannot be negative. The direction (CW or CCW) doesn't matter either.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.VectorExtensions.Forward(System.Single,System.Single)">
+            <summary>
+            Creates a forward pointing vector based on the rotation (in radians).
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.VectorExtensions.Backward(System.Single,System.Single)">
+            <summary>
+            Creates a backward pointing vector based on the rotation (in radians).
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.VectorExtensions.ForwardFlipped(System.Single,System.Single)">
+            <summary>
+            Creates a forward pointing vector based on the rotation (in radians). TODO: remove when the implications have been neutralized
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.VectorExtensions.BackwardFlipped(System.Single,System.Single)">
+            <summary>
+            Creates a backward pointing vector based on the rotation (in radians). TODO: remove when the implications have been neutralized
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.VectorExtensions.Right(Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Creates a normalized perpendicular vector to the right from a forward vector.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.VectorExtensions.Left(Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Creates a normalized perpendicular vector to the left from a forward vector.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.VectorExtensions.TransformVector(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Transforms a vector relative to the given up vector.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.VectorExtensions.Flip(Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Flips the x and y components.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.VectorExtensions.Combine(Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Returns the sum of the x and y components.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Extensions.IEnumerableExtensionsCore.MaxOrNull``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            Returns the maximum element in a given enumerable, or null if there
+            aren't any elements in the input.
+            </summary>
+            <param name="enumerable">Input collection</param>
+            <returns>Maximum element or null</returns>
+        </member>
+        <member name="M:Barotrauma.Extensions.IEnumerableExtensionsCore.FirstOrNull``1(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Boolean})">
+            <summary>
+            Same as FirstOrDefault but will always return null instead of default(T) when no element is found
+            </summary>
+        </member>
+        <member name="M:Barotrauma.StringFormatter.CapitaliseFirstInvariant(System.String)">
+            <summary>
+            Capitalises the first letter (invariant) and forces the rest to lower case (invariant).
+            </summary>
+        </member>
+        <member name="M:Barotrauma.StringFormatter.FormatCamelCaseWithSpaces(System.String)">
+            <summary>
+            Adds spaces into a CamelCase string.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.Networking.SteamId.steam64Prefix">
+             Based on information found here: https://developer.valvesoftware.com/wiki/SteamID
+             ------------------------------------------------------------------------------------
+             A SteamID is a 64-bit value (16 hexadecimal digits) that's broken up as follows:
+            
+                                | a  | b |   c   |    d     |
+             Most significant - | 01 | 1 | 00001 | 0546779D | - Least significant
+            
+             a) 8 bits representing the universe the account belongs to.
+             b) 4 bits representing the type of account. Typically 1.
+             c) 20 bits representing the instance of the account. Typically 1.
+             d) 32 bits representing the account number.
+            
+             The account number is additionally broken up as follows:
+            
+                                |                e                | f |
+             Most significant - | 0000010101000110011101111001110 | 1 | - Least significant
+            
+             e) These are the 31 most significant bits of the account number.
+             f) This is the least significant bit of the account number, discriminated under the name Y for some reason.
+            
+             Barotrauma supports two textual representations of SteamIDs:
+             1. STEAM40: Given this name as it represents 40 of the 64 bits in the ID. The account type and instance both
+                         have an implied value of 1. The format is "STEAM_{universe}:{Y}:{restOfAccountNumber}".
+             2. STEAM64: If STEAM40 does not suffice to represent an ID (i.e. the account type or instance were different
+                         from 1), we use "STEAM64_{fullId}" where fullId is the 64-bit decimal representation of the full
+                         ID.
+        </member>
+        <member name="T:Barotrauma.Networking.UnauthenticatedAccountId">
+            <summary>
+            Represents an account ID of a client that has not been authenticated in any way. The account ID is only based on the client's name. 
+            Only used on servers that allow joining without Steam/EOS authentication (such as when playing in a local network with no internet connection).
+            </summary>
+        </member>
+        <member name="M:Barotrauma.IdentifierExtensions.ToIdentifiers(System.String,System.String)">
+            <summary>
+            Parses identifiers from a comma separated string.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.IdentifierExtensions.ConvertToString(System.Collections.Generic.IEnumerable{Barotrauma.Identifier},System.String)">
+            <summary>
+            Parses a comma separated string from a collection of identifier.
+            </summary>
+        </member>
+        <member name="T:Barotrauma.Janitor">
+            <summary>
+            This type is intended to be used in using statements to automatically
+            clean up resources that are allocated incrementally
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Janitor.AddAction(System.Action)">
+            <summary>
+            Give the janitor a new action to perform when disposed
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Janitor.Dismiss">
+            <summary>
+            Relieve the janitor of all current duties,
+            i.e. all of the currently enqueued cleanup
+            actions are cleared and will not execute
+            </summary>
+        </member>
+        <member name="T:Barotrauma.Base64Url">
+            <summary>
+            URL-safe Base64. See https://datatracker.ietf.org/doc/html/rfc4648#section-5
+            </summary>
+        </member>
+        <member name="T:Barotrauma.JsonWebToken">
+            <summary>
+            Rudimentary JSON Web Token implementation. See https://en.wikipedia.org/wiki/JSON_Web_Token.
+            This is used by continuance tokens and ID tokens as part of their internal representation.
+            We can use the data encoded in them for some things, such as determining a token's expiry time.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.JsonWebToken.#ctor(System.String,System.String,System.String)">
+            <summary>
+            Rudimentary JSON Web Token implementation. See https://en.wikipedia.org/wiki/JSON_Web_Token.
+            This is used by continuance tokens and ID tokens as part of their internal representation.
+            We can use the data encoded in them for some things, such as determining a token's expiry time.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.VectorOrientation(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Given three points A, B and C,
+            returns 1 if AC is oriented clockwise relative to AB,
+            -1 if AC is oriented counter-clockwise relative to AB,
+            or 0 if A, B and C are collinear.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.WrapAngleTwoPi(System.Single)">
+            <summary>
+            wrap the angle between 0.0f and 2pi
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.WrapAnglePi(System.Single)">
+            <summary>
+            wrap the angle between -pi and pi
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.GetMidAngle(System.Single,System.Single)">
+            <summary>
+            Returns the angle between the two angles, where the direction matters.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.SolveTriangleSSS(System.Single,System.Single,System.Single)">
+            <summary>
+            solves the angle opposite to side a (parameters: lengths of each side)
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.LineSegmentsIntersect(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Check whether a line segment from a to b is intersecting with a line segment from c to d
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.GetLineSegmentIntersection(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2@)">
+            <summary>
+            Find where the line segments (i.e. non-infinite lines between the points) intersect
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.GetLineIntersection(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Boolean,Microsoft.Xna.Framework.Vector2@)">
+            <summary>
+            Find where the lines intersect. Use the areLinesInfinite argument to specify whether the lines should be finite segments or inifinite
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.GetLineRectangleIntersection(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Rectangle,Microsoft.Xna.Framework.Vector2@)">
+            <summary>
+            Get the point where the line segment between a1 and a2 intersects the rectangle. Note that the rectangle's y-coordinate is handled so that up is lower and bottom is higher (the way rectangles work by default in XNA).
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.GetLineWorldRectangleIntersection(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Rectangle,Microsoft.Xna.Framework.Vector2@)">
+            <summary>
+            Get the point where the line segment between a1 and a2 intersects the rectangle. Note that the rectangle's y-coordinate is handled so that up is greater and down is lower (the way e.g. MapEntity rects are defined).
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.RotatedUnitXRadians(System.Single)">
+            <summary>
+            Returns a unit vector rotated by the given angle in radians, where 0 radians points along the positive X-axis (to the right).
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.RotatedUnitYRadians(System.Single)">
+            <summary>
+            Returns a unit vector rotated by the given angle in radians, where 0 radians points along the positive Y-axis (up).
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.GetLineCircleIntersections(Microsoft.Xna.Framework.Vector2,System.Single,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Boolean,System.Nullable{Microsoft.Xna.Framework.Vector2}@,System.Nullable{Microsoft.Xna.Framework.Vector2}@)">
+            <summary>
+            Get the intersections between a line (either infinite or a line segment) and a circle
+            </summary>
+            <param name="circlePos">Center of the circle</param>
+            <param name="radius">Radius of the circle</param>
+            <param name="point1">1st point on the line</param>
+            <param name="point2">2nd point on the line</param>
+            <param name="isLineSegment">Is the line a segment or infinite</param>
+            <returns>The number of intersections</returns>
+        </member>
+        <member name="M:Barotrauma.MathUtils.GetPointOnCircumference(Microsoft.Xna.Framework.Vector2,System.Single,System.Single)">
+            <summary>
+            Get a point on a circle's circumference
+            </summary>
+            <param name="center">Center of the circle</param>
+            <param name="radius">Radius of the circle</param>
+            <param name="angle">Angle (in radians) from the center</param>
+            <returns></returns>
+        </member>
+        <member name="M:Barotrauma.MathUtils.GetPointsOnCircumference(Microsoft.Xna.Framework.Vector2,System.Single,System.Int32,System.Single)">
+            <summary>
+            Get a specific number of evenly distributed points on a circle's circumference
+            </summary>
+            <param name="center">Center of the circle</param>
+            <param name="radius">Radius of the circle</param>
+            <param name="points">Number of points to calculate</param>
+            <param name="firstAngle">Angle (in radians) of the first point from the center</param>
+            <returns></returns>
+        </member>
+        <member name="M:Barotrauma.MathUtils.TriangulateConvexHull(System.Collections.Generic.List{Microsoft.Xna.Framework.Vector2},Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Divide a convex hull into triangles
+            </summary>
+            <returns>List of triangle vertices (sorted counter-clockwise)</returns>
+        </member>
+        <member name="M:Barotrauma.MathUtils.NearlyEqual(System.Single,System.Single,System.Single)">
+            <summary>
+            Float comparison. Note that may still fail in some cases.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.NearlyEqual(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Single)">
+            <summary>
+            Float comparison. Note that may still fail in some cases.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.Bezier(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Single)">
+            <summary>
+            Returns a position in a curve.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.ToVector2(Barotrauma.Alignment)">
+            <summary>
+            Converts the alignment to a vector where -1,-1 is the top-left corner, 0,0 the center and 1,1 bottom-right
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.RotatePointAroundTarget(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Single,System.Boolean)">
+            <summary>
+            Rotates a point in 2d space around another point.
+            Modified from:
+            http://www.gamefromscratch.com/post/2012/11/24/GameDev-math-recipes-Rotating-one-point-around-another-point.aspx
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.RotatePoint(Microsoft.Xna.Framework.Vector2,System.Single)">
+            <summary>
+            Rotates a point in 2d space around the origin
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.GetImaginaryRect(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Returns the corners of an imaginary rectangle.
+            Unlike the XNA rectangle, this can be rotated with the up parameter.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.GetImaginaryRect(Microsoft.Xna.Framework.Vector2[],Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Returns the corners of an imaginary rectangle.
+            Unlike the XNA Rectangle, this can be rotated with the up parameter.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.RectangleContainsPoint(Microsoft.Xna.Framework.Vector2[],Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Check if a point is inside a rectangle.
+            Unlike the XNA Rectangle, this rectangle might have been rotated.
+            For XNA Rectangles, use the Contains instance method.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.RectangleContainsPoint(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Check if a point is inside a rectangle.
+            Unlike the XNA Rectangle, this rectangle might have been rotated.
+            For XNA Rectangles, use the Contains instance method.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.TriangleContainsPoint(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Slightly modified from https://gamedev.stackexchange.com/questions/110229/how-do-i-efficiently-check-if-a-point-is-inside-a-rotated-rectangle
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.InverseLerp(System.Single,System.Single,System.Single)">
+            <summary>
+            Returns a scalar t from a value v between a range from min to max. Clamped between 0 and 1.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.ResizeVector2Array(Microsoft.Xna.Framework.Vector2[0:,0:],System.Int32,System.Int32)">
+            <summary>
+            Resizes an array of vectors to a different size. Uses bilinear interpolation to "scale" the values to the size of the new array: 
+            for instance, an array such as "1, 0" would become "1, 0.5, 0" when the width is scaled from 2 to 3.
+            </summary>
+        </member>
+        <member name="T:Barotrauma.OneOf`3">
+            <summary>
+            Discriminated union of three types.
+            Essentially the same thing as Either&lt;T1, T2&gt;, except for three types instead of two types.
+            </summary>
+        </member>
+        <member name="T:Barotrauma.Range`1">
+            <summary>
+            An inclusive range, i.e. [Start, End] where Start &lt;= End
+            </summary>
+        </member>
+        <member name="F:Barotrauma.ReflectionUtils.mutex">
+            <summary>
+            A lock object to prevent multiple threads from accessing the caches at the same time
+            </summary>
+        </member>
+        <member name="M:Barotrauma.ReflectionUtils.GetTypeWithBackwardsCompatibility(System.Reflection.Assembly,System.String,System.String,System.Boolean,System.Boolean)">
+            <summary>
+            Gets a type by its name, with backwards compatibility for types that have been renamed.
+            <see cref="T:Barotrauma.TypePreviouslyKnownAs"/>
+            </summary>
+        </member>
+        <member name="M:Barotrauma.ReflectionUtils.GetTypeNameWithoutGenericArity(System.Type)">
+            <summary>
+            The names of generic types include the arity at the end (fancy way of saying the number of parameters, e.g. GUISelectionCarousel&lt;T&gt; would be GUISelectionCarousel`1)
+            This method strips that part out.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.TaskPool.IgnoredCallback(System.Threading.Tasks.Task)">
+            <summary>
+            Empty callback that can be used when we do not care about the completion status of a task.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.ToolBoxCore.HSVToRGB(System.Single,System.Single,System.Single)">
+            <summary>
+            Convert a HSV value into a RGB value.
+            </summary>
+            <param name="hue">Value between 0 and 360</param>
+            <param name="saturation">Value between 0 and 1</param>
+            <param name="value">Value between 0 and 1</param>
+            <see href="https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_RGB">Reference</see>
+            <returns></returns>
+        </member>
+        <member name="T:Barotrauma.TypePreviouslyKnownAs">
+            <summary>
+            This attribute is used to indicate that a class was previously known by a different name.
+            This is used for backwards compatibility when we have types that are loaded from XML using reflection.
+            
+            Only works in cases where we use <see cref="M:Barotrauma.ReflectionUtils.GetTypeWithBackwardsCompatibility(System.Reflection.Assembly,System.String,System.String,System.Boolean,System.Boolean)"/> to load the type.
+            
+            If you wish to use this, you will need to replace the call to Type.GetType() in the load method with
+            ReflectionUtils.GetTypeWithBackwardsCompatibility().
+            </summary>
+        </member>
+        <member name="T:Barotrauma.Unit">
+            <summary>
+            Unit type, i.e. type with only one possible value.
+            Can be used instead of void to form expressions and
+            fill in generic parameters.
+            </summary>
+        </member>
+    </members>
+</doc>

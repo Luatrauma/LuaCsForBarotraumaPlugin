@@ -185,7 +185,7 @@ public class PluginManagementService : IAssemblyManagementService
         _pluginInjectorContainer?.Dispose();
         _pluginInjectorContainer = null;
         
-        ReflectionUtils.ResetCache();
+        //ReflectionUtils.ResetCache(); TODO
         foreach (var loader in _assemblyLoaders)
         {
             try
