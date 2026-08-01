@@ -7,7 +7,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-
   <ItemGroup>
     <ProjectReference Include="..\ClientProject\WindowsClient.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -36,5 +35,4 @@
   </ItemGroup>
 
   <Import Project="../UserBuildData.props" />
-
 </Project>
