@@ -47,7 +47,8 @@ end, Hook.HookMethodType.Before)
 
 Hook.Patch("Barotrauma.Item", "Equip",
 {
-    "Barotrauma.Character"
+    "Barotrauma.Character",
+    "System.Boolean"
 },
 function(instance, p)
     if Hook.Call("item.equip", instance, p["character"]) == true then
