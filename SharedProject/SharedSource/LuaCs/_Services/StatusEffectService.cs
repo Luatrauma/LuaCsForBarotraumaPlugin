@@ -35,7 +35,7 @@ internal class StatusEffectService : ISystem, IStatusEffectActionFactory
     {
         _eventService = eventService;
 
-        Plugin.StatusEffectService.RegisterAction(this);
+        //Plugin.StatusEffectService.RegisterAction(this);
     }
 
     public void Dispose()
