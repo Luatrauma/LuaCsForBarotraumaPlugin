@@ -1,10 +1,10 @@
 ﻿<Project>
   <ItemGroup Condition="'$(UsePublicizedAssemblies)' != 'true'">
-    <PackageReference Include="Barotrauma.ReferenceAssemblies.Vanilla" GeneratePathProperty="true" Version="*" />
+    <PackageReference Include="Barotrauma.ReferenceAssemblies.Vanilla" GeneratePathProperty="true" Version="*-*" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(UsePublicizedAssemblies)' == 'true'">
-    <PackageReference Include="Barotrauma.ReferenceAssemblies.Vanilla.Publicized" GeneratePathProperty="true" Version="*" />
+    <PackageReference Include="Barotrauma.ReferenceAssemblies.Vanilla.Publicized" GeneratePathProperty="true" Version="*-*" />
   </ItemGroup>
 
   <ItemGroup>

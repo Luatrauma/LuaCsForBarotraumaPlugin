@@ -186,7 +186,7 @@
         <member name="T:Barotrauma.Networking.UnauthenticatedAccountId">
             <summary>
             Represents an account ID of a client that has not been authenticated in any way. The account ID is only based on the client's name. 
-            Only used on servers that allow joining without Steam/EOS authentication (such as when playing in a local network with no internet connection).
+            Only used on servers that allow joining without Steam authentication (such as when playing in a local network with no internet connection).
             </summary>
         </member>
         <member name="M:Barotrauma.IdentifierExtensions.ToIdentifiers(System.String,System.String)">
@@ -235,6 +235,13 @@
             This is used by continuance tokens and ID tokens as part of their internal representation.
             We can use the data encoded in them for some things, such as determining a token's expiry time.
             </summary>
+        </member>
+        <member name="M:Barotrauma.MathUtils.SmoothDamp(System.Single,System.Single,System.Single@,System.Single,System.Single)">
+            <summary>
+            Simplified copy of Unity's Mathf.SmoothDamp: smoothly eases "current" toward "target" over roughly "smoothTime" seconds. 
+            Useful for smoothing a value that changes erratically towards some target, eg. a value jittered by network sync.
+            </summary>
+            <param name="velocity">The value's velocity, responsible for the "spring" effect. NOTE: Must be persisted externally.</param>
         </member>
         <member name="M:Barotrauma.MathUtils.VectorOrientation(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2)">
             <summary>
