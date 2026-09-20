@@ -74,15 +74,35 @@
             Can be used by events to check whether a character is hostile (for whatever reason, e.g. low rep or the player attacking their sub)
             </summary>
         </member>
+        <member name="P:Barotrauma.Character.IsCurrentlyAttackingPlayer">
+            <summary>
+            Can be used to check whether a character is currently attacking a player.
+            </summary>
+        </member>
         <member name="F:Barotrauma.Character.SpawnedByOutpostGenerator">
             <summary>
             Was this NPC spawned by the outpost generator, i.e. is it one of the "generic" outpost NPCs as opposed to something spawned by an event or a mission?
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Character.GrantsFriendlyAccess">
+            <summary>
+            If true, characters on a friendly team are treated like members of this character's own team when determining
+            whether they can access this character's inventory or drag them around or heal them, in addition to the
+            defaultsame-team/pet rules, and without changing team membership.
             </summary>
         </member>
         <member name="P:Barotrauma.Character.DisableCreatureSaving">
             <summary>
             Should creature saving in the campaign file be disabled for this character?
             </summary>
+        </member>
+        <member name="P:Barotrauma.Character.ForceFriendlyWithGroup">
+            <summary>
+            Can be used by status effects and events to forcefully set a species group that this character should be friendly with.
+            </summary>
+            <remarks>
+            Team-friendliness logic still applies (e.g. Team1 will still be hostile to Team2 even though they have the same group)
+            </remarks>
         </member>
         <member name="P:Barotrauma.Character.Name">
             <summary>
@@ -110,9 +130,20 @@
             meaning it can't interact with anything but the things it has currently selected/equipped
             </summary>
         </member>
-        <member name="P:Barotrauma.Character.HasHands">
+        <member name="P:Barotrauma.Character.HasBothHands">
             <summary>
-            Does the character have both a left hand and a right hand?
+            Does the character currently have both a left hand and a right hand?
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Character.HasHandsOriginally">
+            <summary>
+            Does the character normally have both a left and a right hand? 
+            They may currently be severed - if you want to check whether the character currently has functional hands, use <see cref="P:Barotrauma.Character.HasBothHands"/>.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Character.HasLostAllHands">
+            <summary>
+            Has the character lost both/all of the hands they originally had? Returns false if the character didn't have hands in the first place.
             </summary>
         </member>
         <member name="P:Barotrauma.Character.HeldItems">
@@ -154,6 +185,12 @@
             <summary>
             How "loud" the player is when they use text chat.
             When the user speaks in text chat this gets set to 1 and then slowly decreases back to 0 over 5 seconds.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Character.ForceDisableTargetingTimer">
+            <summary>
+            Temporarily stops the character AI from automatically doing targeting, useful if you want to manually control what the character should target. 
+            Only works for characters with an EnemyAIController.
             </summary>
         </member>
         <member name="P:Barotrauma.Character.CurrentSpeed">
@@ -210,7 +247,7 @@
             Alias for InWater
             </summary>
         </member>
-        <member name="F:Barotrauma.Character.GodMode">
+        <member name="P:Barotrauma.Character.GodMode">
             <summary>
             Godmoded characters cannot receive any afflictions whatsoever
             </summary>
@@ -309,6 +346,12 @@
             Can the character be dragged, as in forcibly pulled around by another character? Note that this is not the same as grabbing them to heal or inspect them for stolen items.
             </summary>
         </member>
+        <member name="M:Barotrauma.Character.IsOptedInForFriendlyAccess(Barotrauma.Character)">
+            <summary>
+            Has this character opted in to being treated like a member of the team by the given character, despite not being on the same team?
+            Only applies to characters on a friendly team, never to e.g. hostile characters.
+            </summary>
+        </member>
         <member name="M:Barotrauma.Character.IsInventoryAccessibleTo(Barotrauma.Character,Barotrauma.CharacterInventory.AccessLevel)">
             <summary>
             Is the inventory accessible to the character? Doesn't check if the character can actually interact with it (distance checks etc).
@@ -370,10 +413,27 @@
             With stunning, the parameter uses a one-second delay before the character is treated as knocked down. The purpose of this is to ignore minor stunning. If you don't want to to ignore any stun, use the Stun property.
             </summary>
         </member>
-        <member name="M:Barotrauma.Character.SaveInventory">
+        <member name="M:Barotrauma.Character.SaveInventory(Barotrauma.Inventory,System.Xml.Linq.XElement,System.Boolean)">
+            <param name="dropItemsStolenFromOutpost">Should stolen items be removed from the character if they weren't brought to the sub?</param>
+        </member>
+        <member name="M:Barotrauma.Character.SaveInventory(System.Boolean)">
             <summary>
-            Calls <see cref="M:Barotrauma.Character.SaveInventory(Barotrauma.Inventory,System.Xml.Linq.XElement)"/> using 'Inventory' and 'Info.InventoryData'
+            Calls <see cref="M:Barotrauma.Character.SaveInventory(Barotrauma.Inventory,System.Xml.Linq.XElement,System.Boolean)"/> using 'Inventory' and 'Info.InventoryData'
             </summary>
+            <param name="removeStolenItemsOnOutpost">Should stolen items be removed from the character if they weren't brought to the sub?</param>
+        </member>
+        <member name="M:Barotrauma.Character.TrySelectControllerBySaveId(Barotrauma.Submarine,System.Int32)">
+            <summary>
+            Attempts to find a controller using it's <see cref="P:Barotrauma.Items.Components.Controller.PermanentSaveId"/> and puts the character into the controller if found.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Character.LoadFromElement(System.Xml.Linq.XElement,Microsoft.Xna.Framework.Vector2@,System.String@,System.Int32@)">
+            <summary>
+            Loads a character from a XElement.
+            </summary>
+            <param name="savePosition">The character's saved position relative to the submarine at the time of saving.</param>
+            <param name="saveSubmarine">The name of the submarine the character was in when saved, can be used to validate if <paramref name="savePosition"/> is valid.</param>
+            <param name="controllerId">The <see cref="P:Barotrauma.Items.Components.Controller.PermanentSaveId"/> of the controller selected by this character at the time of saving, or 0 if none.</param>
         </member>
         <member name="M:Barotrauma.Character.GetVisibleHulls">
             <summary>
@@ -456,6 +516,12 @@
             Setting this will automatically make the <see cref="P:Barotrauma.CharacterInfo.HumanPrefab"/> getter find the appropriate prefab.
             </summary>
         </member>
+        <member name="M:Barotrauma.CharacterInfo.GetHumanPrefabIds(System.Xml.Linq.XElement)">
+            <summary>
+            Reads the <see cref="F:Barotrauma.CharacterInfo.HumanPrefabIds"/> stored in a saved character element. Also for callers that need the ids
+            before the <see cref="T:Barotrauma.CharacterInfo"/> has been constructed, eg. to pass them to the constructor.
+            </summary>
+        </member>
         <member name="P:Barotrauma.CharacterInfo.Character">
             <summary>
             Note: Can be null.
@@ -526,6 +592,21 @@
             <remarks>
             None means the salary has not been set yet, which is not always 0 if default salary is set.
             </remarks>
+        </member>
+        <member name="M:Barotrauma.CharacterInfo.TryLoadNameAndTitle">
+            <summary>
+            Try load the name and title of the character based on <see cref="F:Barotrauma.CharacterInfo.HumanPrefabIds"/>, which must be set before calling this.
+            If the title is missing and <see cref="P:Barotrauma.HumanPrefab.StoreIdentifiers"/> is used, we look up the first one that
+            has one defined, left to right, so specialized merchant NPCs don't need to have a title defined and just
+            fall back to the "base" merchant in their storeidentifier pool.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.CharacterInfo.GetStoreIdentifierTitleTags">
+            <summary>
+            Gets the title tags of the storeidentifier pools a merchant NPC draws from (see <see cref="P:Barotrauma.HumanPrefab.StoreIdentifiers"/>),
+            for use with the title fallback mechanism.
+            Note: Here the NPC's own identifier is left out, because if this is reached, its title has already been found empty.
+            </summary>
         </member>
         <member name="M:Barotrauma.CharacterInfo.GetIdentifier">
             <summary>
@@ -640,6 +721,11 @@
             Is the limb an arm or a part of an arm (upper or lower arm or hand)
             </summary>
         </member>
+        <member name="P:Barotrauma.Limb.IsSevered">
+            <summary>
+            Is this limb missing, and not replaced with a prosthetic?
+            </summary>
+        </member>
         <member name="F:Barotrauma.Limb.HiddenByProsthesis">
             <summary>
             Is the limb hidden because it's been replaced by a prosthesis?
@@ -650,9 +736,20 @@
             Can be used by status effects
             </summary>
         </member>
+        <member name="F:Barotrauma.Limb.SeveredWearableChanges">
+            <summary>
+            Contains changes made to wearing items while the limb was severed.<br/>
+            Value is <see langword="true"/> if a new item was equipped, and <see langword="false"/> if an already-worn item was unequipped.
+            </summary>
+        </member>
         <member name="F:Barotrauma.Limb.OtherWearables">
             <summary>
             Other wearables attached to the head. I.e. husk sprite, hair, beard, moustache, and face attachments.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Limb.IsAmputable">
+            <summary>
+            Can this limb be removed by a deliberate medical procedure? Independent from <see cref="P:Barotrauma.Limb.CanBeSeveredAlive"/>, which is about crude violence such as explosions.
             </summary>
         </member>
         <member name="F:Barotrauma.Limb.MinExecuteAttackEventInterval">
@@ -698,6 +795,12 @@
             So if you register a command with "spawn|spawncharacter",
             use "spawn|spawncharacter" as the search pattern.
             </remarks>
+        </member>
+        <member name="P:Barotrauma.DebugConsole.EnableSimpleIO">
+            <summary>
+            If set to true, disables any fancy console input/output features, such as autocomplete and text coloring. Useful 
+            for servers running under a simulated TTY that doesn't support all the TTY features (e.g. pterodactyl).
+            </summary>
         </member>
         <member name="M:Barotrauma.DebugConsole.TestMaps(System.String,System.Nullable{System.Int32},System.Action{System.String,Barotrauma.Map,Barotrauma.CampaignMode},System.Action)">
             <summary>
@@ -828,6 +931,11 @@
             Highlights a specific entity.
             </summary>
         </member>
+        <member name="T:Barotrauma.MessageBoxAction">
+            <summary>
+            Displays a message box, or modifies an existing one.
+            </summary>
+        </member>
         <member name="T:Barotrauma.MissionAction">
             <summary>
             Unlocks a mission in a nearby level or location.
@@ -840,12 +948,12 @@
         </member>
         <member name="F:Barotrauma.MissionAction.Target.MissionStartLocation">
             <summary>
-            Only valid for missions triggered by another mission. The mission is unlocked in the start location of the triggering mission, or a location that matches specific criteria that's within a certain distance from that location.
+            Only valid for actions executed by a mission. The mission is unlocked in the start location of the triggering mission, or a location that matches specific criteria that's within a certain distance from that location.
             </summary>
         </member>
         <member name="F:Barotrauma.MissionAction.Target.MissionEndLocation">
             <summary>
-            Only valid for missions triggered by another mission. The mission is unlocked in the end location of the triggering mission, or a location that matches specific criteria that's within a certain distance from that location.
+            Only valid for actions executed by a mission. The mission is unlocked in the end location of the triggering mission, or a location that matches specific criteria that's within a certain distance from that location.
             </summary>
         </member>
         <member name="F:Barotrauma.MissionAction.LocationPredicate">
@@ -1007,6 +1115,11 @@
             The submarine is flooded and there's only a few living crew members on board, and no-one currently assaulting inside the enemy sub/outpost.
             </summary>
         </member>
+        <member name="F:Barotrauma.Mission.MissionResultCondition.SubmarineNotIncapacitated">
+            <summary>
+            The opposite of <see cref="F:Barotrauma.Mission.MissionResultCondition.SubmarineIncapacitated"/>: makes the mission succeed if the submarine wasn't incapacitated (or fail, if used as a failure condition).
+            </summary>
+        </member>
         <member name="F:Barotrauma.Mission.MissionResultCondition.OutpostDestroyed">
             <summary>
             The outpost is considered destroyed when most of the NPCs are dead or when the reactor has been blown up.
@@ -1060,6 +1173,12 @@
         <member name="P:Barotrauma.Mission.MorePathToDestinationRemaining">
             <summary>
             Is there more path to the destination remaining after the current level (i.e. is this a multi-level mission that's not yet at the last level?)
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Mission.DisallowExploreOutsideOutpost">
+            <summary>
+            Is this mission currently in a state that should disallow <see cref="T:Barotrauma.AIObjectiveExploreOutside"/> in outpost levels?
+            E.g. to prevent bots from going out fishing when there's monsters or a hostile sub attacking the outpost.
             </summary>
         </member>
         <member name="P:Barotrauma.Mission.OutpostDestroyedReason">
@@ -1147,10 +1266,37 @@
             <param name="submarineTypeName">Name of submarine type for error messages (e.g., "wreck", "beacon station")</param>
             <returns>Selected submarine, or null if none found</returns>
         </member>
+        <member name="F:Barotrauma.MonsterMission.MonsterWave.ForceSpawnAfter">
+            <summary>
+            A delay after spawning the previous wave after which this wave if forced to spawn, regardless if the previous wave has been killed or not. 
+            If 0, the wave is not forced to spawn, but will spawn after the previous wave has been killed and the <see cref="F:Barotrauma.MonsterMission.MonsterWave.DelayAfterPreviousWave"/> has passed.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.MonsterMission.MonsterWave.DelayAfterPreviousWave">
+            <summary>
+            A delay between the previous wave getting killed and this wave spawning.
+            </summary>
+        </member>
         <member name="F:Barotrauma.MonsterMission.startDelay">
             <summary>
             How many seconds it takes for the monsters to appear at the start of the mission. Not really that relevant in normal levels where the monsters spawn quite far away from the sub,
             but can matter in outpost levels.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.MonsterMission.failIfMonstersNotKilled">
+            <summary>
+            If the monsters are not killed, should it be considered to have failed (meaning the mission can't be reattempted unless <see cref="P:Barotrauma.MissionPrefab.AllowRetry"/> is true?).
+            Note that confusingly failing is not the same as "not completing the mission", but rather represents failing the mission to the point it can't be by default reattempted any longer.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.MonsterMission.separateSpawnPositionForEachMonster">
+            <summary>
+            If set to true, the monsters don't spawn at the same position, but a random suitable spawn position is chosen individually for each monster.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.MonsterMission.minDistFromSubs">
+            <summary>
+            Minimum distance from subs to spawn the monsters at, if there are suitable spawn positions that far away. If not set, defaults to 1/3 of the width of the level.
             </summary>
         </member>
         <member name="F:Barotrauma.SalvageMission.Target.ParentTarget">
@@ -1239,6 +1385,11 @@
             only from spawning the submarine if a mission of the same type already spawned one (= i.e. can be used to make sure there's only one extra sub in the level).
             </summary>
         </member>
+        <member name="F:Barotrauma.SubmarineEncounterMission.ShouldSubmarineStartHidden">
+            <summary>
+            Makes the submarine start hidden until an event uses <see cref="T:Barotrauma.UnhideSubmarineEncounterAction"/>
+            </summary>
+        </member>
         <member name="F:Barotrauma.SubmarineEncounterMission.itemSpawnsToRepeat">
             <summary>
             List of items that should infinitely respawn
@@ -1247,6 +1398,11 @@
         <member name="F:Barotrauma.SubmarineEncounterMission.difficultyBasedOnFurthestExploredLevel">
             <summary>
             When set, the difficulty of the mission (= the selected sub and enemies) is based on the difficulty of the furthest level the player has explored.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.SubmarineEncounterMission.denyBoarding">
+            <summary>
+            If enabled, the crew will turn hostile if you attempt to board their sub.
             </summary>
         </member>
         <member name="F:Barotrauma.SubmarineEncounterMission.submarineBasedReward">
@@ -1387,11 +1543,6 @@
             Special case: player chose to manually undock, used to interrupt the docking decision.
             </summary>
         </member>
-        <member name="P:Barotrauma.CampaignMode.DockingDecision">
-            <summary>
-            What kind of an action has the player chosen when docking with an outpost?
-            </summary>
-        </member>
         <member name="P:Barotrauma.CampaignMode.Missions">
             <summary>
             Which missions have been selected for the current round?
@@ -1479,6 +1630,12 @@
             Which submarine is at a position where it can leave the level and enter another one (if any).
             </summary>
         </member>
+        <member name="M:Barotrauma.CampaignMode.GetElapsedWorldSteps(System.Single,Barotrauma.CampaignMode.TransitionType)">
+            <summary>
+            How many world steps will be processed for the given round duration and way of ending the round.
+            Returned as a float to make it possible to use this for evaluating progress towards the next step - the actual number of steps if this value rounded down and cast to int.
+            </summary>
+        </member>
         <member name="M:Barotrauma.CampaignMode.HandleSaveAndQuit">
             <summary>
             Handles updating store stock, registering event history and relocating items (i.e. things that need to be done when saving and quitting mid-round)
@@ -1542,7 +1699,6 @@
             <summary>
             Notifies the clients of the current bot situation like syncing pending and available hires
             </summary>
-            <param name="hiredCharacters">Inform the clients that these characters have been hired.</param>
             <param name="firedCharacter">Inform the clients that this character has been fired.</param>
             <remarks>
             It might be obsolete to sync available hires. I found that the available hires are always the same between
@@ -1755,6 +1911,20 @@
             Can the inventory be accessed by the character itself when the character is still alive (only has an effect if AccessibleWhenAlive false)
             </summary>
         </member>
+        <member name="M:Barotrauma.CharacterInventory.AttemptToFreeHandsFor(Barotrauma.Item,System.Boolean)">
+            <summary>
+            Gives the items in the inventory a chance to release the items they're "forcibly" keeping in the hand slots
+            (see <see cref="M:Barotrauma.Items.Components.ItemComponent.AttemptToFreeHands(Barotrauma.Item,System.Boolean)"/>), to make room for the item being equipped.
+            A swappable prosthetic for example only ever agrees to stow its equipped tool to make room for handcuffs and nothing else.
+            </summary>
+            <param name="force">
+            When set, the items give up the hand slots for any item, instead of only yielding to the specific ones they normally
+            accept. This still won't drop or remove anything by itself, but each component gets to release the slot in its own way.
+            Meant only for callers that have already attempted to equip the item and failed, and thus already know that
+            a forcibly kept item is what's in the way. Forcing pre-emptively would make the whole contract meaningless,
+            the items would then be released by any equipping attempt at all, including ones that would fail anyway.
+            </param>
+        </member>
         <member name="M:Barotrauma.CharacterInventory.CanBePut(Barotrauma.Item,Barotrauma.InvSlotType)">
             <summary>
             Can the item be put in the inventory in a slot of the specified type (i.e. is there a suitable free slot or a stack the item can be put in).
@@ -1765,7 +1935,7 @@
             If there is no room in the generic inventory (InvSlotType.Any), check if the item can be auto-equipped into its respective limbslot
             </summary>
         </member>
-        <member name="M:Barotrauma.CharacterInventory.TryPutItem(Barotrauma.Item,Barotrauma.Character,System.Collections.Generic.IEnumerable{Barotrauma.InvSlotType},System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
+        <member name="M:Barotrauma.CharacterInventory.TryPutItem(Barotrauma.Item,Barotrauma.Character,System.Collections.Generic.IEnumerable{Barotrauma.InvSlotType},System.Boolean,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
             <summary>
             If there is room, puts the item in the inventory and returns true, otherwise returns false. Also returns true if the item is already in the desired slots.
             </summary>
@@ -1808,6 +1978,16 @@
             </summary>
             <returns>True if the plant has finished growing.</returns>
         </member>
+        <member name="P:Barotrauma.Items.Components.Holdable.AttachTargetStructure">
+            <summary>
+            Which structure is the item is currently attached to (if any)?
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Items.Components.Holdable.DeattachedDuringRound">
+            <summary>
+            Has the item been deattached at some point during the round?
+            </summary>
+        </member>
         <member name="F:Barotrauma.Items.Components.Holdable.originalBody">
             <summary>
             The item's original physics body (if one exists). When the item is attached to a wall, it's <see cref="F:Barotrauma.Item.body"/> gets set to null,
@@ -1819,6 +1999,24 @@
             Temporarily disallows this holdable from being detached, doesn't save between rounds.
             </summary>
         </member>
+        <member name="F:Barotrauma.Items.Components.Holdable.currentHorizontalFlipState">
+            <summary>
+            Used to represent the current horizontal flip state set by the player. 
+            Only relevant when using <see cref="P:Barotrauma.Items.Components.Holdable.AllowInGameFlipping"/>.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Items.Components.Holdable.CurrentSpriteDepth">
+            <summary>
+            Used to represent the current sprite depth set by the player.
+            Only relevant when using <see cref="P:Barotrauma.Items.Components.Holdable.AllowInGameSpriteDepthEditing"/>.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Items.Components.Holdable.DisableContainerAlwaysSpawnedItems">
+            <summary>
+            Sets <see cref="P:Barotrauma.Items.Components.ItemContainer.AlwaysContainedItemsSpawned"/> to true when using <see cref="P:Barotrauma.Items.Components.Holdable.AttachAsIdentifier"/>, to prevent 
+            always contained items from spawning.
+            </summary>
+        </member>
         <member name="P:Barotrauma.Items.Components.Holdable.Handle1">
             <summary>
             For setting the handle positions using status effects
@@ -1827,6 +2025,12 @@
         <member name="P:Barotrauma.Items.Components.Holdable.Handle2">
             <summary>
             For setting the handle positions using status effects
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Items.Components.Holdable.AttachToWall">
+            <summary>
+            Attaches the item to a wall. Returns the item that actually ended up attached, which is usually this one, except
+            when using <see cref="P:Barotrauma.Items.Components.Holdable.AttachAsIdentifier"/> (eg. catalog blueprints).
             </summary>
         </member>
         <member name="M:Barotrauma.Items.Components.Holdable.GetEquipRotationOffset">
@@ -1875,6 +2079,12 @@
             Use in similar cases as <see cref="P:Barotrauma.Items.Components.ItemComponent.DontTransferInventoryBetweenSubs"/>.
             </summary>
         </member>
+        <member name="P:Barotrauma.Items.Components.ItemComponent.OffsetOnSelectedMultiplier">
+            <summary>
+            The amount of camera offset when the item is selected, i.e. how far the camera can be moved from the item.
+            A multiplier applied on the item's default <see cref="P:Barotrauma.Item.OffsetOnSelectedMultiplier"/>
+            </summary>
+        </member>
         <member name="P:Barotrauma.Items.Components.ItemComponent.ManuallySelectedSound">
             <summary>
             Which sound should be played when manual sound selection type is selected? Not [Editable] because we don't want this visible in the editor for every component.
@@ -1891,12 +2101,20 @@
             Another way for components to cause deterioration is to set <see cref="F:Barotrauma.Items.Components.Repairable.LastActiveTime"/> manually as needed.
             </summary>
         </member>
-        <member name="M:Barotrauma.Items.Components.ItemComponent.AttemptToFreeHands">
+        <member name="M:Barotrauma.Items.Components.ItemComponent.AttemptToFreeHands(Barotrauma.Item,System.Boolean)">
             <summary>
             If the item somehow prevents things from being placed in the hand slots at the moment, attempt to free the hands.
             Note that "normally" putting the item in the hand slots doesn't need to be accounted for there, that can be handled by the inventory.
             This is relevant for e.g. swappable prosthetics which may force an item into the hand slots.
             </summary>
+            <param name="itemToEquip">The item being equipped into the hand slots. Components may choose to free the hands only for specific items (eg. a SwappableProsthetic only yields to handcuffs).</param>
+            <param name="force">
+            When set, the component should give up the hand slot for any item, instead of only yielding to the specific ones it normally accepts.
+            Note that the component still can and should decide how to free the slot, eg. a SwappableProsthetic stowing a tool rather than dropping.
+            Meant only for callers that have already attempted to equip the item and failed, and thus already know this
+            component's item is what's blocking the slot. Forcing pre-emptively would make the whole contract meaningless,
+            the component would then release the slot on any equipping attempt at all, including ones that would fail anyway.
+            </param>
         </member>
         <member name="M:Barotrauma.Items.Components.ItemComponent.Pick(Barotrauma.Character)">
             <summary>a Character has picked the item</summary>
@@ -2034,6 +2252,11 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="P:Barotrauma.Items.Components.Controller.PermanentSaveId">
+            <summary>
+            Permanent id that can be used to identify the controller between save and loads.
+            </summary>
+        </member>
         <member name="F:Barotrauma.Items.Components.Controller.TeleportTransitionSpeed">
             <summary>
             Used to determine how fast the character is teleported
@@ -2057,6 +2280,12 @@
             <summary>
             "Attached user" sticks to this item. Can be used for things such as clown crates and boarding pods.
             </summary>
+        </member>
+        <member name="M:Barotrauma.Items.Components.Controller.CanPutSelectedCharacterInside(Barotrauma.Character,System.Boolean)">
+            <summary>
+            Can another character put the selected character inside this one?
+            </summary>
+            <returns></returns>
         </member>
         <member name="F:Barotrauma.Items.Components.Deconstructor.RelocateOutputToMainSub">
             <summary>
@@ -2114,6 +2343,12 @@
             <summary>
             When grid is resolved update the previous voltage
             </summary>
+        </member>
+        <member name="M:Barotrauma.Items.Components.Engine.GetRotatedVector(Microsoft.Xna.Framework.Vector2,System.Boolean)">
+            <summary>
+            Rotates the specified vector (e.g. propeller position, engine force) according to the rotation of the engine.
+            </summary>
+            <param name="onlyIfRotationAffectsThrustDirection">Should the vector only be rotated if the engine's rotation is set to affect the thrust direction?</param>
         </member>
         <member name="P:Barotrauma.Items.Components.Fabricator.ShouldCauseDeterioration">
             <summary>
@@ -2232,6 +2467,12 @@
             Current fertilizer level as a normalized value (0-1).
             </summary>
         </member>
+        <member name="P:Barotrauma.Items.Components.Planter.HasPower">
+            <summary>
+            Whether the planter has sufficient input voltage to operate (wire output, interfacing with planter goggles, indicator light).
+            For backwards compatibility, falls back to true if the planter has no "Powered" component.
+            </summary>
+        </member>
         <member name="M:Barotrauma.Items.Components.Planter.TryPlantItem(Barotrauma.Item,Barotrauma.Character)">
             <summary>
             Attempts to plant a seed dragged and dropped into the planter.
@@ -2315,10 +2556,20 @@
             The time remaining for the projectile to become inactive (see <see cref="P:Barotrauma.Items.Components.Projectile.DeactivationTime"/>)
             </summary>
         </member>
+        <member name="P:Barotrauma.Items.Components.Projectile.ProjectileActive">
+            <summary>
+            Is the projectile currently active, i.e. will the projectile do damage when it hits something. Can be used by status effects.
+            </summary>
+        </member>
         <member name="M:Barotrauma.Items.Components.Projectile.GetLaunchRotation(System.Single)">
             <summary>
             Gets the final rotation of the projectile after being launched, taking <see cref="P:Barotrauma.Items.Components.Projectile.LaunchRotationRadians"/> 
             and the orientation of the projectile's physics body into account.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Items.Components.Projectile.ShouldIgnoreCharacterFixture(FarseerPhysics.Dynamics.Fixture)">
+            <summary>
+            Is the target fixture a character collider we should ignore a collision with? Projectiles only hit character colliders when <see cref="P:Barotrauma.Ragdoll.SimplePhysicsEnabled"/> is on, otherwise they must hit the actual limbs.
             </summary>
         </member>
         <member name="M:Barotrauma.Items.Components.Projectile.ShouldIgnoreSubmarineCollision(FarseerPhysics.Dynamics.Fixture,FarseerPhysics.Dynamics.Contacts.Contact)">
@@ -2399,6 +2650,11 @@
             Used to lock connection panels in outposts. Affects the value returned by <see cref="P:Barotrauma.Items.Components.ConnectionPanel.TemporarilyLocked"/>
             </summary>
         </member>
+        <member name="M:Barotrauma.Items.Components.ConnectionPanel.GetAllWires">
+            <summary>
+            Returns all wires connected to this connection panel, and also the wires that have been disconnected but not removed completely (visible at the bottom of the connection panel).
+            </summary>
+        </member>
         <member name="M:Barotrauma.Items.Components.ConnectionPanel.CheckCharacterSuccess(Barotrauma.Character)">
             <summary>
             Check if the character manages to succesfully rewire the panel, and if not, apply OnFailure effects
@@ -2444,6 +2700,16 @@
         <member name="M:Barotrauma.Items.Components.WifiComponent.GetTransmittersInRange">
             <summary>
             Returns the wifi components that can transmit signals to this one
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Items.Components.Wire.MinNodePosition">
+            <summary>
+            The minimum extents of the wire nodes, relative to the submarine the wire is in.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Items.Components.Wire.MaxNodePosition">
+            <summary>
+            The maximum extents of the wire nodes, relative to the submarine the wire is in.
             </summary>
         </member>
         <member name="M:Barotrauma.Items.Components.Wire.TryConnect(Barotrauma.Items.Components.Connection,System.Boolean,System.Boolean)">
@@ -2506,6 +2772,32 @@
         <member name="P:Barotrauma.Items.Components.Pickable.DefaultAllowedSlot">
             <summary>
             Which type of slot the item is allowed to go to by default if not defined in the XML.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Items.Components.Pickable.AllowedSlots">
+            <summary>
+            Which slots the item can be placed in when this component is used to pick it up.
+            Each entry is one combination of slots, ie. several entries mean any one of them will do, while several flags
+            within a single entry mean the item needs all of them at once (eg. "RightHand,LeftHand" = either hand, "bothhands" = both hands simultaneously).
+            <br/><br/>
+            Read-only, because <see cref="P:Barotrauma.Item.AllowedSlots"/> caches these from all of that item's components.
+            Use <see cref="M:Barotrauma.Items.Components.Pickable.SetAllowedSlots(System.Collections.Generic.IEnumerable{Barotrauma.InvSlotType})"/> to change them during runtime.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Items.Components.Pickable.SetAllowedSlots(System.Collections.Generic.IEnumerable{Barotrauma.InvSlotType})">
+            <summary>
+            Replaces the slots the item is allowed to be placed in, keeping the <see cref="P:Barotrauma.Item.AllowedSlots"/> cache in sync.
+            Meant for components that restrict the slots while the game is running (eg. <see cref="T:Barotrauma.SwappableProsthetic"/>).
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Items.Components.Pickable.PickingDone">
+            <summary>
+            True once the pick timer has reached the item's PickingTime, or PickingTime is 0.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Items.Components.Pickable.IsPickInProgress">
+            <summary>
+            True while a timed pick is currently underway. Only possible when PickingTime > 0.
             </summary>
         </member>
         <member name="M:Barotrauma.Items.Components.RangedWeapon.ApplyDualWieldPenaltyReduction(Barotrauma.Character,System.Single,System.Single)">
@@ -2669,6 +2961,11 @@
             Power consumption of the sonar. Only consume power when active and adjust the consumption based on the sonar mode.
             </summary>
         </member>
+        <member name="P:Barotrauma.Items.Components.Vent.OxygenFlowBlockedTime">
+            <summary>
+            Can be used by status effects to temporarily disable this vent.
+            </summary>
+        </member>
         <member name="P:Barotrauma.Items.Components.Vent.OxygenFlow">
             <summary>
             How much the vent is currently increasing the oxygen level in the current hull per second. Does not take <see cref="F:Barotrauma.Items.Components.Vent.oxygenFlowFromOtherVents">oxygen flow from other vents</see> into account.
@@ -2814,6 +3111,21 @@
             
             </summary>
         </member>
+        <member name="T:Barotrauma.Items.Components.SelectiveColliderComponent">
+            <summary>
+            Creates a collider that can selectively block items or characters based on the configuration.
+            The collider is automatically enabled when the Holdable component is attached.
+            It can also be manually controlled using <see cref="P:Barotrauma.Items.Components.SelectiveColliderComponent.ColliderEnabled"/>.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Items.Components.SelectiveColliderComponent.ColliderEnabled">
+            <summary>
+            Can be used by status effects to enable/disable the collider. 
+            </summary>
+            <remarks>
+            If this item has a Holdable component, the collider must be attached to a wall to be enabled.
+            </remarks>
+        </member>
         <member name="P:Barotrauma.Items.Components.Connection.DefaultDisplayName">
             <summary>
             Display name ignoring <see cref="F:Barotrauma.Items.Components.Connection.DisplayNameOverride"/>
@@ -2914,6 +3226,16 @@
             <see cref="F:Barotrauma.Timing.TotalTimeUnpaused"/> when the turret was fired the last time.
             </summary>
         </member>
+        <member name="P:Barotrauma.Items.Components.Turret.MaxActiveProjectilesReached">
+            <summary>
+            Has the <see cref="P:Barotrauma.Items.Components.Turret.MaxActiveProjectiles">maximum number of active projectiles</see> been reached?
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Items.Components.Turret.AIMaxActiveProjectilesReached">
+            <summary>
+            Has the <see cref="P:Barotrauma.Items.Components.Turret.AIMaxActiveProjectiles">maximum number of active projectiles bots can fire</see> been reached?
+            </summary>
+        </member>
         <member name="M:Barotrauma.Items.Components.Turret.GetTransformedBarrelPos(System.Single)">
             <summary>
             Returns the barrel position (origin of the barrel), taking the scale and current rotation of the turret into account.
@@ -2926,14 +3248,31 @@
             Relative to the top-left corner of the item's rect.
             </summary>
         </member>
+        <member name="M:Barotrauma.Items.Components.Turret.GetBarrelDirection">
+            <summary>
+            NOTE: this may not be the same as the firing direction if the turret uses <see cref="P:Barotrauma.Items.Components.Turret.FixedFiringPos"/> (i.e. fires in a fixed direction regardless of the barrel).
+            </summary>
+        </member>
         <member name="M:Barotrauma.Items.Components.Turret.GetCurrentPowerConsumption(Barotrauma.Items.Components.Connection)">
             <summary>
             Turret doesn't consume grid power, directly takes from the batteries on its grid instead.
             </summary>
         </member>
+        <member name="M:Barotrauma.Items.Components.Turret.GetFiringPosition">
+            <summary>
+            Returns the firing position (where the projectiles spawn, usually the end of the barrel) in world coordinates.
+            </summary>
+        </member>
         <member name="M:Barotrauma.Items.Components.Turret.IsWithinAimingRadius(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2)">
             <summary>
             Check whether any point of a target of a given size is within the aiming radius of the turret.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Items.Components.Turret.GetNextLoadedProjectile">
+            <summary>
+            Returns the next projectile that would be launched, or null if none is currently loaded.
+            Always returns at most one projectile. Multi-projectile shots (<see cref="P:Barotrauma.Items.Components.Turret.ProjectileCount"/>) and
+            multi-shot bursts (<see cref="P:Barotrauma.Items.Components.Turret.ShotsPerBurst"/>) are handled by calling this again, per shot.
             </summary>
         </member>
         <member name="F:Barotrauma.Items.Components.Wearable.hadRequiredItems">
@@ -2960,6 +3299,67 @@
             <summary>
             How deep down does the item protect from pressure? Determined by status effects.
             </summary>
+        </member>
+        <member name="T:Barotrauma.SwappableProsthetic">
+            <summary>
+            Allows using keybinds to equip/unequip contained items from the parent item when placed in either prosthetic arm slot.<br/>
+            - <see cref="F:Barotrauma.InputType.PreviousFireMode"/> controls the <see cref="F:Barotrauma.InvSlotType.LeftHandProsthetic"/> slot.<br/>
+            - <see cref="F:Barotrauma.InputType.NextFireMode"/> controls the <see cref="F:Barotrauma.InvSlotType.RightHandProsthetic"/> slot.<br/>
+            <br/>
+            Use <see cref="P:Barotrauma.Items.Components.ItemContainer.SpawnWithId"/> to spawn equippable items. Order determines the cycling of items.<br/>
+            NOTE: <see cref="P:Barotrauma.Items.Components.ItemContainer.SpawnWithIdOnce"/> should very likely also be set to true, so that a new item isn't
+            spawned inside the prosthetic every time it's loaded.<br/>
+            Cycling equipped items requires a freeable hand slot depending on which prosthetic arm slot the parent item is placed in.<br/>
+            Equippable items held in both hand slots require both to be freeable, regardless of the parent item's slot.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.SwappableProsthetic.Mode">
+            <summary>
+            = 0 - No item equipped.<br/>
+            > 1 - Index + 1 of equipped item.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.SwappableProsthetic.CurrentMode">
+            <summary>
+            Can be used by status effects
+            </summary>
+        </member>
+        <member name="F:Barotrauma.SwappableProsthetic.pendingModeSwitch">
+            <summary>
+            Stores the previously saved <see cref="P:Barotrauma.SwappableProsthetic.Mode"/> value so it can be restored after all linked items have been initialized.    
+            </summary>
+        </member>
+        <member name="M:Barotrauma.SwappableProsthetic.RestrictLinkedItemHandSlots(Barotrauma.InvSlotType)">
+            <summary>
+            Restricts the linked items to the hand slot(s) the prosthetic is currently attached to, so that eg. bots don't
+            attempt to equip the tool of a right arm prosthetic in the left hand. Always re-derived from the original slots. 
+            Only hands need this for now, as they're the only limb type with both a prosthetic slot and a slot for holding items.
+            </summary>
+            <param name="handSlotsToRestrictTo">The hand slot(s) to restrict the items to, or <see cref="F:Barotrauma.InvSlotType.None"/> to restore the slots defined in the items' XML.</param>
+        </member>
+        <member name="M:Barotrauma.SwappableProsthetic.ValidateMode(System.Int32)">
+            <summary>
+            Ensures the mode is within range, and thus safe to use as an index into <see cref="F:Barotrauma.SwappableProsthetic.linkedItems"/>.
+            </summary>
+            <returns>The mode itself if it's within range, otherwise 0 (=no item equipped).</returns>
+        </member>
+        <member name="M:Barotrauma.SwappableProsthetic.SetMode(Barotrauma.Character,System.Int32,System.Boolean)">
+            <param name="newMode">
+            = 0 - No item equipped.<br/>
+            > 1 - Index + 1 of equipped item.
+            </param>
+        </member>
+        <member name="M:Barotrauma.SwappableProsthetic.ResetMode(System.Boolean,System.Boolean)">
+            <summary>
+            Resets the mode back to default (unequipping any equipped items and putting them back inside the item)
+            </summary>
+            <param name="ignoreForcedMode">Should <see cref="P:Barotrauma.SwappableProsthetic.ForceMode"/> be ignored? When the prosthetic is removed from a character for example, the equipped item should go back inside it even if that's normally not possible.</param>
+        </member>
+        <member name="M:Barotrauma.SwappableProsthetic.TryClearHandSlotsForItem(Barotrauma.Character,Barotrauma.Item,System.Collections.Generic.IEnumerable{Barotrauma.InvSlotType})">
+            <returns>
+            - <see langword="true"/> if there is a clear hand slot.<br/>
+            - <see langword="false"/> if a hand slot could not be cleared.
+            </returns>
         </member>
         <member name="M:Barotrauma.Inventory.ItemSlot.CanProbablyBePut(Barotrauma.ItemPrefab,System.Nullable{System.Single},System.Nullable{System.Int32})">
             <summary>
@@ -3041,7 +3441,7 @@
             Can the item be put in the inventory (i.e. is there a suitable free slot or a stack the item can be put in).
             </summary>
         </member>
-        <member name="M:Barotrauma.Inventory.CanBePutInSlot(Barotrauma.Item,System.Int32,System.Boolean)">
+        <member name="M:Barotrauma.Inventory.CanBePutInSlot(Barotrauma.Item,System.Int32,System.Boolean,System.Boolean)">
             <summary>
             Can the item be put in the specified slot.
             </summary>
@@ -3053,7 +3453,7 @@
             due to the slots being occupied by another item with a different condition or quality (which disallows stacking).
             </summary>
         </member>
-        <member name="M:Barotrauma.Inventory.TryPutItem(Barotrauma.Item,Barotrauma.Character,System.Collections.Generic.IEnumerable{Barotrauma.InvSlotType},System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
+        <member name="M:Barotrauma.Inventory.TryPutItem(Barotrauma.Item,Barotrauma.Character,System.Collections.Generic.IEnumerable{Barotrauma.InvSlotType},System.Boolean,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
             <summary>
             If there is room, puts the item in the inventory and returns true, otherwise returns false
             </summary>
@@ -3130,10 +3530,21 @@
             Components that are Active or need to be updated for some other reason (status effects, sounds)
             </summary>
         </member>
+        <member name="F:Barotrauma.Item.drawableWireComponent">
+            <summary>
+            Wires have some special logic for determining their visibility, that's why we cache them separately.
+            </summary>
+        </member>
         <member name="P:Barotrauma.Item.FullyInitialized">
             <summary>
             Has everything in the item been loaded/instantiated/initialized (basically, can be used to check if the whole constructor/Load method has run).
             Most commonly used to avoid creating network events when some value changes if the item is being initialized.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.Item.pendingLoadedPropertyEvents">
+            <summary>
+            Properties whose loaded value differs from that of a newly created item, waiting to be sent to the clients.
+            See <see cref="M:Barotrauma.Item.FlushPendingLoadedPropertyEvents(System.Boolean)"/>.
             </summary>
         </member>
         <member name="P:Barotrauma.Item.BodyType">
@@ -3272,6 +3683,12 @@
             Condition percentage disregarding MaxRepairConditionMultiplier (i.e. this can go above 100% if the item is repaired beyond the normal maximum)
             </summary>
         </member>
+        <member name="M:Barotrauma.Item.GetOffsetOnSelectedMultiplierFromComponents">
+            <summary>
+            Returns the <see cref="P:Barotrauma.Items.Components.ItemComponent.OffsetOnSelectedMultiplier"/> of the item's components. 
+            Multiplicative, i.e. the multipliers of the components are multiplied by each other.
+            </summary>
+        </member>
         <member name="P:Barotrauma.Item.ConditionIncreasedRecently">
             <summary>
             Return true if the condition of this item increased within the last second.
@@ -3313,6 +3730,13 @@
         <member name="P:Barotrauma.Item.LastSentSignalRecipients">
             <summary>
             A list of connections the last signal sent by this item went through
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Item.RefreshAllowedSlotsCache">
+            <summary>
+            Rebuilds the <see cref="P:Barotrauma.Item.AllowedSlots"/> cache from the item's <see cref="T:Barotrauma.Items.Components.Pickable"/> components.
+            Needs to be called if the allowed slots of one of the components change during the game (see <see cref="T:Barotrauma.SwappableProsthetic"/>),
+            because the slots are otherwise only collected when the item is created.
             </summary>
         </member>
         <member name="P:Barotrauma.Item.PositionX">
@@ -3456,14 +3880,16 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Barotrauma.Item.Load(Barotrauma.ContentXElement,Barotrauma.Submarine,System.Boolean,Barotrauma.IdRemap)">
+        <member name="M:Barotrauma.Item.Load(Barotrauma.ContentXElement,Barotrauma.Submarine,Barotrauma.IdRemap,System.Boolean)">
             <summary>
             Instantiate a new item and load its data from the XML element.
             </summary>
             <param name="element">The element containing the data of the item</param>
             <param name="submarine">The submarine to spawn the item in (can be null)</param>
-            <param name="createNetworkEvent">Should an EntitySpawner event be created to notify clients about the item being created.</param>
-            <returns></returns>
+            <param name="deferPropertyEvents">
+            Set this if the clients don't know about the item (=have no entity with the ID) yet so the property events get deferred,
+            then call <see cref="M:Barotrauma.Item.FlushPendingLoadedPropertyEvents(System.Boolean)"/> when they do. Otherwise the client missing the entities will break the game.
+            </param>
         </member>
         <member name="M:Barotrauma.Item.ReplaceFromNetwork(Barotrauma.ItemPrefab,System.UInt16)">
             <summary>
@@ -3498,6 +3924,12 @@
             this is because it is assumed that the function is run on the client when the ID is known and the server will send
             separate entity events for the linked items.
             </remarks>
+        </member>
+        <member name="M:Barotrauma.Item.FlushPendingLoadedPropertyEvents(System.Boolean)">
+            <summary>
+            Creates the property events stored by Load(..., deferPropertyEvents: true), or discards them if <paramref name="createNetworkEvent"/> is false.
+            Only call this after the spawn event has already been created for the clients.
+            </summary>
         </member>
         <member name="M:Barotrauma.Item.TryGetStatusEffectOverrideFor(Barotrauma.StatusEffect,Barotrauma.StatusEffect@,System.Boolean)">
             <summary>
@@ -3598,6 +4030,17 @@
             Is there a loaded level set, and does it belong to Team1.
             </summary>
         </member>
+        <member name="M:Barotrauma.Level.ShouldSpawnCrewInsideOutpost(Barotrauma.CharacterTeamType,System.Boolean)">
+            <summary>
+            Should characters from the specified team spawn inside the outpost?
+            </summary>
+            <param name="isInitialSpawn">Is this the first spawn of the round, rather than a character spawning/respawning mid-round?</param>
+        </member>
+        <member name="M:Barotrauma.Level.ObstructBlockedTunnelWaypoints">
+            <summary>
+            Obstruct tunnel waypoints that are blocked by some submarine/outpost.
+            </summary>
+        </member>
         <member name="M:Barotrauma.Level.ConnectEntranceWaypoints(Barotrauma.Submarine,System.Collections.Generic.List{Barotrauma.WayPoint},System.Single,System.Collections.Generic.List{Microsoft.Xna.Framework.Vector2})">
             <param name="preferredDirections">A list of directions towards which we want to generate a path, or multiple paths. If empty, the method will just use the closest outside waypoint it can find.</param>
         </member>
@@ -3608,9 +4051,6 @@
         </member>
         <member name="M:Barotrauma.Level.ClusterLocation.#ctor(Voronoi2.VoronoiCell,Voronoi2.GraphEdge,System.Boolean)">
             <param name="initializeResourceList">List is initialized only when specified, otherwise will be null</param>
-        </member>
-        <member name="M:Barotrauma.Level.GenerateMissionResources(Barotrauma.ItemPrefab,System.Int32,Barotrauma.Level.PositionType,System.Collections.Generic.IEnumerable{Barotrauma.Level.Cave})">
-            <param name="rotation">Used by clients to set the rotation for the resources</param>
         </member>
         <member name="M:Barotrauma.Level.SpawnSubOnPath(System.String,Barotrauma.ContentFile,Barotrauma.SubmarineType,Barotrauma.LevelData.ThalamusSpawn,System.Boolean)">
             <summary>
@@ -3675,6 +4115,11 @@
             Inherited flags from outpost generation.
             </summary>
         </member>
+        <member name="P:Barotrauma.Hull.TemporaryAvoidStayingTime">
+            <summary>
+            Can be used to temporarily make bots avoid staying in this hull.
+            </summary>
+        </member>
         <member name="F:Barotrauma.Hull.pendingSectorUpdates">
             <summary>
             Note that sector != section: a sector is a group of <see cref="F:Barotrauma.Hull.BackgroundSectionsPerNetworkEvent"/> sections that are updated together in a single network event.
@@ -3683,6 +4128,11 @@
         <member name="P:Barotrauma.Hull.AveragePaintedColor">
             <summary>
             Average color of the background sections
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Hull.AverageDirtiness">
+            <summary>
+            The average of the dirtiness values of the sections, 0 being no dirt, 1 meaning the entire hull is at maximum dirtiness.
             </summary>
         </member>
         <member name="P:Barotrauma.Hull.IsRed">
@@ -3704,6 +4154,16 @@
             <summary>
             Can be used by conditionals
             </summary>
+        </member>
+        <member name="M:Barotrauma.Hull.AddDecal(System.UInt32,Microsoft.Xna.Framework.Vector2,System.Single,System.Boolean,System.Boolean,System.Nullable{System.Int32})">
+            <param name="multiplyByPrefabScale">Should the scale be multiplied/randomized according to the scale defined in the prefab? 
+            Should be set to false if we're e.g. loading a serialized decal with the prefab scale already applied.</param>
+            <param name="spriteIndex">If not set, one of the decal prefab's sprites will be chosen randomly.</param>
+        </member>
+        <member name="M:Barotrauma.Hull.AddDecal(Barotrauma.Identifier,Microsoft.Xna.Framework.Vector2,System.Single,System.Boolean,System.Boolean,System.Nullable{System.Int32})">
+            <param name="multiplyByPrefabScale">Should the scale be multiplied/randomized according to the scale defined in the prefab? 
+            Should be set to false if we're e.g. loading a serialized decal with the prefab scale already applied.</param>
+            <param name="spriteIndex">If not set, one of the decal prefab's sprites will be chosen randomly.</param>
         </member>
         <member name="F:Barotrauma.Hull.cachedDistances">
             <summary>
@@ -3753,6 +4213,20 @@
             Does this hull have any doors leading outside?
             </summary>
             <param name="character">Used to check if this character has access to the door leading outside</param>
+        </member>
+        <member name="M:Barotrauma.Hull.DirtyAllSections(System.Single,System.Boolean,System.Boolean)">
+            <summary>
+            Makes the hull more dirty.
+            </summary>
+            <param name="dirtyVal">Amount of dirtiness to add. 1 represents maximum dirtiness.</param>
+            <param name="gradientToBottom">When true, the dirtiness is applied in a gradient, with the top of the hull being clean and getting gradually dirtier towards the bottom.</param>
+        </member>
+        <member name="M:Barotrauma.Hull.DirtySections(System.Collections.Generic.List{Barotrauma.BackgroundSection},System.Single,System.Boolean)">
+            <summary>
+            Makes the specified sections more dirty.
+            </summary>
+            <param name="dirtyVal">Amount of dirtiness to add. 1 represents maximum dirtiness.</param>
+            <param name="requiresUpdate">Should a network event be created to update the server/clients about this change?</param>
         </member>
         <member name="F:Barotrauma.Structure.SmallGapOpenness">
             <summary>
@@ -4009,7 +4483,7 @@
             Write info that the client needs when joining the server
             </summary>
         </member>
-        <member name="M:Barotrauma.Networking.GameServer.SendChatMessage(System.String,System.Nullable{Barotrauma.Networking.ChatMessageType},Barotrauma.Networking.Client,Barotrauma.Character,Barotrauma.Networking.PlayerConnectionChangeType,Barotrauma.ChatMode)">
+        <member name="M:Barotrauma.Networking.GameServer.SendChatMessage(System.String,System.Nullable{Barotrauma.Networking.ChatMessageType},Barotrauma.Networking.Client,Barotrauma.Character,Barotrauma.Networking.PlayerConnectionChangeType,Barotrauma.ChatMode,Barotrauma.Networking.Client)">
             <summary>
             Add the message to the chatbox and pass it to all clients who can receive it
             </summary>
@@ -4041,6 +4515,12 @@
         </member>
         <member name="M:Barotrauma.Networking.ServerEntityEventManager.CreateEvent(Barotrauma.Networking.IServerSerializable,Barotrauma.Networking.NetEntityEvent.IData,Barotrauma.Option{System.UInt32})">
             <inheritdoc cref="M:Barotrauma.Networking.NetworkMember.CreateEntityEvent(Barotrauma.Networking.INetSerializable,Barotrauma.Networking.NetEntityEvent.IData,Barotrauma.Option{System.UInt32})"/>
+        </member>
+        <member name="M:Barotrauma.Networking.ServerEntityEventManager.HowManySecondsClientIsBehind(Barotrauma.Networking.Client)">
+            <summary>
+            Returns the number of seconds since the last event the client hasn't yet received was created - or, in other words, how many seconds the client is behind on the events.
+            0 if the client is up-to-date (received all the events the server has created).
+            </summary>
         </member>
         <member name="M:Barotrauma.Networking.ServerEntityEventManager.Write(Barotrauma.Networking.SegmentTableWriter{Barotrauma.Networking.ServerNetSegment}@,Barotrauma.Networking.Client,Barotrauma.Networking.IWriteMessage)">
             <summary>
@@ -4347,6 +4827,12 @@
             that it won't get mangled by user input.
             </summary>
         </member>
+        <member name="F:Barotrauma.EntitySpawner.ItemSpawnInfo.SpawnIfInventoryFull">
+            <summary>
+            Should the item spawn even if it can't fit in the inventory it's supposed to spawn in?
+            Setting this to false also prevents the item from spawning if the inventory has been removed.
+            </summary>
+        </member>
         <member name="M:Barotrauma.EntitySpawner.IsInSpawnQueue(System.Predicate{Barotrauma.EntitySpawner.IEntitySpawnInfo})">
             <summary>
             Are there any entities in the spawn queue that match the given predicate
@@ -4375,6 +4861,22 @@
         <member name="P:Barotrauma.PhysicsBody.ActiveBodyList">
             <summary>
             List of bodies that are active and non-static
+            </summary>
+        </member>
+        <member name="P:Barotrauma.PhysicsBody.Enabled">
+            <summary>
+            Determines whether this physics body is enabled. Disabled bodies aren't visible and their 
+            physics don't update. (for example, when an item is in an inventory)
+            </summary>
+            <remarks>
+            If <see cref="P:Barotrauma.PhysicsBody.PhysEnabled"/> is <see langword="false"/>, enabling this body will only make 
+            this body visible, the physics simulation will remain disabled.
+            </remarks>
+        </member>
+        <member name="P:Barotrauma.PhysicsBody.PhysEnabled">
+            <summary>
+            Determines if physics simulation is enabled on this body. The body can still be <see cref="P:Barotrauma.PhysicsBody.Enabled"/> (visible), 
+            for example when the item is being held by a character.
             </summary>
         </member>
         <member name="P:Barotrauma.PhysicsBody.DrawPositionOffset">
@@ -4477,6 +4979,41 @@
             more than 10 mod install tasks from proceeding
             at the same time.
             </summary>
+        </member>
+        <member name="M:Barotrauma.Steam.RemoteStorageHelper.TryRead(Steamworks.SteamRemoteStorage.RemoteFile,System.Byte[]@,System.Boolean)">
+            <summary>Attempts to read a file from remote storage into a byte array.</summary>
+            <param name="remoteFile">The remote file to read from.</param>
+            <param name="bytes">The bytes read from the remote file. Returns <see langword="null"/> if the operation failed.</param>
+            <returns>
+            <see langword="true"/> if the operation was successful.<br/>
+            <see langword="false"/> if the operation failed.
+            </returns>
+        </member>
+        <member name="M:Barotrauma.Steam.RemoteStorageHelper.TryWrite(System.String,System.String,System.Boolean,System.Boolean)">
+            <summary>Attempts to write a file to remote storage.</summary>
+            <param name="localPath">The path of the local file to read from.</param>
+            <param name="saveAs">The name of the remote file to write to. If <see langword="null"/>, the file name of <paramref name="localPath"/> is used.</param>
+            <param name="allowOverwrite">If <see langword="true"/>, overwriting existing remote files is allowed.</param>
+            <returns>
+            <see langword="true"/> if the operation was successful.<br/>
+            <see langword="false"/> if the operation failed.
+            </returns>
+        </member>
+        <member name="M:Barotrauma.Steam.RemoteStorageHelper.TryDelete(System.String,System.Boolean)">
+            <summary>Attempts to delete a file from remote storage.</summary>
+            <param name="fileName">The name of the remote file to delete.</param>
+            <returns>
+            <see langword="true"/> if the operation was successful.<br/>
+            <see langword="false"/> if the operation failed.
+            </returns>
+        </member>
+        <member name="M:Barotrauma.Steam.RemoteStorageHelper.IsStored(System.String)">
+            <summary>Checks if a file is stored remotely.</summary>
+            <param name="fileName">The name of the remote file to check.</param>
+            <returns>
+            <see langword="true"/> if the file is stored.<br/>
+            <see langword="false"/> if the file is not stored or the operation failed.
+            </returns>
         </member>
         <member name="T:Barotrauma.DoSProtection.DoSAction">
             <summary>
@@ -4621,6 +5158,11 @@
             <param name="allowDestroying">Allows destroying of the items when unequipped (instead of dropping them). Used only with infinite spawns.</param>
             <param name="unequipMax">Optional max amount for items to be unequipped.</param>
         </member>
+        <member name="M:Barotrauma.AIController.TryGetAttackTarget(Barotrauma.Character@)">
+            <summary>
+            Tries to get the character that this AI controlled character is currently attacking.
+            </summary>
+        </member>
         <member name="P:Barotrauma.AITarget.FadeOutTime">
             <summary>
             How long does it take for the ai target to fade out if not kept alive.
@@ -4754,6 +5296,12 @@
             This method uses <see cref="M:Barotrauma.Character.CanSeeTarget(Barotrauma.ISpatialEntity,Barotrauma.ISpatialEntity,System.Boolean,System.Boolean)"/> and caches the results.
             </summary>
         </member>
+        <member name="M:Barotrauma.EnemyAIController.ReleaseEatingTarget(System.Boolean)">
+            <summary>
+            Lets go of the target the character is currently eating (grabbing)
+            </summary>
+            <param name="resetAiState">Should the character reset to the idle state as well?</param>
+        </member>
         <member name="F:Barotrauma.EnemyAIController.stateResetCooldown">
             <summary>
             How long do we hold on to the current state after losing a target before we reset back to the original state.
@@ -4786,6 +5334,11 @@
             Resets each frame
             </summary>
         </member>
+        <member name="F:Barotrauma.HumanAIController.SimilarCombatTargetDistance">
+            <summary>
+            Maximum distance between two enemies for them to be considered similar combat targets, used to prevent unnecessary target switching
+            </summary>
+        </member>
         <member name="P:Barotrauma.HumanAIController.Hearing">
             <summary>
             Affects how far the character can hear sounds created by AI targets with the tag ProvocativeToHumanAI. 
@@ -4806,6 +5359,11 @@
         <member name="F:Barotrauma.HumanAIController.previousAttackResults">
             <summary>
             List of previous attacks done to this character
+            </summary>
+        </member>
+        <member name="F:Barotrauma.HumanAIController.incapacitatedAttackResults">
+            <summary>
+            Accumulating list of attacks done to this character while the character is incapacitated or stunned
             </summary>
         </member>
         <member name="P:Barotrauma.HumanAIController.UseLevelWaypoints">
@@ -4831,6 +5389,11 @@
             <param name="potentialEnemySubmarine">Leave unassigned if you don't want the sub to trigger hostile when shot at.</param>
             <returns></returns>
         </member>
+        <member name="M:Barotrauma.HumanAIController.FindSuitableContainer(Barotrauma.Character,Barotrauma.Item,System.Collections.Generic.List{Barotrauma.Item},System.Int32@,Barotrauma.Item@)">
+            <summary>
+            Returns false while running and true when done.
+            </summary>
+        </member>
         <member name="F:Barotrauma.HumanAIController.RefuseDraggingThresholdHigh">
             <summary>
             The bot breaks free if being dragged by a human player from another team for longer than this
@@ -4841,10 +5404,10 @@
             If the RefuseDraggingDuration is active (the bot recently broke free of being dragged), the bot breaks free much faster
             </summary>
         </member>
-        <member name="M:Barotrauma.HumanAIController.AllowCampaignInteraction(Barotrauma.Character)">
+        <member name="M:Barotrauma.HumanAIController.AccumulateAttackResult(System.Collections.Generic.Dictionary{Barotrauma.Character,Barotrauma.AttackResult},Barotrauma.Character,Barotrauma.AttackResult)">
             <summary>
-            Can the specified character access the campaign interactions (e.g. talking, services) of this character? E.g. some emergency AI states disable certain campaign interactions.
-            The interacting character can be omitted, in which case the method only checks if this character is in a valid state, not if they're hostile to the specific interactor.
+            Accumulate a list of attacks, so that slow but sustained attacks build up rather than being evaluated one hit at a time.
+            Returns the running total for the given accumulation pool.
             </summary>
         </member>
         <member name="M:Barotrauma.HumanAIController.NeedsDivingGear(Barotrauma.Hull,System.Boolean@,Barotrauma.AIObjectiveManager)">
@@ -4865,6 +5428,12 @@
             Note: uses a single list for matching items. The item is reused each time when the method is called. So if you use the method twice, and then refer to the first items, you'll actually get the second. 
             To solve this, create a copy of the collection or change the code so that you first handle the first items and only after that query for the next items.
             </summary>
+        </member>
+        <member name="M:Barotrauma.HumanAIController.ApplyStealingReputationLoss(Barotrauma.Item)">
+            <summary>
+            Applies the reputation loss for stealing the item (calculated based on the item's value).
+            </summary>
+            <returns>The amount of reputation lost (positive value).</returns>
         </member>
         <member name="M:Barotrauma.HumanAIController.PropagateHullSafety(Barotrauma.Character,Barotrauma.Hull)">
             <summary>
@@ -4930,7 +5499,7 @@
         </member>
         <member name="P:Barotrauma.AIObjective.AllowMultipleInstances">
             <summary>
-            Can there be multiple objective instaces of the same type?
+            Can a character have multiple instances of the same type of objective?
             </summary>
         </member>
         <member name="P:Barotrauma.AIObjective.ConcurrentObjectives">
@@ -4948,6 +5517,24 @@
             <summary>
             When true, the objective is allowed in the player subs (when in the same team) and on friendly outposts (regardless of the alignment).
             Note: ignored when <see cref="P:Barotrauma.AIObjective.AllowInAnySub"/> is true.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.AIObjective.RequireOneHandAvailable">
+            <summary>
+            Does the character need to have both at least one hand available (not severed or handcuffed) to do the objective? 
+            Ignored if the character has no hands to begin with (e.g. if its some kind of a maintenance bot or a creature with a very dexterous mouth).
+            </summary>
+        </member>
+        <member name="P:Barotrauma.AIObjective.RequireBothHandsAvailable">
+            <summary>
+            Does the character need to have both of their hands available (not severed or handcuffed) to do the objective? 
+            Ignored if the character has no hands to begin with (e.g. if its some kind of a maintenance bot or a creature with a very dexterous mouth).
+            </summary>
+        </member>
+        <member name="F:Barotrauma.AIObjective.AllowReplacementByShipCommandManager">
+            <summary>
+            Is <see cref="T:Barotrauma.ShipCommandManager"/> allowed to replace this objective? I.e. are outpost or AI sub crews allowed to give this character 
+            some other objective, or should the character keep doing this objective even if the "global ship AI" thinks it would be important for the character to e.g. fix leaks now?
             </summary>
         </member>
         <member name="F:Barotrauma.AIObjective.AbandonIfDisallowed">
@@ -5024,6 +5611,23 @@
             Makes the character act according to the objective, or according to any subobjectives that need to be completed before this one
             </summary>
         </member>
+        <member name="P:Barotrauma.AIObjective.IsAllowed">
+            <summary>
+            Is the bot currently allowed to do this objective in the submarine they're in?
+            If you're interested in whether a bot should e.g. target a thing in a specific submarine, 
+            rather than whether they should be attempting to do it at all, <see cref="M:Barotrauma.AIObjective.IsAllowedInSubmarine(Barotrauma.Submarine)"/>.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.AIObjective.IsAllowedInSubmarine(Barotrauma.Submarine)">
+            <summary>
+            Is this objective valid in the specific submarine (e.g. should a bot fix leaks or repair things in a specific submarine)?
+            </summary>
+        </member>
+        <member name="M:Barotrauma.AIObjective.IsAllowedInSubmarine(Barotrauma.Submarine,Barotrauma.Character,System.Boolean,System.Boolean)">
+            <summary>
+            Is this objective valid in the specific submarine (e.g. should a bot fix leaks or repair things in a specific submarine)?
+            </summary>
+        </member>
         <member name="M:Barotrauma.AIObjective.IsIgnoredAtOutpost">
             <summary>
             Returns true only when at a friendly outpost and when the order is set to be ignored there.
@@ -5082,6 +5686,11 @@
         <member name="M:Barotrauma.AIObjectiveCheckStolenItems.IsItemIllegitimate(Barotrauma.Character,Barotrauma.Item)">
             <summary>
             Checks for illegitimate item, ignoring handcuffs equipped on the owner.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.AIObjectiveCleanupItem.PreferredContainer">
+            <summary>
+            Optional preferred container where the bot will try to put the item if possible.
             </summary>
         </member>
         <member name="P:Barotrauma.AIObjectiveCleanupItem.ConcurrentObjectives">
@@ -5214,7 +5823,7 @@
         </member>
         <member name="F:Barotrauma.AIObjectiveFindThieves.lastInspectionTimes">
             <summary>
-            When did the character last inspect whether some other character has stolen items on them?
+            When did some character last inspect whether some other character has stolen items on them?
             </summary>
         </member>
         <member name="M:Barotrauma.AIObjectiveFindThieves.MarkTargetAsInspected(Barotrauma.Character)">
@@ -5307,6 +5916,13 @@
             Are variants of the specified item allowed
             </summary>
         </member>
+        <member name="P:Barotrauma.AIObjectiveGetItem.EvaluateAllItems">
+            <summary>
+            Should the objective go through all items it can find, trying to choose the best one 
+            (i.e. the one that's easiest to reach and best for combat when <see cref="P:Barotrauma.AIObjectiveGetItem.EvaluateCombatPriority"/> is true),
+            or settle for the first suitable item it can find?
+            </summary>
+        </member>
         <member name="F:Barotrauma.AIObjectiveGetItem.MinSpeakInterval">
             <summary>
             How often the both can say the line about failing to find the item(s)
@@ -5327,6 +5943,13 @@
         <member name="M:Barotrauma.AIObjectiveGetItem.ResetInternal">
             <summary>
             Does not reset the ignored items list
+            </summary>
+        </member>
+        <member name="P:Barotrauma.AIObjectiveGetItems.EvaluateAllItems">
+            <summary>
+            Should the objective go through all items it can find, trying to choose the best one 
+            (i.e. the one that's easiest to reach and best for combat when <see cref="P:Barotrauma.AIObjectiveGetItems.EvaluateCombatPriority"/> is true),
+            or settle for the first suitable item it can find?
             </summary>
         </member>
         <member name="F:Barotrauma.AIObjectiveGetItems.ItemFilter">
@@ -5538,10 +6161,11 @@
             Returns the highest priority of the current objective and its subobjectives.
             </summary>
         </member>
-        <member name="M:Barotrauma.AIObjectiveManager.CreateObjective(Barotrauma.Order,System.Single)">
+        <member name="M:Barotrauma.AIObjectiveManager.CreateObjective(Barotrauma.Order,System.Single,System.Boolean)">
             <summary>
             Creates an AI objective based on the order. Note that the method can return null in the case of e.g. Dismissal orders or orders that erroneously target something non-interactable.
             </summary>
+            <param name="isSubObjective">Is this a subobjective of some other objective? If so, we won't assume it's an order the bot should dismiss when the objective is completed.</param>
         </member>
         <member name="M:Barotrauma.AIObjectiveManager.DismissSelf(Barotrauma.Order)">
             <summary>
@@ -5644,6 +6268,18 @@
         <member name="P:Barotrauma.AIObjectiveOperateItem.SpawnAmmoIfNotFound">
             <summary>
             Outpost NPCs can spawn more ammo when needed (with an optional cooldown)
+            </summary>
+        </member>
+        <member name="P:Barotrauma.AIObjectivePrepare.FindAllItems">
+            <summary>
+            Should the objective try to find items matching all of the specified tags, or one item that matches them?
+            </summary>
+        </member>
+        <member name="P:Barotrauma.AIObjectivePrepare.EvaluateAllItems">
+            <summary>
+            When enabled, the bot will try to evaluate the suitability of all the items it has access to and fetch the best one.
+            Can be used in conjunction with <see cref="P:Barotrauma.AIObjectivePrepare.EvaluateCombatPriority"/> to make the bot get the best weapon they have access to. 
+            The bot will also consider items in their inventory, and not try to fetch a weapon if they can't find anything better than their current one.
             </summary>
         </member>
         <member name="F:Barotrauma.AIObjectiveRepairItems.RelevantSkill">
@@ -5819,6 +6455,11 @@
             </summary>
             <param name="orderInfo">The order to target with the dismiss order</param>
         </member>
+        <member name="P:Barotrauma.PetBehavior.Hunger">
+            <summary>
+            Value between 0.0 and <see cref="P:Barotrauma.PetBehavior.MaxHunger"/> that measures how hungry the pet is. Note: 0.0 means that the pet is fully fed.
+            </summary>
+        </member>
         <member name="P:Barotrauma.PetBehavior.UnhappyThreshold">
             <summary>
             At which point is the pet considered "unhappy" (playing unhappy sounds and showing the icon)
@@ -5919,8 +6560,20 @@
             and ending up getting stuck on turrets and other protrusions that have no static body.
             </summary>
         </member>
+        <member name="M:Barotrauma.SteeringManager.SteeringAvoid(System.Single,System.Single,System.Single)">
+            <summary>
+            Steer away from any obstacles in the direction the character is heading in. 
+            Can be used to make the character go around obstacles (although not very reliably, as there's no proper pathfinding involved here).
+            </summary>
+            <param name="lookAheadDistance">How far ahead the character we look for obstacles? In sim units.</param>
+        </member>
         <member name="M:Barotrauma.SteeringManager.Update(System.Single)">
             <param name="speed">Update speed for the steering. Should normally match the characters current animation speed.</param>
+        </member>
+        <member name="F:Barotrauma.SteeringManager.lastSeekDir">
+            <summary>
+            Previous known direction the target was seeking towards, used in the avoidance behavior to see which direction we should look for obstacles in
+            </summary>
         </member>
         <member name="P:Barotrauma.AnimController.SerializableProperties">
             <summary>
@@ -5964,6 +6617,11 @@
         <member name="M:Barotrauma.AnimController.TrySwapAnimParams(Barotrauma.AnimationParams)">
             <summary>
             Simply swaps existing animation parameters as current parameters.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.Ragdoll.ForceSimplePhysics">
+            <summary>
+            When enabled, all characters are forced to stay in the <see cref="P:Barotrauma.Ragdoll.SimplePhysicsEnabled">simple physics mode</see>. Useful for debugging.
             </summary>
         </member>
         <member name="F:Barotrauma.Ragdoll.MaxImpactDamage">
@@ -6085,6 +6743,22 @@
             <param name="useSecondaryType">Should we target limbs with secondary type instead of (primary) type?</param>
             <param name="excludeLimbsWithSecondaryType">Should we filter out all limbs with a secondary type something else than "None"?</param>
             <returns></returns>
+        </member>
+        <member name="M:Barotrauma.Ragdoll.HasFunctionalLimb(Barotrauma.LimbType,System.Boolean)">
+            <summary>
+            Returns true if the limb of the given type exists and is not severed.
+            </summary>
+            <param name="acceptProsthetics">If true (default), a limb with a prosthesis also counts as functional.</param>
+        </member>
+        <member name="M:Barotrauma.Ragdoll.HasIntactLimb(Barotrauma.LimbType)">
+            <summary>
+            Returns true if the natural limb of the given type is still intact: present, not severed, and not replaced by a prosthesis.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Ragdoll.FunctionalHandCount">
+            <summary>
+            Number of functional hands the character has, natural or prosthetic, doesn't matter as long as it works as a hand.
+            </summary>
         </member>
         <member name="F:Barotrauma.AttackTarget.Character">
             <summary>
@@ -6884,6 +7558,12 @@
             Falls back to the character's own Identifier if no StoreIdentifier has been set.
             </summary>
         </member>
+        <member name="P:Barotrauma.HumanPrefab.StoreIdentifiers">
+            <summary>
+            The <see cref="P:Barotrauma.HumanPrefab.StoreIdentifier"/> pool of this merchant. Used for stacking merchants' store pools, and also
+            for falling back their titles and names from left to right if those are not defined.
+            </summary>
+        </member>
         <member name="M:Barotrauma.HumanPrefab.CreateCharacterInfo(Barotrauma.Rand.RandSync)">
             <summary>
             Creates a character info from the human prefab. If there are custom character infos defined, those are used, otherwise a randomized info is generated.
@@ -6952,6 +7632,11 @@
         <member name="F:Barotrauma.SkillPrefab.PriceMultiplier">
             <summary>
             How much this skill affects characters' hiring cost
+            </summary>
+        </member>
+        <member name="P:Barotrauma.LimbJoint.CanBeSevered">
+            <summary>
+            Is this limb generally of a type that can be severed? Will always return true for such limbs, even if the particular limb might already be severed, or other conditions prevent severing.
             </summary>
         </member>
         <member name="F:Barotrauma.LimbJoint.Dir">
@@ -7245,6 +7930,11 @@
             and clicking on it will expand the talent option to show the talents
             </summary>
         </member>
+        <member name="P:Barotrauma.CircuitBoxComponent.ID">
+            <summary>
+            Persistent ID of the component. ID internal to the circuit box, not to be confused with item IDs.
+            </summary>
+        </member>
         <member name="P:Barotrauma.CircuitBoxInputConnection.IsOutput">
             <summary>
             Circuit box input connection is classified as an output because it behaves like an output inside the circuit box.
@@ -7255,6 +7945,21 @@
             <summary>
             Circuit box output connection is classified as an input because it behaves like an input inside the circuit box.
             As in you can connect it to a output pin of a component.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.CircuitBoxLabelNode.ID">
+            <summary>
+            Persistent ID of the label. ID internal to the circuit box, not to be confused with item IDs.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.CircuitBoxWire.ID">
+            <summary>
+            Persistent ID of the wire. ID internal to the circuit box, not to be confused with item IDs.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.ICircuitBoxIdentifiable.ID">
+            <summary>
+            Persistent ID of the component. ID internal to the circuit box, not to be confused with item IDs.
             </summary>
         </member>
         <member name="T:Barotrauma.Command">
@@ -7575,7 +8280,7 @@
             with this tag or identifier over the item's primary and secondary preferred containers.
             </summary>
         </member>
-        <member name="M:Barotrauma.PerkBehaviors.SpawnItemPerk.SpawnItem(Barotrauma.ItemPrefab,System.Int32,Barotrauma.Submarine,Barotrauma.Identifier,Barotrauma.Identifier,System.Boolean)">
+        <member name="M:Barotrauma.PerkBehaviors.SpawnItemPerk.SpawnItem(Barotrauma.ItemPrefab,System.Int32,Barotrauma.Submarine,Barotrauma.Identifier,Barotrauma.Identifier,System.Boolean,System.Boolean)">
             <summary>
             Spawns items in the submarine's containers.
             </summary>
@@ -7616,6 +8321,7 @@
         <member name="F:Barotrauma.ActionType.OnSecondaryUse">
             <summary>
             Executes when an item is held and the aim key is held. Only valid for items.
+            There are also a handful of special usages on certain ItemComponents: executes when charging a Turret, when throwing a Throwable, and when DockingPort undocks.
             </summary>
         </member>
         <member name="F:Barotrauma.ActionType.OnWearing">
@@ -7670,13 +8376,13 @@
         </member>
         <member name="F:Barotrauma.ActionType.OnImpact">
             <summary>
-            Executes when the entity hits something hard enough. For items, the threshold is determined by <see cref="!:ItemPrefab.ImpactTolerance"/>,
+            Executes when the entity hits something hard enough. For items, the threshold is determined by <see cref="P:Barotrauma.Item.ImpactTolerance"/>,
             for characters by <see cref="P:Barotrauma.Ragdoll.ImpactTolerance"/>. Valid for items and characters.
             </summary>
         </member>
         <member name="F:Barotrauma.ActionType.OnEating">
             <summary>
-            Executes continuously when the character is eating another character or item. Only valid for characters.
+            Executes continuously when the character is eating another character or item, and is also called for items while they are being consumed by a character.
             </summary>
         </member>
         <member name="F:Barotrauma.ActionType.OnDamaged">
@@ -7748,6 +8454,17 @@
         <member name="F:Barotrauma.ActionType.OnDeath">
             <summary>
             Executes when the character dies. Only valid for characters.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.ActionType.OnTreatment">
+            <summary>
+            Executes when an item is applied via the health interface (<see cref="M:Barotrauma.Item.ApplyTreatment(Barotrauma.Character,Barotrauma.Character,Barotrauma.Limb)"/>).
+            Unlike <see cref="F:Barotrauma.ActionType.OnSuccess"/> and <see cref="F:Barotrauma.ActionType.OnUse"/>, this does not fire when the item is swung as a melee weapon.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.ActionType.OnEquippedAsProsthetic">
+            <summary>
+            Executes when a prosthetic is equipped via the health interface. Prosthetic items would probably use this together with <see cref="F:Barotrauma.ActionType.OnSevered"/>, which this partly mirrors.
             </summary>
         </member>
         <member name="T:Barotrauma.StatTypes">
@@ -8272,6 +8989,11 @@
             Gives an affliction to a specific character.
             </summary>
         </member>
+        <member name="T:Barotrauma.CancelEventAction">
+            <summary>
+            Cancels a currently active event.
+            </summary>
+        </member>
         <member name="T:Barotrauma.CheckAfflictionAction">
             <summary>
             Check whether a target has a specific affliction.
@@ -8297,6 +9019,11 @@
             Check whether the difficulty of the current level is within some specific range.
             </summary>
         </member>
+        <member name="T:Barotrauma.CheckFireAction">
+            <summary>
+            Checks whether there's currently a fire in a submarine.
+            </summary>
+        </member>
         <member name="T:Barotrauma.CheckItemAction">
             <summary>
             Can be used to do various kinds of checks on items: whether a specific kind of item exists, 
@@ -8306,6 +9033,21 @@
         <member name="T:Barotrauma.CheckLocationAction">
             <summary>
             Check whether the reputation of the crew for a specific faction meets some criteria (e.g. equal to, larger than or less than some value).
+            </summary>
+        </member>
+        <member name="F:Barotrauma.CheckLocationAction.Target.Default">
+            <summary>
+            Default behavior: modifies the current location.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.CheckLocationAction.Target.MissionStartLocation">
+            <summary>
+            Only valid for actions executed by a mission. Modifies the start location of the triggering mission.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.CheckLocationAction.Target.MissionEndLocation">
+            <summary>
+            Only valid for actions executed by a mission. Modifies the end location (destination) of the triggering mission.
             </summary>
         </member>
         <member name="T:Barotrauma.CheckMissionAction">
@@ -8449,11 +9191,6 @@
             Enable or disable a specific layer in a specific submarine.
             </summary>
         </member>
-        <member name="T:Barotrauma.MessageBoxAction">
-            <summary>
-            Displays a message box, or modifies an existing one.
-            </summary>
-        </member>
         <member name="T:Barotrauma.MissionStateAction">
             <summary>Changes the state of missions. The way the states are used depends on the type of mission.</summary>
         </member>
@@ -8469,6 +9206,26 @@
         <member name="T:Barotrauma.ModifyLocationAction">
             <summary>
             Modifies the current location in some way (e.g. adjusting the faction, type of name).
+            </summary>
+        </member>
+        <member name="F:Barotrauma.ModifyLocationAction.Target.Default">
+            <summary>
+            Default behavior: modifies the current location.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.ModifyLocationAction.Target.MissionStartLocation">
+            <summary>
+            Only valid for actions executed by a mission. Modifies the start location of the triggering mission.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.ModifyLocationAction.Target.MissionEndLocation">
+            <summary>
+            Only valid for actions executed by a mission. Modifies the end location (destination) of the triggering mission.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.ModifyLocationAction.Target.LocationType">
+            <summary>
+            Searches for a location type specified in <see cref="P:Barotrauma.ModifyLocationAction.TargetLocationType"/> and modifies that location instead (if there's multiple, the first one found is chosen)
             </summary>
         </member>
         <member name="T:Barotrauma.MoneyAction">
@@ -8550,14 +9307,14 @@
             Sets a campaign metadata value. The metadata can be any arbitrary data you want to save: for example, whether some event has been completed, the number of times something has been done during the campaign, or at what stage of some multi-part event chain the crew is at.
             </summary>
         </member>
+        <member name="T:Barotrauma.SetEventStateAction">
+            <summary>
+            Sets the state of the event.
+            </summary>
+        </member>
         <member name="T:Barotrauma.SetPriceMultiplierAction">
             <summary>
             Adjusts the price multiplier for stores or mechanical repairs in the current location.
-            </summary>
-        </member>
-        <member name="T:Barotrauma.SetTraitorEventStateAction">
-            <summary>
-            Sets the state of the traitor event. Only valid in traitor events.
             </summary>
         </member>
         <member name="T:Barotrauma.SkillCheckAction">
@@ -8578,6 +9335,11 @@
         <member name="F:Barotrauma.SpawnAction.SpawnLocationType.Outpost">
             <summary>
             Spawnpoint inside an outpost.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.SpawnAction.SpawnLocationType.OutsideOutpost">
+            <summary>
+            Spawnpoint outside an outpost.
             </summary>
         </member>
         <member name="F:Barotrauma.SpawnAction.SpawnLocationType.MainPath">
@@ -8755,6 +9517,21 @@
             Only valid if UnlockPathEvent is set to true. The reputation requirement displayed on the pathway this event is blocking.
             </summary>
         </member>
+        <member name="F:Barotrauma.EventPrefab.DifficultyIconCount">
+            <summary>
+            Only used in the context of <see cref="T:Barotrauma.EventLogAction"/>, determines the amount of skulls to show in the mission event log
+            </summary>
+        </member>
+        <member name="F:Barotrauma.EventPrefab.Icon">
+            <summary>
+            Only used in the context of <see cref="T:Barotrauma.EventLogAction"/>, determines the icon in the mission event log
+            </summary>
+        </member>
+        <member name="F:Barotrauma.EventPrefab.IconColor">
+            <summary>
+            Only used in the context of <see cref="T:Barotrauma.EventLogAction"/>, determines the color of the icon in the mission event log
+            </summary>
+        </member>
         <member name="M:Barotrauma.EventPrefab.FindEventPrefab(Barotrauma.Identifier,Barotrauma.Identifier,Barotrauma.ContentPackage)">
             <summary>
             Finds an event prefab with the specified identifier, or if it isn't defined or a matching event isn't found, a random event prefab with the specified tag.
@@ -8811,6 +9588,11 @@
         <member name="F:Barotrauma.EventSet.LocationTypeIdentifiers">
             <summary>
             If set, the event set can only be chosen in locations of this type.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.EventSet.MinPopulation">
+            <summary>
+            Minimum required population (number of NPCs) in the outpost for the event to trigger. Only relevant for events triggering in outpost levels.
             </summary>
         </member>
         <member name="F:Barotrauma.EventSet.Faction">
@@ -9112,6 +9894,12 @@
             The mission can only happen in locations owned by this faction. In the mission mode, the location is forced to be owned by this faction.
             </summary>
         </member>
+        <member name="P:Barotrauma.MissionPrefab.RequiredDestinationFaction">
+            <summary>
+            The destination of the mission must belong to this faction. If None, it must not belong to any faction.
+            If the owner of the destination changes to an invalid faction while the mission is active, the mission is removed.
+            </summary>
+        </member>
         <member name="P:Barotrauma.MissionPrefab.UnhideEntitySubCategories">
             <summary>
             Show entities belonging to these sub categories when the mission starts
@@ -9136,6 +9924,16 @@
             <summary>
             When set, the outpost is set to belong to this team in the mission mode. One possible usage of the field is to make the outpost hostile to the players by setting the team to Team2, 
             or to make them consider your crew the same team by setting the team to Team1 (which will allow you to e.g. freely take items from the outpost).
+            </summary>
+        </member>
+        <member name="P:Barotrauma.MissionPrefab.DisallowLeavingLocation">
+            <summary>
+            Prevents the player from being able to leave their current location until this mission is completed.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.MissionPrefab.DisallowSaving">
+            <summary>
+            Prevents the player from being able to save until this mission is completed.
             </summary>
         </member>
         <member name="M:Barotrauma.MissionPrefab.IsAllowedDifficulty(System.Single)">
@@ -9570,6 +10368,18 @@
             The amount of camera offset when the item is selected, i.e. how far the camera can be moved from the item.
             </summary>
         </member>
+        <member name="P:Barotrauma.ItemPrefab.UseInHealthInterfaceMinHandsRequired">
+            <summary>
+            Minimum number of functional hands the user needs in order to use this item through the health interface.
+            Defaults to 1. Only relevant when <see cref="P:Barotrauma.ItemPrefab.UseInHealthInterface"/> is true.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.ItemPrefab.RequireAmputableLimb">
+            <summary>
+            If true, this item can only be applied through the health interface to a limb flagged as <see cref="P:Barotrauma.Limb.IsAmputable"/>.
+            Only relevant when <see cref="P:Barotrauma.ItemPrefab.UseInHealthInterface"/> is true.
+            </summary>
+        </member>
         <member name="M:Barotrauma.ItemPrefab.GetAverageAvailability">
             <summary>
             Returns the average availability of the item in all stores that sell it.
@@ -9753,6 +10563,12 @@
         <member name="F:Barotrauma.StartItemSet.Order">
             <summary>
             The order in which the sets are displayed in menus
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Entity.IdFreed">
+            <summary>
+            Means the item no longer has any persistent, unique ID that it can be safely referred by. 
+            Normally set after the item has been removed, but may be manually freed for "temporary" entities such as gaps on walls.
             </summary>
         </member>
         <member name="F:Barotrauma.Entity.ID">
@@ -10081,6 +10897,12 @@
             Events that have already triggered in this level and can never trigger again. <see cref="F:Barotrauma.EventSet.OncePerLevel"/>.
             </summary>
         </member>
+        <member name="F:Barotrauma.LevelData.FinishedEvents">
+            <summary>
+            Counts of events that have been finished from each set. Used to prevent new missions from getting triggered when you save and reload the level or leave and re-enter the level.
+            Cleared after one world step (~10 min, see Map.ProgressWorld) has passed.
+            </summary>
+        </member>
         <member name="F:Barotrauma.LevelData.allEventsExhausted">
             <summary>
             For backwards compatibility (previously "exhausting" one event set exhausted all of them (now we use <see cref="F:Barotrauma.LevelData.exhaustedEventSets"/> instead).
@@ -10129,6 +10951,11 @@
         <member name="M:Barotrauma.LevelData.ResetExhaustedEventSets">
             <summary>
             Resets all "exhausted" event sets, allowing them to appear in the level again.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.LevelData.ResetFinishedEvents">
+            <summary>
+            Resets the events that have been finished in the level, allowing them (or other events from the same set) to appear again.
             </summary>
         </member>
         <member name="P:Barotrauma.LevelObjectPrefab.Alignment">
@@ -10226,12 +11053,13 @@
         </member>
         <member name="P:Barotrauma.MapEntity.IsHidden">
             <summary>
-            Is the entity hidden due to <see cref="P:Barotrauma.MapEntity.HiddenInGame"/> (invisible) or <see cref="P:Barotrauma.MapEntity.IsDisabled"/> (entirely disabled, not doing anything)?
+            Is the entity hidden due to <see cref="P:Barotrauma.MapEntity.HiddenInGame"/> (invisible) or <see cref="P:Barotrauma.MapEntity.IsDisabled"/> (entirely disabled, not doing anything) or <see cref="F:Barotrauma.MapEntity.IsHiddenByLinkedEntity"/> (temporarily hidden by another entity?)
             </summary>
         </member>
         <member name="F:Barotrauma.MapEntity.OriginalModuleIndex">
             <summary>
-            The index of the outpost module this entity originally spawned in (-1 if not an outpost item)
+            The index of the outpost module this entity was originally a part of. -1 if not an outpost item, 0 if the outpost is fully pre-built and not generated from individual modules.
+            Needed for the logic that handles removing taken items from the outpost <see cref="M:Barotrauma.Location.RegisterTakenItems(System.Collections.Generic.IEnumerable{Barotrauma.Item})"/>.
             </summary>
         </member>
         <member name="M:Barotrauma.MapEntity.AddUpgrade(Barotrauma.Upgrade,System.Boolean)">
@@ -10334,6 +11162,11 @@
             Has the location been visited by the player?
             </summary>
         </member>
+        <member name="F:Barotrauma.Location.TimesVisited">
+            <summary>
+            How many times the location has been visited?
+            </summary>
+        </member>
         <member name="F:Barotrauma.Location.ClearStoresDelay">
             <summary>
             How many "world steps" (<see cref="M:Barotrauma.Map.ProgressWorld(Barotrauma.CampaignMode)"/> must pass for the stores to be reset in the location?
@@ -10348,6 +11181,16 @@
         <member name="P:Barotrauma.Location.LocationTypeChangesBlocked">
             <summary>
             Is some mission blocking this location from changing its type, or have location type changes been forcibly disabled on the location?
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Location.OriginalFaction">
+            <summary>
+            The faction that originally owned the location. In a standard case, set after generating the map.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.Location.PreviousFaction">
+            <summary>
+            The faction that previously owned the location.
             </summary>
         </member>
         <member name="F:Barotrauma.Location.OverrideIconColor">
@@ -10422,6 +11265,24 @@
             Load previously saved StoreInfo
             </summary>
         </member>
+        <member name="M:Barotrauma.Location.StoreInfo.CreateInitialStockItem(Barotrauma.ItemPrefab,Barotrauma.PriceInfo)">
+            <summary>
+            Creates the initial stock of the item for this store, taking into account how much the store
+            has left of the items it only sells a limited total of (see <see cref="P:Barotrauma.PriceInfo.LifetimeAvailable"/>).
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Location.StoreInfo.CreateInitialStockItem(Barotrauma.Location,Barotrauma.ItemPrefab,Barotrauma.PriceInfo)">
+            <summary>
+            Creates the initial stock of the item without knowing which store it's for, which means
+            <see cref="P:Barotrauma.PriceInfo.LifetimeAvailable"/> can't be taken into account.
+            Prefer the instance method when possible.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Location.StoreInfo.CreateInitialStockItem(Barotrauma.Location,Barotrauma.ItemPrefab,Barotrauma.PriceInfo,System.Nullable{System.Int32})">
+            <param name="lifetimeStockLeft">
+            How many of the item the store can still sell in total, or null if the total isn't limited.
+            </param>
+        </member>
         <member name="M:Barotrauma.Location.StoreInfo.GetAdjustedItemBuyPrice(Barotrauma.ItemPrefab,Barotrauma.PriceInfo,System.Boolean)">
             <param name="priceInfo">If null, item.GetPriceInfo() will be used to get it.</param>
             /// <param name="considerDailySpecials">If false, the price won't be affected by <see cref="P:Barotrauma.Location.DailySpecialPriceModifier"/></param>
@@ -10432,7 +11293,19 @@
         </member>
         <member name="F:Barotrauma.Location.SpecialsUpdateInterval">
             <summary>
-            How many map progress steps it takes before the discounts should be updated.
+            How many map progress steps it takes before the daily specials and requested goods should be updated.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.Location.lifetimeStockLeft">
+            <summary>
+            How much the stores have left of the items they only sell a limited lifetime total of (see <see cref="P:Barotrauma.PriceInfo.LifetimeAvailable"/>).
+            Kept outside the stores to persist the lifetime stock over the stores reloading and regenerating.
+            Key => store identifier, value => amount left per item.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Location.GetLifetimeStockLeft(Barotrauma.Identifier,Barotrauma.Identifier,Barotrauma.PriceInfo)">
+            <summary>
+            How much of the item the store can still sell before running out of it for good.
             </summary>
         </member>
         <member name="P:Barotrauma.Location.AvailableAndVisibleMissions">
@@ -10479,6 +11352,12 @@
             Forces the name to a localized string fetched using the identifier.
             </summary>
         </member>
+        <member name="M:Barotrauma.Location.SanitizeName(System.String)">
+            <summary>
+            Sanitizes the name: limiting the length to <see cref="F:Barotrauma.Location.MaxNameLength"/> and removing disallowed symbols.
+            </summary>
+            <returns>Returns an empty string if the resulting name is null, empty or whitespace.</returns>
+        </member>
         <member name="M:Barotrauma.Location.TryForceRawName(System.String)">
             <summary>
             Forces the name to an unlocalized string.
@@ -10486,12 +11365,17 @@
         </member>
         <member name="M:Barotrauma.Location.RegisterTakenItems(System.Collections.Generic.IEnumerable{Barotrauma.Item})">
             <summary>
-            Mark the items that have been taken from the outpost to prevent them from spawning when re-entering the outpost
+            Mark the items that have been taken from the outpost to prevent them from spawning when re-entering the outpost. Also give a rep penalty for any items that were stolen.
             </summary>
         </member>
         <member name="M:Barotrauma.Location.RegisterKilledCharacters(System.Collections.Generic.IEnumerable{Barotrauma.Character})">
             <summary>
             Mark the characters who have been killed to prevent them from spawning when re-entering the outpost
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Location.ResetKilledCharacters">
+            <summary>
+            Clears the list of killed characters, making the population go back to <see cref="P:Barotrauma.Location.BasePopulation"/>.
             </summary>
         </member>
         <member name="M:Barotrauma.Location.CreateStores(System.Boolean)">
@@ -10515,6 +11399,21 @@
         <member name="F:Barotrauma.LocationType.ForceLocationName">
             <summary>
             Forces all locations of this LocationType to use the given name. Can either be a text tag or the actual name.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.LocationType.AlwaysRefuseAutoDocking">
+            <summary>
+            Should automatic docking always be refused when approaching the outpost in this location?
+            </summary>
+        </member>
+        <member name="F:Barotrauma.LocationType.RefuseAutoDockingOnFirstVisit">
+            <summary>
+            Should automatic docking be refused when entering this type of outpost for the first time?
+            </summary>
+        </member>
+        <member name="F:Barotrauma.LocationType.AutoDockingRefuseText">
+            <summary>
+            Custom text displayed when auto docking is refused in this location.
             </summary>
         </member>
         <member name="F:Barotrauma.LocationType.IsValidForAnyOutpostEventOrMission">
@@ -10550,6 +11449,12 @@
         <member name="P:Barotrauma.LocationType.AllowInRandomLevels">
             <summary>
             Can this location type be used in the random, non-campaign levels that don't take place in any specific zone
+            </summary>
+        </member>
+        <member name="P:Barotrauma.LocationType.HasHireableCharacters">
+            <summary>
+            Does this location type by default have any hireable characters? Note that the faction the location belongs to might offer some hires on top of this.
+            Use <see cref="M:Barotrauma.Location.HasHireableCharacters"/> unless you want to specifically exclude the faction-specific hires.
             </summary>
         </member>
         <member name="F:Barotrauma.LocationType.ReplaceKilledCharactersAfter">
@@ -10589,14 +11494,42 @@
             For example, if set to "city", events that appear in "city" type locations can also appear here (in addition to events configured to be suitable specifically for this location type).
             </summary>
         </member>
+        <member name="P:Barotrauma.LocationType.SubmarineTierLocationType">
+            <summary>
+            Can be used to make the submarine tiers available from the given location type also available from this location type.
+            For example, if set to "city", submarine tiers that can be purchased from the "city" type locations can also be purchased from here.
+            </summary>
+        </member>
         <member name="P:Barotrauma.LocationType.UseOutpostModulesOfLocationType">
             <summary>
             If set, outpost modules configured to be suitable for the specified location type can also be used in this type of location.
             </summary>
         </member>
+        <member name="P:Barotrauma.LocationType.SellSubmarinesSoldByAnyFaction">
+            <summary>
+            Should submarines that can be sold by any faction (= submarines without any <see cref="P:Barotrauma.SubmarineInfo.SoldByFaction"/> restrictions) be sellable at this location type?
+            </summary>
+        </member>
+        <member name="F:Barotrauma.LocationType.ForcedStoreIdentifiers">
+            <summary>
+            Identifiers of the stores that a location of this type is forced to have.
+            Can be used to allow stores that are normally not available in this location type, in case there's e.g. ways for events to spawn some special merchants in the location,
+            without that merchant being present in the outpost generation parameters.
+            </summary>
+        </member>
         <member name="P:Barotrauma.LocationType.StorePriceModifierRange">
             <summary>
             In percentages
+            </summary>
+        </member>
+        <member name="P:Barotrauma.LocationType.DailySpecialsCount">
+            <summary>
+            Default number of daily specials in stores. Defaults to 1. Can be overridden by the Store definition.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.LocationType.RequestedGoodsCount">
+            <summary>
+            Default number of requested goods in stores. Defaults to 1. Can be overridden by the Store definition.
             </summary>
         </member>
         <member name="P:Barotrauma.LocationType.MissionDestinationPreferability">
@@ -10605,59 +11538,92 @@
             This can be used to increase/decrease the preference of choosing a path leading to this location type. Used as a multiplier for the weights of the paths (e.g. 10 would mean the path is x10 more likely to be selected).
             </summary>
         </member>
+        <member name="P:Barotrauma.LocationType.TryToGuaranteeAsMissionDestination">
+            <summary>
+            When unlocking a mission, the destination is chosen semi-randomly, preferring paths with less missions, and paths that lead further on the map.
+            This can be used to ensure at least one mission is unlocked on the path leading to this location type, even if it requires backtracking.
+            </summary>
+        </member>
         <member name="M:Barotrauma.LocationType.GetRandomRawName(System.Random,System.Collections.Generic.IEnumerable{Barotrauma.Location})">
             <summary>
             For backwards compatibility. Chooses a random name from the names defined in the .txt name files (<see cref="!:rawNamePaths"/>).
             </summary>
         </member>
-        <member name="F:Barotrauma.LocationTypeChange.Requirement.RequiredLocations">
+        <member name="T:Barotrauma.LocationTypeChange.Modifier">
             <summary>
-            The change can only happen if there's at least one of the given types of locations near this one
+            Can be used to modify the probability of the location type occurring based on some criteria.
             </summary>
         </member>
-        <member name="F:Barotrauma.LocationTypeChange.Requirement.RequiredProximity">
+        <member name="F:Barotrauma.LocationTypeChange.Modifier.RequiredLocations">
             <summary>
-            How close the location needs to be to one of the RequiredLocations for the change to occur
+            The modifier only takes effect if there's at least one of the given types of locations near this one.
             </summary>
         </member>
-        <member name="F:Barotrauma.LocationTypeChange.Requirement.Probability">
+        <member name="F:Barotrauma.LocationTypeChange.Modifier.RequiredProximity">
             <summary>
-            Base probability per turn for the location to change if near one of the RequiredLocations
+            How close the location needs to be to one of the RequiredLocations for the modifier to take effect.
             </summary>
         </member>
-        <member name="F:Barotrauma.LocationTypeChange.Requirement.RequiredProximityForProbabilityIncrease">
+        <member name="F:Barotrauma.LocationTypeChange.Modifier.ProbabilityModifier">
             <summary>
-            How close the location needs to be to one of the RequiredLocations for the probability to increase
+            How much the base probability changes when the conditions of this modifier are met. Can either be added to or multiplied by the base probability of the location type change.
+            Defaults to 0 if the <see cref="F:Barotrauma.LocationTypeChange.Modifier.Function"/> is <see cref="F:Barotrauma.LocationTypeChange.Modifier.FunctionType.Add"/>, and 1 if it's <see cref="F:Barotrauma.LocationTypeChange.Modifier.FunctionType.Multiply"/> (both meaning no change to the base probability).
             </summary>
         </member>
-        <member name="F:Barotrauma.LocationTypeChange.Requirement.ProximityProbabilityIncrease">
+        <member name="F:Barotrauma.LocationTypeChange.Modifier.Function">
             <summary>
-            How much the probability increases per turn if within RequiredProximityForProbabilityIncrease steps of RequiredLocations
+            How does the <see cref="F:Barotrauma.LocationTypeChange.Modifier.ProbabilityModifier"/> affect the base probability of the location type change? Defaults to adding to the base probability.
             </summary>
         </member>
-        <member name="F:Barotrauma.LocationTypeChange.Requirement.RequireBeaconStation">
+        <member name="F:Barotrauma.LocationTypeChange.Modifier.RequiredProximityForProbabilityIncrease">
             <summary>
-            Does there need to be a beacon station within RequiredProximity
+            How close the location needs to be to one of the RequiredLocations for the modifier to take effect.
             </summary>
         </member>
-        <member name="F:Barotrauma.LocationTypeChange.Requirement.RequireHuntingGrounds">
+        <member name="F:Barotrauma.LocationTypeChange.Modifier.ProximityProbabilityIncrease">
             <summary>
-            Does there need to be hunting grounds within RequiredProximity
+            How much the probability increases per world step if within RequiredProximityForProbabilityIncrease steps of RequiredLocations.
             </summary>
         </member>
-        <member name="F:Barotrauma.LocationTypeChange.Requirement.MinPopulation">
+        <member name="F:Barotrauma.LocationTypeChange.Modifier.RequireBeaconStation">
             <summary>
-            Minimum population for the type change to trigger. A percentage of the initial population, between 0-1. Defaults to 0.
+            Does there need to be a beacon station within RequiredProximity?
             </summary>
         </member>
-        <member name="F:Barotrauma.LocationTypeChange.Requirement.MaxPopulation">
+        <member name="F:Barotrauma.LocationTypeChange.Modifier.RequireHuntingGrounds">
             <summary>
-            Maximum population for the type change to trigger. A percentage of the initial population, between 0-1. Defaults to 1.
+            Does there need to be hunting grounds within RequiredProximity?
+            </summary>
+        </member>
+        <member name="F:Barotrauma.LocationTypeChange.Modifier.MinPopulation">
+            <summary>
+            Minimum population in this location for the modifier to take effect. A percentage of the initial population, between 0-1. Defaults to 0.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.LocationTypeChange.Modifier.MaxPopulation">
+            <summary>
+            Maximum population in this location for the modifier to take effect. A percentage of the initial population, between 0-1. Defaults to 1.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.LocationTypeChange.Modifier.HasProbabilityAttribute(Barotrauma.ContentXElement)">
+            <summary>
+            Does the element have the probability modifier, either with the current attribute name or legacy?
             </summary>
         </member>
         <member name="F:Barotrauma.LocationTypeChange.Probability">
             <summary>
-            Base probability per turn for the location to change if near one of the RequiredLocations
+            Base probability per world step for the location to change. Can be further modified by child <see cref="T:Barotrauma.LocationTypeChange.Modifier"/> elements.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.LocationTypeChange.requirements">
+            <summary>
+            Hard requirements for the location type change to occur.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.LocationTypeChange.Modifiers">
+            <summary>
+            Modifiers that adjust the base <see cref="F:Barotrauma.LocationTypeChange.Probability"/> of the ChangeTo.
+            NOTE: Applied in the order they're defined in the XML, which matters especially when mixing <see cref="F:Barotrauma.LocationTypeChange.Modifier.FunctionType.Add"/> and <see cref="F:Barotrauma.LocationTypeChange.Modifier.FunctionType.Multiply"/>
             </summary>
         </member>
         <member name="F:Barotrauma.LocationTypeChange.DisallowedAdjacentLocations">
@@ -10673,6 +11639,11 @@
         <member name="F:Barotrauma.LocationTypeChange.CooldownAfterChange">
             <summary>
             The location can't change it's type for this many turns after this location type changes occurs
+            </summary>
+        </member>
+        <member name="F:Barotrauma.LocationTypeChange.RequiredDurationRange">
+            <summary>
+            If a type change is triggered, a value is randomly chosen within this range and the change is delayed for that many world steps.
             </summary>
         </member>
         <member name="F:Barotrauma.Map.OnLocationChanged">
@@ -10699,6 +11670,14 @@
             <summary>
             Returns the location prior to the final location. The type of this location is hard-coded just as that of the final location.
             </summary>
+        </member>
+        <member name="M:Barotrauma.Map.AssignEndLocationLevelData(Barotrauma.CampaignMode)">
+            <summary>
+            Assigns the correct outpost generation parameters to the end locations. Also checks and ensures that all of them are correctly assigned to the end biome, and have a location type that can be generated in the end biome.
+            Strangely shaped custom maps may sometimes generate in a way that there aren't enough locations in the last biome to assign as the end locations, and we may end up choosing locations in the second-to-last biome instead - let's correct that here.
+            </summary>
+            <param name="campaign"></param>
+            <exception cref="T:System.InvalidOperationException"></exception>
         </member>
         <member name="M:Barotrauma.Map.ProcessXmlBasedTypeChange(Barotrauma.CampaignMode,Barotrauma.Location)">
             <summary>
@@ -10790,6 +11769,13 @@
             Determines whether <see cref="F:Barotrauma.OutpostGenerationParams.NpcCollection.Entry.FactionIdentifier"/> needs to match the primary faction, the secondary faction or either.
             </summary>
         </member>
+        <member name="F:Barotrauma.OutpostGenerationParams.NpcCollection.Entry.SpawnPriority">
+            <summary>
+            If the population of the outpost has been reduced from the initial population (e.g. due to the DLC or some mod reducing the population in some custom way),
+            some of the NPCs defined in the outpost generation parameters will not spawn. This field can be used to prioritize certain NPCs, making it e.g. the
+            outpost manager and service-offering characters be removed from the outpost last.
+            </summary>
+        </member>
         <member name="F:Barotrauma.PlacedModule.Info">
             <summary>
             Info of this outpost module
@@ -10844,7 +11830,7 @@
         <member name="M:Barotrauma.PlacedModule.InitializeEntities">
             <summary>
             Handles initializing entities in the module (making sure the links between the entities have been created, that doors are linked to gaps, etc).
-            Normally this is done automatically during outpost generation as a part of <see cref="!:OutpostGenerator.LoadModule(Submarine, PlacedModule, int, float, ref int)"/>,
+            Normally this is done automatically during outpost generation as a part of <see cref="M:Barotrauma.OutpostGenerator.LoadModule(Barotrauma.Submarine,Barotrauma.PlacedModule,System.Int32,Barotrauma.OutpostGenerationParams,System.Int32@,System.Nullable{Microsoft.Xna.Framework.Rectangle},Barotrauma.Gap)"/>,
             but doing it manually may be necessary when the outpost is loaded from XML using some kind of custom outpost saving/loading logic.
             </summary>
         </member>
@@ -10852,7 +11838,7 @@
             <summary>
             Handles initialization that needs to be done after all the modules and entities of an outpost have been loaded from XML
             (e.g. linking modules to each other and the entities they consist of). 
-            Note that this is not necessary to call on procedurally generated outpost or modules loaded with <see cref="!:OutpostGenerator.LoadModule(Submarine, PlacedModule, int, float, ref int)"/>,
+            Note that this is not necessary to call on procedurally generated outpost or modules loaded with <see cref="M:Barotrauma.OutpostGenerator.LoadModule(Barotrauma.Submarine,Barotrauma.PlacedModule,System.Int32,Barotrauma.OutpostGenerationParams,System.Int32@,System.Nullable{Microsoft.Xna.Framework.Rectangle},Barotrauma.Gap)"/>,
             but only on outposts that are loaded from XML using some kind of custom outpost saving/loading logic.
             
             Not used by the vanilla game, but can be used by DLCs or code mods.
@@ -10927,7 +11913,12 @@
             Check if the modules overlap, taking their Offsets and MoveOffsets into account
             </summary>
         </member>
-        <member name="M:Barotrauma.OutpostGenerator.ModuleOverlapsWithModuleConnections(System.Collections.Generic.IEnumerable{Barotrauma.PlacedModule})">
+        <member name="M:Barotrauma.OutpostGenerator.AnyModuleOverlapsWithModuleConnections(System.Collections.Generic.IEnumerable{Barotrauma.PlacedModule})">
+            <summary>
+            Check if any of the modules overlaps with a connection between 2 other modules
+            </summary>
+        </member>
+        <member name="M:Barotrauma.OutpostGenerator.ModuleOverlapsWithModuleConnections(Barotrauma.PlacedModule,System.Collections.Generic.IEnumerable{Barotrauma.PlacedModule})">
             <summary>
             Check if any of the modules overlaps with a connection between 2 other modules
             </summary>
@@ -10964,6 +11955,13 @@
             <summary>
             Returns the direction from the gap to the module, i.e. -Vector2.UnitX for a gap on the right side of the module.
             </summary>
+        </member>
+        <member name="M:Barotrauma.OutpostGenerator.GetAllWaypoints">
+            <summary>
+            Returns all existing. Used instead of <see cref="F:Barotrauma.WayPoint.WayPointList"/> because it excludes disabled waypoints,
+            which we need during outpost generation because previously-disabled waypoints may need to be re-enabled as modules are moved and hallways generated or removed.
+            </summary>
+            <returns></returns>
         </member>
         <member name="M:Barotrauma.OutpostGenerator.SetDevicesPlayerTeamInteractable(Barotrauma.Submarine)">
             <summary>
@@ -11018,6 +12016,21 @@
         <member name="P:Barotrauma.PriceInfo.RequiredFaction">
             <summary>
             If set, the item is only available in outposts with this faction.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.PriceInfo.LifetimeAvailable">
+            <summary>
+            Total number of the item the store will ever sell (add to the world).
+            The store stocks up to <see cref="P:Barotrauma.PriceInfo.MaxAvailableAmount"/> of the item at
+            a time and restocks it only until it has sold this many in total, after
+            which the item is gone from the store for good.
+            Items sold back to the store do return to its supply.
+            A value of -1 means no limit, which is the default.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.PriceInfo.HasLifetimeLimit">
+            <summary>
+            Is the total number of the item the store can sell limited (see <see cref="P:Barotrauma.PriceInfo.LifetimeAvailable"/>)?
             </summary>
         </member>
         <member name="P:Barotrauma.PriceInfo.MinReputation">
@@ -11114,6 +12127,16 @@
         <member name="M:Barotrauma.SubmarineInfo.AddOutpostNPC(Barotrauma.Character)">
             <summary>
             Adds the NPC to the <see cref="F:Barotrauma.SubmarineInfo.OutpostNPCs"/> dictionary, using the NPC's prefab identifiers and tags and the "outpostnpc" tag as keys.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.WayPoint.WayPointHeightFromFloor">
+            <summary>
+            How high above the floor the waypoint generator aims to place the waypoints. 
+            </summary>
+        </member>
+        <member name="F:Barotrauma.WayPoint.ObstructedConnections">
+            <summary>
+            Connections to other waypoints that are currently obstructed (non-traversable)
             </summary>
         </member>
         <member name="M:Barotrauma.WayPoint.OnGapStateChanged(System.Boolean,Barotrauma.Gap)">
@@ -11504,6 +12527,7 @@
             - <see cref="T:Barotrauma.Plugins.IHarmonyProvider"/><br/>
             - <see cref="T:Barotrauma.Plugins.ISettingsService"/><br/>
             - <see cref="T:Barotrauma.Plugins.IStatusEffectService"/><br/>
+            - <see cref="T:Barotrauma.Plugins.IAIObjectiveRegistrar"/><br/>
             </remarks>
             <example>
             <code>
@@ -11569,6 +12593,19 @@
         <member name="M:Barotrauma.Plugins.SettingsService.SendNetworkUpdate">
             <summary>
             Sends out a network update informing all clients (or the server) about setting changes.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Plugins.IOrderObjectiveFactory.CreateObjectiveFromOrder(Barotrauma.AIObjectiveManager,Barotrauma.Order,Barotrauma.Character,System.Single)">
+            <summary>
+            Creates a new AIObjective based on the passed order
+            </summary>
+            <remarks>
+            If the return value is null, the result is ignored
+            </remarks>
+        </member>
+        <member name="T:Barotrauma.Plugins.IAIObjectiveRegistrar">
+            <summary>
+            Allows plugins to configure what AIObjective is created for an order identifier.
             </summary>
         </member>
         <member name="T:Barotrauma.Plugins.IContentFileRegistrar">
@@ -12405,11 +13442,6 @@
             }
             </example>
         </member>
-        <member name="M:Barotrauma.Plugins.ISettingsService.ResetAllSettings">
-            <summary>
-            Calls <see cref="M:Barotrauma.Plugins.ISetting.ResetToDefault"/> in every registered setting.
-            </summary>
-        </member>
         <member name="M:Barotrauma.Plugins.ISettingsService.Load">
             <summary>
             Load all settings.
@@ -12451,9 +13483,24 @@
             indeed allowed to change this setting and on the client-side it's used to gray out the UI and prevent user interaction.
             </summary>
         </member>
+        <member name="P:Barotrauma.Plugins.ISetting.HasPendingChanges">
+            <summary>
+            Determines if there's any pending changes in this setting.
+            </summary>
+        </member>
         <member name="M:Barotrauma.Plugins.ISetting.ResetToDefault">
             <summary>
             Resets this setting back to it's default state.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Plugins.ISetting.Apply">
+            <summary>
+            Applies any pending changes in this setting.
+            </summary>
+        </member>
+        <member name="M:Barotrauma.Plugins.ISetting.Revert">
+            <summary>
+            Reverts the pending changes back to the previous setting.
             </summary>
         </member>
         <member name="P:Barotrauma.Plugins.ISetting.IsDirty">
@@ -12733,13 +13780,21 @@
         </member>
         <member name="T:Barotrauma.PluginCampaignOnLeaveOutpostDelegate">
             <summary>
-            Called when the player leaves an outpost in the campaign.
+            Called when the player leaves an outpost in the campaign. Not invoked in outpost levels without an actual outpost "submarine".
             </summary>
             <param name="mode">The campaign mode instance.</param>
         </member>
         <member name="T:Barotrauma.PluginCampaignOnEnterOutpostDelegate">
             <summary>
-            Called when the player enters an outpost in the campaign.
+            Called when the player enters an outpost in the campaign. Not invoked in outpost levels without an actual outpost "submarine".
+            </summary>
+            <param name="mode">The campaign mode instance.</param>
+            <param name="location">The location that the player is entering.</param>
+            <param name="outpost">The outpost that the player is entering.</param>
+        </member>
+        <member name="T:Barotrauma.PluginCampaignOnOutpostNPCsChangedDelegate">
+            <summary>
+            Called when the outpost NPCs change during a round (a new NPC appears or another one disappears)
             </summary>
             <param name="mode">The campaign mode instance.</param>
             <param name="location">The location that the player is entering.</param>
@@ -12769,14 +13824,29 @@
             Called when the player spends money at the current location for any purpose (merchants, submarines and upgrades, clinic, HR) except events.
             </summary>
         </member>
+        <member name="T:Barotrauma.PluginCampaignItemBuyPriceMultiplier">
+            <summary>
+            Called when calculating the item buy price in a location, can be used to add a custom multiplier to the price.
+            </summary>
+        </member>
+        <member name="T:Barotrauma.PluginCampaignItemSellPriceMultiplier">
+            <summary>
+            Called when calculating the item sell price in a location, can be used to add a custom multiplier to the price.
+            </summary>
+        </member>
+        <member name="T:Barotrauma.PluginCampaignItemModifyAvailability">
+            <summary>
+            Called when determining the item availability in a location, can be used to modify the item availability.
+            </summary>
+        </member>
         <member name="T:Barotrauma.PluginOnItemReplacedDelegate">
             <summary>
             Called when an item is replaced with a new item.
             </summary>
-            <param name="oldItem">The item that was replaced.</param>
+            <param name="oldItem">The item that was replaced and removed.</param>
             <param name="newItem">The new item that was created.</param>
             <remarks>
-            Avoid performing any operations that would modify the old item, as it is going to be removed and might cause errors.
+            Avoid performing any operations that would modify the old item, as it is removed and might cause errors.
             </remarks>
         </member>
         <member name="T:Barotrauma.PluginOnCharacterCreated">
@@ -12785,14 +13855,27 @@
             </summary>
             <param name="character">The created character</param>
         </member>
-        <member name="T:Barotrauma.PluginMidRoundSyncSendCompletedDelegate">
+        <member name="T:Barotrauma.PluginModifyRequiredNPCConversationFlags">
             <summary>
-            Called when the server has completed sending midround synchronization data to a client.
+            Can be used to modify the mandatory conversation flags for the given situation. Used to e.g. enforce the EnterOutpost NPC conversations when entering an outpost.
+            </summary>
+        </member>
+        <member name="T:Barotrauma.PluginModifyCharacterSpecificNPCConversationFlags">
+            <summary>
+            Can be used to modify the conversation flags assigned to a specific NPC, to add support for custom conversations in specific situations.
+            </summary>
+        </member>
+        <member name="T:Barotrauma.PluginSelectHighestSubmarineTierAvailable">
+            <summary>
+            Overrides the maximum submarine tier available for a location type.
+            Return a value between 1 and 3 to set the highest available tier,
+            or return -1 to use the default tier selection logic.
             </summary>
         </member>
         <member name="T:Barotrauma.PluginClientJoinedRoundDelegate">
             <summary>
-            Called when a client joins a round (enters the game screen, either mid-round or at the start of the round).
+            Called after a client has joined the round (enters the game screen, either mid-round or at the start of the round),
+            and has been gotten in sync with the server.
             </summary>
         </member>
         <member name="T:Barotrauma.PluginClientDisconnectedDelegate">
@@ -13117,6 +14200,13 @@
             <summary>
             Upgrade the properties of an entity saved with an older version of the game. Properties that should be upgraded are defined using "Upgrade" elements in the config file.
             for example, <Upgrade gameversion="0.9.2.0" scale="0.5"/> would force the scale of the entity to 0.5 if it was saved with a version prior to 0.9.2.0.
+            An upgrade can also target a specific component of an item, either by defining it inside the component:
+            eg. <Repairable><Upgrade gameversion="0.9.2.0" RepairThreshold="80"/></Repairable>
+            or by naming the component inside the Upgrade element:
+            eg. <Upgrade gameversion="0.9.2.0"><Repairable RepairThreshold="80"/></Upgrade>
+            NOTE (especially for Holdable): Upgrades inside a component are applied while the component is loading, item-level
+            ones only after all the components have loaded. Holdable caches the message and the required items while loading
+            and then restores them when attached, so it has to be upgraded from inside the component.
             </summary>
             <param name="entity">The entity to upgrade</param>
             <param name="configElement">The XML element to get the upgrade instructions from (e.g. the config of an item prefab)</param>
@@ -13584,7 +14674,7 @@
         </member>
         <member name="F:Barotrauma.StatusEffect.ItemSpawnInfo.SpawnIfNotInInventory">
             <summary>
-            Should the item spawn even if this item isn't in an inventory? Only valid if the SpawnPosition is set to <see cref="!:SameInventory"/>. Defaults to false.
+            Should the item spawn even if this item isn't in an inventory? Only valid if the SpawnPosition is set to <see cref="F:Barotrauma.StatusEffect.ItemSpawnInfo.SpawnPositionType.SameInventory"/>. Defaults to false.
             </summary>
         </member>
         <member name="F:Barotrauma.StatusEffect.ItemSpawnInfo.SpawnIfCantBeContained">
@@ -13800,6 +14890,11 @@
             When enabled, the <Use /> elements will consider the owner of the inventory this item is in as the user of the status effect.
             </summary>
         </member>
+        <member name="F:Barotrauma.StatusEffect.TargetContainedRecursively">
+            <summary>
+            Makes <see cref="F:Barotrauma.StatusEffect.TargetType.Contained"/> also target all items within their subcontainers recursively.
+            </summary>
+        </member>
         <member name="F:Barotrauma.StatusEffect.containerForItemsOnCharacterRemoval">
             <summary>
             Identifier of a container the character's items should be moved into when the character is removed. Only valid if the effect removes the character.
@@ -13823,6 +14918,11 @@
         <member name="F:Barotrauma.StatusEffect.spawnItemRandomly">
             <summary>
             If enabled, one of the items this effect is configured to spawn is selected randomly, as opposed to spawning all of them.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.StatusEffect.spawnCharacterRandomly">
+            <summary>
+            If enabled, one of the characters this effect is configured to spawn is selected randomly, as opposed to spawning all of them.
             </summary>
         </member>
         <member name="F:Barotrauma.StatusEffect.refundTalents">
@@ -13872,7 +14972,7 @@
         </member>
         <member name="F:Barotrauma.StatusEffect.SeverLimbsProbability">
             <summary>
-            The probability of severing a limb damaged by this status effect. Only valid when targeting characters or limbs.
+            The probability of severing a limb damaged by this status effect. The effect must either apply afflictions on a limb or use a SeverLimb child element for this property to work. Only valid when targeting characters or limbs.
             </summary>
         </member>
         <member name="F:Barotrauma.StatusEffect.OnlyInside">
@@ -13893,7 +14993,7 @@
         <member name="F:Barotrauma.StatusEffect.OnlyWhenDamagedByPlayer">
             <summary>
             If enabled, the effect only executes when the entity receives damage from a player character 
-            (a character controlled by a human player). Only valid for characters, and effects of the type <see cref="!:OnDamaged"/>.
+            (a character controlled by a human player). Only valid for characters, and effects of the type <see cref="F:Barotrauma.ActionType.OnDamaged"/>.
             </summary>
         </member>
         <member name="F:Barotrauma.StatusEffect.AllowWhenBroken">
@@ -13910,6 +15010,11 @@
             <summary>
             If set to the name of one of the target's ItemComponents, the effect is only applied on that component.
             Only works on items.
+            </summary>
+        </member>
+        <member name="P:Barotrauma.StatusEffect.TargetParticleEmitter">
+            <summary>
+            If set, the effect will only modify particle emitters of the target, defined with this id.
             </summary>
         </member>
         <member name="F:Barotrauma.StatusEffect.requiredAfflictions">
@@ -13960,6 +15065,17 @@
             <summary>
             An random offset (in a random direction) added to the position of the effect is executed at. Only relevant if the effect does something where position matters,
             for example emitting particles or explosions, spawning something or playing sounds.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.StatusEffect.addTags">
+            <summary>
+            Tags to add to the targeted item(s) without removing existing tags in that item.
+            </summary>
+        </member>
+        <member name="F:Barotrauma.StatusEffect.removeTags">
+            <summary>
+            Tags to remove from the targeted item(s) without affecting other tags in that item.
+            Note that prefab tags cannot be removed.
             </summary>
         </member>
         <member name="P:Barotrauma.StatusEffect.Disabled">
@@ -14672,6 +15788,17 @@
             Stable Topological Sorting (Kahn's algorithm)
             </summary>
             <remarks>Adapted from https://gist.github.com/Sup3rc4l1fr4g1l1571c3xp14l1d0c10u5/3341dba6a53d7171fe3397d13d00ee3f</remarks>
+        </member>
+        <member name="M:Barotrauma.ToolBox.CompoundPercentage(System.Single,System.Single)">
+             <summary>
+             Returns the cumulative percentage after repeatedly applying
+             <paramref name="percentagePerStep"/> every step.
+            
+             For example, with 0.25f:
+             Step 1 = 25%
+             Step 2 = 43.75%
+             Step 3 = 57.8125%
+             </summary>
         </member>
         <member name="T:Voronoi2.Voronoi">
             <summary>
