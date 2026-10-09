@@ -30,6 +30,12 @@ public partial class Plugin : IBarotraumaPlugin
             // Copy LuaCs dlls to temp folder
             string destination = Path.GetFullPath("./LuaCs.Temp");
 
+#if SERVER
+            destination = Path.Combine(destination, "Server");
+#elif CLIENT
+            destination = Path.Combine(destination, "Client");
+#endif
+
             Directory.CreateDirectory(destination);
 
             foreach (string file in Directory.GetFiles(Path.GetDirectoryName(assemblyPath)!))
