@@ -29,7 +29,6 @@ public class DefaultLuaRegistrar : IDefaultLuaRegistrar
     private class SteamIDMemberDescriptor : IMemberDescriptor
     {
         public bool IsStatic => false;
-
         public string Name => "SteamID";
 
         public MemberDescriptorAccess MemberAccess => MemberDescriptorAccess.CanRead;
@@ -49,6 +48,33 @@ public class DefaultLuaRegistrar : IDefaultLuaRegistrar
             throw new System.NotImplementedException();
         }
     }
+
+#if CLIENT
+    // Compatibility with the source version of LuaCs, where GUITextBox had a OnTextChangedDelegate property
+    private class OnTextChangedDelegateMemberDescriptor : IMemberDescriptor
+    {
+        public bool IsStatic => false;
+        public string Name => "OnTextChangedDelegate";
+
+        public MemberDescriptorAccess MemberAccess => MemberDescriptorAccess.CanWrite;
+
+        public DynValue GetValue(Script script, object obj)
+        {
+            throw new ScriptRuntimeException("OnTextChangedDelegate is write-only.");
+        }
+
+        public void SetValue(Script script, object obj, DynValue value)
+        {
+            if (obj is not GUITextBox textBox)
+            {
+                throw new ScriptRuntimeException("OnTextChangedDelegate can only be set on a GUITextBox.");
+            }
+
+            var handler = (GUITextBox.OnTextChangedHandler)value.ToObject(typeof(GUITextBox.OnTextChangedHandler));
+            textBox.OnTextChanged += (box, text) => handler(box, text);
+        }
+    }
+#endif
 
     public DefaultLuaRegistrar(ILoggerService loggerService, ILuaUserDataService userDataService, ISafeLuaUserDataService safeUserDataService)
     {
@@ -215,6 +241,9 @@ public class DefaultLuaRegistrar : IDefaultLuaRegistrar
 
 
         _userDataService.RegisterType("Barotrauma.Inventory+SlotReference");
+
+        var textBoxDescriptor = (StandardUserDataDescriptor)_userDataService.RegisterType("Barotrauma.GUITextBox");
+        textBoxDescriptor.AddMember("OnTextChangedDelegate", new OnTextChangedDelegateMemberDescriptor());
     }
 #elif SERVER
     private void RegisterServer()
