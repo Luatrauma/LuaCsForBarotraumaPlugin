@@ -91,6 +91,13 @@ public class SettingsMenuSystem : ISettingsMenuSystem
         SystemInstance._controlsMenuInstance?.ApplyInstalledModChanges();
     }
 
+    [HarmonyPatch(typeof(SettingsMenu), nameof(SettingsMenu.HasUnsavedChanges)), HarmonyPostfix]
+    private static void SettingsMenu_HasUnsavedChanges_Post(ref bool __result)
+    {
+        if (__result || SystemInstance == null) { return; }
+        __result = (SystemInstance._gameplayMenuInstance?.HasUnsavedChanges ?? false) || (SystemInstance._controlsMenuInstance?.HasUnsavedChanges ?? false);
+    }
+
     private void DisposeMenuFrames()
     {
         _controlsMenuInstance?.Dispose();

@@ -26,6 +26,8 @@ internal abstract class ModsSettingsMenuBase : IDisposable
         SettingsMenuInstance = settingsMenuInstance;
     }
 
+    public bool HasUnsavedChanges => !NewValuesCache.IsEmpty;
+
     protected abstract void DisposeInternal();
     public abstract void ApplyInstalledModChanges();
 
