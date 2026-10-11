@@ -387,8 +387,25 @@ public sealed class AssemblyLoader : AssemblyLoadContext, IAssemblyLoaderService
 
             try
             {
-                var assembly = LoadFromAssemblyPath(sanitizedFilePath);
-                _loadedAssemblyData[assembly] = new AssemblyData(assembly, assembly.Location);
+                byte[]? redirectedAssembly = null;
+                try
+                {
+                    redirectedAssembly = LegacyTypeRedirector.TryRedirect(sanitizedFilePath);
+                }
+                catch { }
+
+                Assembly assembly;
+                if (redirectedAssembly is not null)
+                {
+                    using var redirectedStream = new MemoryStream(redirectedAssembly);
+                    assembly = LoadFromStream(redirectedStream);
+                    _loadedAssemblyData[assembly] = new AssemblyData(assembly, redirectedAssembly);
+                }
+                else
+                {
+                    assembly = LoadFromAssemblyPath(sanitizedFilePath);
+                    _loadedAssemblyData[assembly] = new AssemblyData(assembly, assembly.Location);
+                }
                 return new Result<Assembly>().WithSuccess($"Loaded assembly '{assembly.GetName()}'").WithValue(assembly);
             }
             catch (FileNotFoundException fnfe)
@@ -610,6 +627,14 @@ public sealed class AssemblyLoader : AssemblyLoadContext, IAssemblyLoaderService
         {
             if (_loadedAssemblyData.TryGetValue(assemblyName.FullName, out var assembly))
                 return assembly.Assembly;
+
+            // TODO remove when upstream upgrades to HarmonyX 2.16.0
+            var gameHarmony = typeof(HarmonyLib.Harmony).Assembly;
+            if (assemblyName.Name == gameHarmony.GetName().Name
+                && assemblyName.Version is not null
+                && assemblyName.Version > gameHarmony.GetName().Version)
+                return gameHarmony;
+
             return null;
         }
         catch
