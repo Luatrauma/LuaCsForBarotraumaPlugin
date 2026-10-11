@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <Import Project="..\BuildData.props" />
+  <Import Project="..\NuGetPackage.props" />
 
   <Import Project="..\SharedProject\SharedProject.projitems" Label="Shared" />
   <Import Project="..\SharedProject\SharedItems.props" />

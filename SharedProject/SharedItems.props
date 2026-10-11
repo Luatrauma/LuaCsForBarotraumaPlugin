@@ -1,17 +1,17 @@
 ﻿<Project>
   <ItemGroup Condition="'$(UsePublicizedAssemblies)' != 'true'">
-    <PackageReference Include="Barotrauma.ReferenceAssemblies.Vanilla" GeneratePathProperty="true" Version="*-*" />
+    <PackageReference Include="Barotrauma.ReferenceAssemblies.Vanilla" GeneratePathProperty="true" Version="*-*" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(UsePublicizedAssemblies)' == 'true'">
-    <PackageReference Include="Barotrauma.ReferenceAssemblies.Vanilla.Publicized" GeneratePathProperty="true" Version="*-*" />
+    <PackageReference Include="Barotrauma.ReferenceAssemblies.Vanilla.Publicized" GeneratePathProperty="true" Version="*-*" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Barotrauma.ReferenceAssemblies.Libraries" Version="*" />
-    <PackageReference Include="HarmonyX" Version="2.16.0" />
+    <PackageReference Include="Barotrauma.ReferenceAssemblies.Libraries" Version="*-*" PrivateAssets="all" />
+    <PackageReference Include="HarmonyX" Version="2.16.0" PrivateAssets="all" />
 
-    <ProjectReference Include="..\ContentPackageBuilder\ContentPackageBuilder.csproj">
+    <ProjectReference Include="..\ContentPackageBuilder\ContentPackageBuilder.csproj" PrivateAssets="all">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>

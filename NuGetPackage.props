@@ -1,0 +1,43 @@
+<Project>
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsPackable Condition="'$(PlatformName)' == 'Windows'">true</IsPackable>
+
+    <PackageId>$(ModName).$(BuildTarget)</PackageId>
+
+    <Version Condition="'$(Version)' == ''">1.0.0-dev</Version>
+    <Authors>Luatrauma</Authors>
+    <Description>LuaCs API for Barotrauma mods. Reference this package to use the LuaCs services, events and Lua integration from your own assembly mod ($(BuildTarget)).</Description>
+    <PackageTags>barotrauma;luacs;modding</PackageTags>
+    <PackageProjectUrl>$(RepositoryURL)</PackageProjectUrl>
+    <RepositoryUrl>$(RepositoryURL)</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
+
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591;CS1573;CS1587;CS1570;CS1572;CS1574;CS1584;CS1658;CS1711</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(IsPackable)' == 'true'">
+    <None Include="$(MSBuildThisFileDirectory)readme.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(IsPackable)' == 'true'">
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);IncludeMoonSharpInPackage</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <Target Name="ExcludeBuildFilesFromPackage" BeforeTargets="_GetPackageFiles;_GetTfmSpecificContentForPackage">
+    <ItemGroup>
+      <Content Remove="@(Content)" Condition="'%(Filename)%(Extension)' == 'SharedItems.props'" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="IncludeMoonSharpInPackage">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(OutputPath)MoonSharp.Interpreter.dll" PackagePath="lib/$(TargetFramework)" />
+      <TfmSpecificPackageFile Include="$(OutputPath)MoonSharp.Interpreter.xml" PackagePath="lib/$(TargetFramework)" Condition="Exists('$(OutputPath)MoonSharp.Interpreter.xml')" />
+    </ItemGroup>
+  </Target>
+</Project>
