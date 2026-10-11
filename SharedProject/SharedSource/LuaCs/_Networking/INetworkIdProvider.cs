@@ -9,7 +9,7 @@ namespace Barotrauma.LuaCs;
 /// Provides a deterministic ID for a given <see cref="IDataInfo"/> instance under multiple circumstances, for use with
 /// network synchronization.
 /// </summary>
-internal interface INetworkIdProvider : IService
+public interface INetworkIdProvider : IService
 {
     /// <summary>
     /// Deterministically generates a GUID for the given parameters.

@@ -2,7 +2,7 @@
 
 namespace Barotrauma.LuaCs.Compatibility;
 
-internal partial interface ILuaCsTimer : IReusableService, ILuaCsShim
+public partial interface ILuaCsTimer : IReusableService, ILuaCsShim
 {
     public static double Time => Timing.TotalTime;
     public static double GetTime() => Time;

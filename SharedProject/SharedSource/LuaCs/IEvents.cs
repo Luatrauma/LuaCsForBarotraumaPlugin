@@ -43,7 +43,7 @@ public interface IEvent<out T> : IEvent where T : class, IEvent<T>
 /// <summary>
 /// Called when the current <see cref="Screen"/> (game state) changes. Upstream Type 'Screen' is internal. 
 /// </summary>
-internal interface IEventScreenSelected : IEvent<IEventScreenSelected>
+public interface IEventScreenSelected : IEvent<IEventScreenSelected>
 {
     void OnScreenSelected(Screen screen);
 }
@@ -51,7 +51,7 @@ internal interface IEventScreenSelected : IEvent<IEventScreenSelected>
 /// <summary>
 /// Called whenever the list of all <see cref="ContentPackage"/> (enabled and disabled) on disk has changed.
 /// </summary>
-internal interface IEventAllPackageListChanged : IEvent<IEventAllPackageListChanged>
+public interface IEventAllPackageListChanged : IEvent<IEventAllPackageListChanged>
 {
     void OnAllPackageListChanged(IEnumerable<CorePackage> corePackages, IEnumerable<RegularPackage> regularPackages);
 }
@@ -59,17 +59,17 @@ internal interface IEventAllPackageListChanged : IEvent<IEventAllPackageListChan
 /// <summary>
 /// Called whenever the list of enabled <see cref="ContentPackage"/> has changed.
 /// </summary>
-internal interface IEventEnabledPackageListChanged : IEvent<IEventEnabledPackageListChanged>
+public interface IEventEnabledPackageListChanged : IEvent<IEventEnabledPackageListChanged>
 {
     void OnEnabledPackageListChanged(CorePackage package, IEnumerable<RegularPackage> regularPackages);
 }
 
-internal interface IEventReloadAllPackages : IEvent<IEventReloadAllPackages>
+public interface IEventReloadAllPackages : IEvent<IEventReloadAllPackages>
 {
     void OnReloadAllPackages();
 }
 
-internal interface IEventSettingInstanceLifetime : IEvent<IEventSettingInstanceLifetime>
+public interface IEventSettingInstanceLifetime : IEvent<IEventSettingInstanceLifetime>
 {
     void OnSettingInstanceCreated<T>(T configInstance) where T : ISettingBase;
     void OnSettingInstanceDisposed<T>(T configInstance) where T : ISettingBase;
@@ -84,7 +84,7 @@ internal interface IEventSettingInstanceLifetime : IEvent<IEventSettingInstanceL
 /// Allows the user to modify a chat message on the server before it is sent to clients, or reject the message altogether.
 /// </summary>
 /// <remarks>Legacy Lua Event Name: "modifyChatMessage"</remarks>
-internal interface IEventModifyChatMessage : IEvent<IEventModifyChatMessage>
+public interface IEventModifyChatMessage : IEvent<IEventModifyChatMessage>
 {
     bool? OnModifyMessagePredicate(ChatMessage message, WifiComponent senderRadio);
     
@@ -118,7 +118,7 @@ internal interface IEventModifyChatMessage : IEvent<IEventModifyChatMessage>
 
 #endif
 
-internal interface IEventAfflictionUpdate : IEvent<IEventAfflictionUpdate>
+public interface IEventAfflictionUpdate : IEvent<IEventAfflictionUpdate>
 {
     void OnAfflictionUpdate(Affliction affliction, CharacterHealth characterHealth, Limb targetLimb, float deltaTime);
 
@@ -138,7 +138,7 @@ internal interface IEventAfflictionUpdate : IEvent<IEventAfflictionUpdate>
     }
 }
 
-internal interface IEventGiveCharacterJobItems : IEvent<IEventGiveCharacterJobItems>
+public interface IEventGiveCharacterJobItems : IEvent<IEventGiveCharacterJobItems>
 {
     void OnGiveCharacterJobItems(Character character, WayPoint spawnPoint, bool isPvPMode);
 
@@ -158,7 +158,7 @@ internal interface IEventGiveCharacterJobItems : IEvent<IEventGiveCharacterJobIt
     }
 }
 
-internal interface IEventCharacterCreated : IEvent<IEventCharacterCreated>
+public interface IEventCharacterCreated : IEvent<IEventCharacterCreated>
 {
     void OnCharacterCreated(Character character);
 
@@ -179,7 +179,7 @@ internal interface IEventCharacterCreated : IEvent<IEventCharacterCreated>
 }
 
 // TODO: harmony-fy
-internal interface IEventHumanCPRSuccess : IEvent<IEventHumanCPRSuccess>
+public interface IEventHumanCPRSuccess : IEvent<IEventHumanCPRSuccess>
 {
     void OnCharacterCPRSuccess(HumanoidAnimController animController);
 
@@ -200,7 +200,7 @@ internal interface IEventHumanCPRSuccess : IEvent<IEventHumanCPRSuccess>
 }
 
 // TODO: harmony-fy
-internal interface IEventHumanCPRFailed : IEvent<IEventHumanCPRFailed>
+public interface IEventHumanCPRFailed : IEvent<IEventHumanCPRFailed>
 {
     void OnCharacterCPRFailed(HumanoidAnimController animController);
 
@@ -221,7 +221,7 @@ internal interface IEventHumanCPRFailed : IEvent<IEventHumanCPRFailed>
 }
 
 // TODO: harmony-fy
-internal interface IEventClientControlHusk : IEvent<IEventClientControlHusk>
+public interface IEventClientControlHusk : IEvent<IEventClientControlHusk>
 {
     void OnClientControlHusk(Client client, Character husk);
 
@@ -242,7 +242,7 @@ internal interface IEventClientControlHusk : IEvent<IEventClientControlHusk>
 }
 
 // TODO: harmony-fy
-internal interface IEventMeleeWeaponHandleImpact : IEvent<IEventMeleeWeaponHandleImpact>
+public interface IEventMeleeWeaponHandleImpact : IEvent<IEventMeleeWeaponHandleImpact>
 {
     void OnMeleeWeaponHandleImpact(MeleeWeapon meleeWeapon, Body target);
 
@@ -263,7 +263,7 @@ internal interface IEventMeleeWeaponHandleImpact : IEvent<IEventMeleeWeaponHandl
 }
 
 // TODO: harmony-fy
-internal interface IEventServerLog : IEvent<IEventServerLog>
+public interface IEventServerLog : IEvent<IEventServerLog>
 {
     void OnServerLog(string line, ServerLog.MessageType messageType);
 
@@ -284,7 +284,7 @@ internal interface IEventServerLog : IEvent<IEventServerLog>
 }
 
 // TODO: harmony-fy
-internal interface IEventChatMessage : IEvent<IEventChatMessage>
+public interface IEventChatMessage : IEvent<IEventChatMessage>
 {
     bool? OnChatMessage(string messageText, Client sender, ChatMessageType type, ChatMessage message);
 
@@ -311,7 +311,7 @@ internal interface IEventChatMessage : IEvent<IEventChatMessage>
 }
 
 // TODO: harmony-fy
-internal interface IEventTryClientChangeName : IEvent<IEventTryClientChangeName>
+public interface IEventTryClientChangeName : IEvent<IEventTryClientChangeName>
 {
     bool? OnTryClienChangeName(Client client, string newName, Identifier newJob, CharacterTeamType newTeam);
 
@@ -338,7 +338,7 @@ internal interface IEventTryClientChangeName : IEvent<IEventTryClientChangeName>
 }
 
 // TODO: harmony-fy
-internal interface IEventChangeFallDamage : IEvent<IEventChangeFallDamage>
+public interface IEventChangeFallDamage : IEvent<IEventChangeFallDamage>
 {
     float? OnChangeFallDamage(float impactDamage, Character character, Vector2 impactPos, Vector2 velocity);
 
@@ -365,7 +365,7 @@ internal interface IEventChangeFallDamage : IEvent<IEventChangeFallDamage>
 }
 
 // TODO: harmony-fy
-internal interface IEventGapOxygenUpdate : IEvent<IEventGapOxygenUpdate>
+public interface IEventGapOxygenUpdate : IEvent<IEventGapOxygenUpdate>
 {
     bool? OnGapOxygenUpdate(Gap gap, Hull hull1, Hull hull2);
 
@@ -392,7 +392,7 @@ internal interface IEventGapOxygenUpdate : IEvent<IEventGapOxygenUpdate>
 }
 
 // TODO: harmony-fy
-internal interface IEventCharacterApplyDamage : IEvent<IEventCharacterApplyDamage>
+public interface IEventCharacterApplyDamage : IEvent<IEventCharacterApplyDamage>
 {
     bool? OnCharacterApplyDamage(CharacterHealth characterHealth, AttackResult attackResult, Limb hitLimb, bool allowStacking);
 
@@ -419,7 +419,7 @@ internal interface IEventCharacterApplyDamage : IEvent<IEventCharacterApplyDamag
 }
 
 // TODO: harmony-fy
-internal interface IEventCharacterApplyAffliction : IEvent<IEventCharacterApplyAffliction>
+public interface IEventCharacterApplyAffliction : IEvent<IEventCharacterApplyAffliction>
 {
     bool? OnCharacterApplyAffliction(CharacterHealth characterHealth, CharacterHealth.LimbHealth limbHealth, Affliction newAffliction, bool allowStacking);
 
@@ -446,7 +446,7 @@ internal interface IEventCharacterApplyAffliction : IEvent<IEventCharacterApplyA
 }
 
 // TODO: harmony-fy
-internal interface IEventItemReadPropertyChange : IEvent<IEventItemReadPropertyChange>
+public interface IEventItemReadPropertyChange : IEvent<IEventItemReadPropertyChange>
 {
     bool? OnItemReadPropertyChange(Item item, SerializableProperty property, object parentObject, bool allowEditing, Client sender);
 
@@ -473,7 +473,7 @@ internal interface IEventItemReadPropertyChange : IEvent<IEventItemReadPropertyC
 }
 
 // TODO: harmony-fy
-internal interface IEventCanUseVoiceRadio : IEvent<IEventCanUseVoiceRadio>
+public interface IEventCanUseVoiceRadio : IEvent<IEventCanUseVoiceRadio>
 {
     bool? OnCanUseVoiceRadio(Client sender, Client recipient);
 
@@ -500,7 +500,7 @@ internal interface IEventCanUseVoiceRadio : IEvent<IEventCanUseVoiceRadio>
 }
 
 // TODO: harmony-fy
-internal interface IEventChangeLocalVoiceRange : IEvent<IEventChangeLocalVoiceRange>
+public interface IEventChangeLocalVoiceRange : IEvent<IEventChangeLocalVoiceRange>
 {
     float? OnChangeLocalVoiceRange(Client sender, Client recipient);
 
@@ -527,7 +527,7 @@ internal interface IEventChangeLocalVoiceRange : IEvent<IEventChangeLocalVoiceRa
 }
 
 // TODO: harmony-fy
-internal interface IEventItemDeconstructed : IEvent<IEventItemDeconstructed>
+public interface IEventItemDeconstructed : IEvent<IEventItemDeconstructed>
 {
     bool? OnItemDeconstructed(Item item, Deconstructor deconstructor, Character user, bool allowRemove);
 
@@ -554,7 +554,7 @@ internal interface IEventItemDeconstructed : IEvent<IEventItemDeconstructed>
 }
 
 // TODO: harmony-fy
-internal interface IEventWifiSignalTransmitted : IEvent<IEventWifiSignalTransmitted>
+public interface IEventWifiSignalTransmitted : IEvent<IEventWifiSignalTransmitted>
 {
     bool? OnWifiSignalTransmitted(WifiComponent wifiComponent, Signal signal, bool sentFromChat);
 
@@ -580,7 +580,7 @@ internal interface IEventWifiSignalTransmitted : IEvent<IEventWifiSignalTransmit
     }
 }
 
-internal interface IEventCharacterDeath : IEvent<IEventCharacterDeath>
+public interface IEventCharacterDeath : IEvent<IEventCharacterDeath>
 {
     void OnCharacterDeath(Character character, Affliction causeOfDeathAffliction, CauseOfDeathType causeOfDeathType);
 
@@ -689,7 +689,7 @@ public interface IEventRoundEnded : IEvent<IEventRoundEnded>
     }
 }
 
-internal interface IEventMissionsEnded : IEvent<IEventMissionsEnded>
+public interface IEventMissionsEnded : IEvent<IEventMissionsEnded>
 {
     void OnMissionsEnded(IReadOnlyList<Mission> missions);
 
@@ -754,7 +754,7 @@ public interface IEventDrawUpdate : IEvent<IEventDrawUpdate>
     }
 }
 
-interface IEventSignalReceived : IEvent<IEventSignalReceived>
+public interface IEventSignalReceived : IEvent<IEventSignalReceived>
 {
     void OnSignalReceived(Signal signal, Connection connection);
 
@@ -774,7 +774,7 @@ interface IEventSignalReceived : IEvent<IEventSignalReceived>
     }
 }
 
-interface IEventItemCreated : IEvent<IEventItemCreated>
+public interface IEventItemCreated : IEvent<IEventItemCreated>
 {
     void OnItemCreated(Item item);
 
@@ -794,7 +794,7 @@ interface IEventItemCreated : IEvent<IEventItemCreated>
     }
 }
 
-interface IEventItemRemoved : IEvent<IEventItemRemoved>
+public interface IEventItemRemoved : IEvent<IEventItemRemoved>
 {
     void OnItemRemoved(Item item);
 
@@ -814,7 +814,7 @@ interface IEventItemRemoved : IEvent<IEventItemRemoved>
     }
 }
 
-interface IEventItemUse : IEvent<IEventItemUse>
+public interface IEventItemUse : IEvent<IEventItemUse>
 {
     bool? OnItemUsed(Item item, Character user, Limb targetLimb, Entity useTarget);
 
@@ -840,7 +840,7 @@ interface IEventItemUse : IEvent<IEventItemUse>
     }
 }
 
-interface IEventItemSecondaryUse : IEvent<IEventItemSecondaryUse>
+public interface IEventItemSecondaryUse : IEvent<IEventItemSecondaryUse>
 {
     bool? OnItemSecondaryUsed(Item item, Character user);
 
@@ -866,7 +866,7 @@ interface IEventItemSecondaryUse : IEvent<IEventItemSecondaryUse>
     }
 }
 
-interface IEventCharacterDamageLimb : IEvent<IEventCharacterDamageLimb>
+public interface IEventCharacterDamageLimb : IEvent<IEventCharacterDamageLimb>
 {
     AttackResult? OnCharacterDamageLimb(Character character, Vector2 worldPosition, Limb hitLimb, IEnumerable<Affliction> afflictions, float stun, bool playSound, Vector2 attackImpulse, Character attacker = null, float damageMultiplier = 1, bool allowStacking = true, float penetration = 0f, bool shouldImplode = false);
 
@@ -897,7 +897,7 @@ interface IEventCharacterDamageLimb : IEvent<IEventCharacterDamageLimb>
     }
 }
 
-interface IEventInventoryPutItem : IEvent<IEventInventoryPutItem>
+public interface IEventInventoryPutItem : IEvent<IEventInventoryPutItem>
 {
     bool? OnInventoryPutItem(Inventory inventory, Item item, Character user, int i, bool removeItem);
 
@@ -923,7 +923,7 @@ interface IEventInventoryPutItem : IEvent<IEventInventoryPutItem>
     }
 }
 
-interface IEventInventoryItemSwap : IEvent<IEventInventoryItemSwap>
+public interface IEventInventoryItemSwap : IEvent<IEventInventoryItemSwap>
 {
     bool? OnInventoryItemSwap(Inventory inventory, Item item, Character user, int i, bool swapWholeStack);
 
@@ -993,7 +993,7 @@ public interface IEventClientRawNetMessageReceived : IEvent<IEventClientRawNetMe
 /// <summary>
 /// Called when a client connects to the server.
 /// </summary>
-interface IEventClientConnected : IEvent<IEventClientConnected>
+public interface IEventClientConnected : IEvent<IEventClientConnected>
 {
     /// <summary>
     /// Called when a client connects to the server.
@@ -1020,7 +1020,7 @@ interface IEventClientConnected : IEvent<IEventClientConnected>
 /// <summary>
 /// Called when a client disconnects from the server.
 /// </summary>
-interface IEventClientDisconnected : IEvent<IEventClientDisconnected>
+public interface IEventClientDisconnected : IEvent<IEventClientDisconnected>
 {
     /// <summary>
     /// Called when a client connects to the server.
@@ -1044,7 +1044,7 @@ interface IEventClientDisconnected : IEvent<IEventClientDisconnected>
     }
 }
 
-interface IEventJobsAssigned : IEvent<IEventJobsAssigned>
+public interface IEventJobsAssigned : IEvent<IEventJobsAssigned>
 {
     /// <summary>
     /// Called when a client connects to the server.

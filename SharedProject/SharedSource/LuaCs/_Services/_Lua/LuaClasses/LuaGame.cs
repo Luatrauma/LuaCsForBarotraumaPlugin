@@ -11,7 +11,7 @@ using MoonSharp.Interpreter;
 
 namespace Barotrauma.LuaCs
 {
-    partial class LuaGame : IReusableService
+    public partial class LuaGame : IReusableService
     {
         public bool IsSingleplayer => GameMain.IsSingleplayer;
         public bool IsMultiplayer => GameMain.IsMultiplayer;
