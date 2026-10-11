@@ -9,10 +9,10 @@ namespace Barotrauma.LuaCs;
 #if CLIENT
 public delegate void NetMessageReceived(IReadMessage netMessage);
 #elif SERVER
-internal delegate void NetMessageReceived(IReadMessage netMessage, Client connection);
+public delegate void NetMessageReceived(IReadMessage netMessage, Client connection);
 #endif
 
-internal interface INetworkingService : IReusableService, ILuaCsNetworking, IEntityNetworkingService
+public interface INetworkingService : IReusableService, ILuaCsNetworking, IEntityNetworkingService
 {
     bool IsActive { get; }
     bool IsSynchronized { get; }

@@ -397,9 +397,19 @@ public sealed class AssemblyLoader : AssemblyLoadContext, IAssemblyLoaderService
                 Assembly assembly;
                 if (redirectedAssembly is not null)
                 {
-                    using var redirectedStream = new MemoryStream(redirectedAssembly);
-                    assembly = LoadFromStream(redirectedStream);
-                    _loadedAssemblyData[assembly] = new AssemblyData(assembly, redirectedAssembly);
+                    string? redirectedPath = LegacyTypeRedirector.WriteRedirectedAssembly(sanitizedFilePath, redirectedAssembly);
+                    if (redirectedPath is not null)
+                    {
+                        assembly = LoadFromAssemblyPath(redirectedPath);
+                        _loadedAssemblyData[assembly] = new AssemblyData(assembly, redirectedPath);
+                    }
+                    else
+                    {
+                        // Fallback to loading in memory
+                        using var redirectedStream = new MemoryStream(redirectedAssembly);
+                        assembly = LoadFromStream(redirectedStream);
+                        _loadedAssemblyData[assembly] = new AssemblyData(assembly, redirectedAssembly);
+                    }
                 }
                 else
                 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Barotrauma.LuaCs.Compatibility;
 
-internal interface ILuaCsNetworking : ILuaCsShim
+public interface ILuaCsNetworking : ILuaCsShim
 {
     void CreateEntityEvent(INetSerializable entity, NetEntityEvent.IData extraData);
     ushort LastClientListUpdateID { get; set; }

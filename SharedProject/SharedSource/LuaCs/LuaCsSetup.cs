@@ -22,7 +22,7 @@ namespace Barotrauma
     internal delegate void LuaCsExceptionHandler(Exception ex, LuaCsMessageOrigin origin);
     
 
-    partial class LuaCsSetup : IDisposable, IEventScreenSelected, IEventEnabledPackageListChanged, 
+    public partial class LuaCsSetup : IDisposable, IEventScreenSelected, IEventEnabledPackageListChanged, 
         IEventReloadAllPackages
     {
         public const string PackageName = "LuaCsForBarotraumaPlugin";

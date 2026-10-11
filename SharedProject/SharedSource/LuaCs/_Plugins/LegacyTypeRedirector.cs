@@ -13,6 +13,34 @@ internal static class LegacyTypeRedirector
 {
     private static readonly string[] GameAssemblyNames = { "Barotrauma", "BarotraumaCore", "DedicatedServer" };
 
+    public static string? WriteRedirectedAssembly(string originalPath, byte[] redirectedAssembly)
+    {
+        try
+        {
+            string directory = Path.GetDirectoryName(originalPath)!;
+            string fileName = Path.GetFileName(originalPath);
+
+            foreach (string oldCopy in Directory.GetFiles(directory, $"{fileName}.*.luacs"))
+            {
+                try 
+                {
+                    // Delete previous copies
+                    File.Delete(oldCopy); 
+                } 
+                catch { }
+            }
+
+            string redirectedPath = Path.Combine(directory, $"{fileName}.{Guid.NewGuid():N}.luacs");
+            File.WriteAllBytes(redirectedPath, redirectedAssembly);
+            return redirectedPath;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+
     /// <summary>
     /// Returns the rewritten assembly bytes, or null if nothing had to be redirected.
     /// </summary>
