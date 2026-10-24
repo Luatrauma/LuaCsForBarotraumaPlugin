@@ -63,3 +63,5 @@ Refs/*
 !Refs/readme.txt
 
 UserBuildData.props
+ContentPackageBuilder/Content/Publicized/*
+ContentPackageBuilder/Content/Publicized/.empty!

@@ -6,6 +6,20 @@
 
   <Import Project="..\BuildData.props" />
 
+  <ItemGroup>
+    <PackageReference Include="Barotrauma.ReferenceAssemblies.Vanilla.Publicized" GeneratePathProperty="true" Version="*-*" ExcludeAssets="all" PrivateAssets="all" />
+  </ItemGroup>
+
+  <Target Name="UpdatePublicizedAssemblies" BeforeTargets="CopyModFiles" Condition="'$(PkgBarotrauma_ReferenceAssemblies_Vanilla_Publicized)' != ''">
+    <ItemGroup>
+      <PublicizedAssemblyFiles Include="$(PkgBarotrauma_ReferenceAssemblies_Vanilla_Publicized)\assemblies\Windows\*.dll" />
+      <PublicizedAssemblyFiles Include="$(PkgBarotrauma_ReferenceAssemblies_Vanilla_Publicized)\assemblies\Windows\*.pdb" />
+      <PublicizedAssemblyFiles Include="$(PkgBarotrauma_ReferenceAssemblies_Vanilla_Publicized)\assemblies\Windows\*.xml" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(PublicizedAssemblyFiles)" DestinationFolder="$(MSBuildThisFileDirectory)Content\Publicized" SkipUnchangedFiles="true" />
+  </Target>
+
   <UsingTask TaskName="ReplaceTokenInFile" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <FilePath ParameterType="System.String" Required="true" />
