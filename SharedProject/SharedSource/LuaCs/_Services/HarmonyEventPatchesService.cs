@@ -39,6 +39,7 @@ internal class HarmonyEventPatchesService : ISystem
     private void Patch()
     {
         this.Harmony?.PatchAll(typeof(HarmonyEventPatchesService));
+        this.Harmony?.PatchAll(typeof(ReflectionUtilsPatches));
 #if SERVER
         this.Harmony?.PatchAll(typeof(HarmonyEventPatchesService.Patch_StartGame_End));
 #endif

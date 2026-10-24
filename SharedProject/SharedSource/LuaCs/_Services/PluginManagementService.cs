@@ -185,7 +185,7 @@ public class PluginManagementService : IAssemblyManagementService
         _pluginInjectorContainer?.Dispose();
         _pluginInjectorContainer = null;
         
-        //ReflectionUtils.ResetCache(); TODO
+        ReflectionUtilsPatches.ResetCache();
         foreach (var loader in _assemblyLoaders)
         {
             try
@@ -573,7 +573,7 @@ public class PluginManagementService : IAssemblyManagementService
             LoadAndCompileScriptAssemblies(contentPack);
             foreach (var ass in _assemblyLoaders[contentPack.Key].Assemblies)
             {
-                //ReflectionUtils.AddNonAbstractAssemblyTypes(ass);
+                ReflectionUtilsPatches.AddNonAbstractAssemblyTypes(ass);
             }
         }
         
@@ -909,7 +909,7 @@ public class PluginManagementService : IAssemblyManagementService
         }
         _pluginInjectorContainer = null;
         
-        //ReflectionUtils.ResetCache();
+        ReflectionUtilsPatches.ResetCache();
         foreach (var loaderService in _assemblyLoaders)
         {
             try
