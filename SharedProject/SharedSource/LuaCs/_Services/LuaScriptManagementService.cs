@@ -304,6 +304,7 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
         _eventService.RegisterLuaEventAlias<IEventMissionsEnded>("missionsEnded", nameof(IEventMissionsEnded.OnMissionsEnded));
 
         _eventService.RegisterLuaEventAlias<IEventSignalReceived>("signalReceived", nameof(IEventSignalReceived.OnSignalReceived));
+        _eventService.RegisterLuaEventAlias<IEventWifiSignalTransmitted>("wifiSignalTransmitted", nameof(IEventWifiSignalTransmitted.OnWifiSignalTransmitted));
 
         _eventService.RegisterLuaEventAlias<IEventItemCreated>("item.created", nameof(IEventItemCreated.OnItemCreated));
         _eventService.RegisterLuaEventAlias<IEventItemRemoved>("item.removed", nameof(IEventItemRemoved.OnItemRemoved));

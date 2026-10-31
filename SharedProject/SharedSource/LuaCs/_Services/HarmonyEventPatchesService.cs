@@ -42,6 +42,7 @@ internal class HarmonyEventPatchesService : ISystem
         this.Harmony?.PatchAll(typeof(ReflectionUtilsPatches));
 #if SERVER
         this.Harmony?.PatchAll(typeof(HarmonyEventPatchesService.Patch_StartGame_End));
+        this.Harmony?.PatchAll(typeof(HarmonyEventPatchesService.Patch_CreateAIHusk));
 #endif
     }
 
@@ -183,6 +184,23 @@ internal class HarmonyEventPatchesService : ISystem
         return true;
     }
 
+    [HarmonyPatch(typeof(GameClient), nameof(GameClient.AddChatMessage)), HarmonyPrefix]
+    public static bool GameClient_AddChatMessage_Pre(ChatMessage message)
+    {
+        bool? should = null;
+        _eventService.PublishEvent<IEventChatMessage>(x => should = x.OnChatMessage(message.Text, message.SenderClient, message.Type, message) ?? should);
+        return should != true;
+    }
+
+    [HarmonyPatch(typeof(ChatBox), nameof(ChatBox.AddMessage)), HarmonyPrefix]
+    public static bool ChatBox_AddMessage_Pre(ChatMessage message)
+    {
+        if (!GameMain.IsSingleplayer) { return true; }
+
+        bool? should = null;
+        _eventService.PublishEvent<IEventChatMessage>(x => should = x.OnChatMessage(message.Text, message.SenderClient, message.Type, message) ?? should);
+        return should != true;
+    }
 
 #elif SERVER
     [HarmonyPatch(typeof(GameServer), "ReadDataMessage"), HarmonyPrefix]
@@ -223,6 +241,121 @@ internal class HarmonyEventPatchesService : ISystem
     public static void GameServer_AssignJobs_Post(List<Client> unassigned)
     {
         _eventService.PublishEvent<IEventJobsAssigned>(x => x.OnJobsAssigned(unassigned));
+    }
+
+    private static bool _isReadingChatMessage;
+    private static ChatMessageType _readChatMessageType;
+
+    [HarmonyPatch(typeof(ChatMessage), nameof(ChatMessage.ServerRead)), HarmonyPrefix]
+    public static void ChatMessage_ServerRead_Pre(IReadMessage msg)
+    {
+        int prevBitPosition = msg.BitPosition;
+        msg.ReadUInt16();
+        _readChatMessageType = (ChatMessageType)msg.ReadRangedInteger(0, Enum.GetValues(typeof(ChatMessageType)).Length - 1);
+        msg.BitPosition = prevBitPosition;
+        _isReadingChatMessage = true;
+    }
+
+    [HarmonyPatch(typeof(ChatMessage), nameof(ChatMessage.ServerRead)), HarmonyFinalizer]
+    public static void ChatMessage_ServerRead_Finalizer()
+    {
+        _isReadingChatMessage = false;
+    }
+
+    [HarmonyPatch(typeof(ChatMessage), nameof(ChatMessage.HandleSpamFilter)), HarmonyPostfix]
+    public static void ChatMessage_HandleSpamFilter_Post(Client c, string messageText, ref bool flaggedAsSpam)
+    {
+        if (!_isReadingChatMessage || flaggedAsSpam) { return; }
+        _isReadingChatMessage = false;
+
+        ChatMessageType type = _readChatMessageType;
+        bool? should = null;
+        _eventService.PublishEvent<IEventChatMessage>(x => should = x.OnChatMessage(messageText, c, type, ChatMessage.Create(c.Name, messageText, type, null, c)) ?? should);
+        if (should == true)
+        {
+            flaggedAsSpam = true;
+        }
+    }
+
+    private static bool _isInsideServerLog;
+
+    [HarmonyPatch(typeof(GameServer), nameof(GameServer.Log)), HarmonyPrefix]
+    public static void GameServer_Log_Pre(string line, ServerLog.MessageType messageType)
+    {
+        if (GameMain.Server == null || !GameMain.Server.ServerSettings.SaveServerLogs) { return; }
+        if (_isInsideServerLog) { return; }
+
+        _isInsideServerLog = true;
+        try
+        {
+            _eventService.PublishEvent<IEventServerLog>(x => x.OnServerLog(line, messageType));
+        }
+        finally
+        {
+            _isInsideServerLog = false;
+        }
+    }
+
+    private static bool _isReadingClientNameChange;
+
+    [HarmonyPatch(typeof(GameServer), nameof(GameServer.ReadClientNameChange)), HarmonyPrefix]
+    public static void GameServer_ReadClientNameChange_Pre()
+    {
+        _isReadingClientNameChange = true;
+    }
+
+    [HarmonyPatch(typeof(GameServer), nameof(GameServer.ReadClientNameChange)), HarmonyFinalizer]
+    public static void GameServer_ReadClientNameChange_Finalizer()
+    {
+        _isReadingClientNameChange = false;
+    }
+
+    [HarmonyPatch(typeof(GameServer), nameof(GameServer.TryChangeClientName)), HarmonyPrefix]
+    public static bool GameServer_TryChangeClientName_Pre(GameServer __instance, Client c, string newName, bool clientRenamingSelf, ref bool __result)
+    {
+        if (!_isReadingClientNameChange || !clientRenamingSelf) { return true; }
+
+        bool? result = null;
+        _eventService.PublishEvent<IEventTryClientChangeName>(x => result = x.OnTryClienChangeName(c, newName, c.PreferredJob, c.PreferredTeam) ?? result);
+        if (result == null) { return true; }
+
+        __instance.LastClientListUpdateID++;
+        __result = result.Value;
+        return false;
+    }
+
+    [HarmonyPatch(typeof(VoipServer), nameof(VoipServer.CanReceive)), HarmonyPrefix]
+    public static bool VoipServer_CanReceive_Pre(Client sender, Client recipient, ref float distanceFactor, ref bool isRadio, ref bool __result)
+    {
+        if (Screen.Selected != GameMain.GameScreen) { return true; }
+        if (sender.Muted) { return true; }
+
+        bool recipientSpectating = recipient.Character == null || recipient.Character.IsDead;
+        bool senderSpectating = sender.Character == null || sender.Character.IsDead;
+        if (senderSpectating) { return true; }
+        if (sender.Character!.SpeechImpediment >= 100.0f) { return true; }
+        if (sender.VoipQueue.ForceLocal) { return true; }
+        if (!ChatMessage.CanUseRadio(sender.Character, out _)) { return true; }
+        if (!recipientSpectating && !ChatMessage.CanUseRadio(recipient.Character, out _)) { return true; }
+
+        bool? canUse = null;
+        _eventService.PublishEvent<IEventCanUseVoiceRadio>(x => canUse = x.OnCanUseVoiceRadio(sender, recipient) ?? canUse);
+        if (canUse == null) { return true; }
+
+        distanceFactor = 0.0f;
+        isRadio = canUse.Value;
+        __result = canUse.Value;
+        return false;
+    }
+
+    private static bool _isCreatingAIHusk;
+
+    [HarmonyPatch(typeof(GameServer), nameof(GameServer.SetClientCharacter)), HarmonyPostfix]
+    public static void GameServer_SetClientCharacter_Post(Client client, Character newCharacter)
+    {
+        if (!_isCreatingAIHusk || client == null || newCharacter == null) { return; }
+
+        _eventService.PublishEvent<IEventClientControlHusk>(x => x.OnClientControlHusk(client, newCharacter));
     }
 #endif
 
@@ -326,7 +459,7 @@ internal class HarmonyEventPatchesService : ISystem
         _eventService.PublishEvent<IEventItemUse>(x => result = x.OnItemUsed(__instance, user, targetLimb, useTarget));
         if (result == true)
         {
-            return false; // skip
+            return false;
         }
 
         return true;
@@ -341,7 +474,7 @@ internal class HarmonyEventPatchesService : ISystem
         _eventService.PublishEvent<IEventItemSecondaryUse>(x => result = x.OnItemSecondaryUsed(__instance, character));
         if (result == true)
         {
-            return false; // skip
+            return false;
         }
 
         return true;
@@ -354,7 +487,7 @@ internal class HarmonyEventPatchesService : ISystem
         _eventService.PublishEvent<IEventInventoryPutItem>(x => result = x.OnInventoryPutItem(__instance, item, user, i, removeItem));
         if (result == true)
         {
-            return false; // skip
+            return false;
         }
 
         return true;
@@ -377,6 +510,109 @@ internal class HarmonyEventPatchesService : ISystem
         }
 
         return true;
+    }
+
+    [HarmonyPatch(typeof(CharacterHealth), nameof(CharacterHealth.ApplyDamage)), HarmonyPrefix]
+    public static bool CharacterHealth_ApplyDamage_Pre(CharacterHealth __instance, Limb hitLimb, AttackResult attackResult, bool allowStacking)
+    {
+        if (__instance.Unkillable || __instance.Character.GodMode) { return true; }
+        if (hitLimb.HealthIndex < 0 || hitLimb.HealthIndex >= __instance.limbHealths.Count) { return true; }
+
+        bool? should = null;
+        _eventService.PublishEvent<IEventCharacterApplyDamage>(x => should = x.OnCharacterApplyDamage(__instance, attackResult, hitLimb, allowStacking) ?? should);
+        return should != true;
+    }
+
+    [HarmonyPatch(typeof(CharacterHealth), nameof(CharacterHealth.AddLimbAffliction), new Type[] { typeof(CharacterHealth.LimbHealth), typeof(Limb), typeof(Affliction), typeof(bool), typeof(bool) }), HarmonyPrefix]
+    public static bool CharacterHealth_AddLimbAffliction_Pre(CharacterHealth __instance, CharacterHealth.LimbHealth limbHealth, Affliction newAffliction, bool allowStacking)
+    {
+        Character character = __instance.Character;
+        AfflictionPrefab prefab = newAffliction.Prefab;
+        if (character.Params.IsMachine && !prefab.AffectMachines) { return true; }
+        if (!__instance.DoesBleed && newAffliction is AfflictionBleeding) { return true; }
+        if (!character.NeedsOxygen && prefab == AfflictionPrefab.OxygenLow) { return true; }
+        if (character.Params.Health.StunImmunity && prefab.AfflictionType == AfflictionPrefab.StunType)
+        {
+            if (character.EmpVulnerability <= 0 || __instance.GetAfflictionStrengthByType(AfflictionPrefab.EMPType, allowLimbAfflictions: false) <= 0) { return true; }
+        }
+        if (character.Params.Health.PoisonImmunity &&
+            (prefab.AfflictionType == AfflictionPrefab.PoisonType || prefab.AfflictionType == AfflictionPrefab.ParalysisType)) { return true; }
+        if (character.EmpVulnerability <= 0 && prefab.AfflictionType == AfflictionPrefab.EMPType) { return true; }
+        if (prefab.TargetSpecies.Any() && !prefab.TargetSpecies.Any(s => s == character.SpeciesName)) { return true; }
+        if (character.Params.Health.ImmunityIdentifiers.Contains(newAffliction.Identifier)) { return true; }
+
+        bool? should = null;
+        _eventService.PublishEvent<IEventCharacterApplyAffliction>(x => should = x.OnCharacterApplyAffliction(__instance, limbHealth, newAffliction, allowStacking) ?? should);
+        return should != true;
+    }
+
+    [HarmonyPatch(typeof(Gap), nameof(Gap.UpdateOxygen)), HarmonyPrefix]
+    public static bool Gap_UpdateOxygen_Pre(Gap __instance, Hull hull1, Hull hull2)
+    {
+        if (hull1 == null || hull2 == null) { return true; }
+        if (__instance.IsHorizontal &&
+            Math.Max(hull1.WorldSurface + hull1.WaveY[hull1.WaveY.Length - 1], hull2.WorldSurface + hull2.WaveY[0]) > __instance.WorldRect.Y)
+        {
+            return true;
+        }
+
+        bool? should = null;
+        _eventService.PublishEvent<IEventGapOxygenUpdate>(x => should = x.OnGapOxygenUpdate(__instance, hull1, hull2) ?? should);
+        return should != true;
+    }
+
+    [HarmonyPatch(typeof(MeleeWeapon), nameof(MeleeWeapon.HandleImpact)), HarmonyPrefix]
+    public static void MeleeWeapon_HandleImpact_Pre(MeleeWeapon __instance, FarseerPhysics.Dynamics.Fixture targetFixture)
+    {
+        FarseerPhysics.Dynamics.Body target = targetFixture.Body;
+        if (__instance.User == null || __instance.User.Removed || target == null) { return; }
+
+        _eventService.PublishEvent<IEventMeleeWeaponHandleImpact>(x => x.OnMeleeWeaponHandleImpact(__instance, target));
+    }
+
+    private static Ragdoll? _impactRagdoll;
+    private static Vector2 _impactPos;
+    private static Vector2 _impactVelocity;
+
+    [HarmonyPatch(typeof(Ragdoll), nameof(Ragdoll.ApplyImpact)), HarmonyPrefix]
+    public static void Ragdoll_ApplyImpact_Pre(Ragdoll __instance, Vector2 impactPos, Vector2 velocity)
+    {
+        _impactRagdoll = __instance;
+        _impactPos = impactPos;
+        _impactVelocity = velocity;
+    }
+
+    [HarmonyPatch(typeof(Ragdoll), nameof(Ragdoll.ApplyImpact)), HarmonyFinalizer]
+    public static void Ragdoll_ApplyImpact_Finalizer()
+    {
+        _impactRagdoll = null;
+    }
+
+    [HarmonyPatch(typeof(Ragdoll), nameof(Ragdoll.GetImpactDamage)), HarmonyPostfix]
+    public static void Ragdoll_GetImpactDamage_Post(Ragdoll __instance, ref float __result)
+    {
+        if (_impactRagdoll != __instance) { return; }
+
+        Character character = __instance.character;
+        Vector2 impactPos = FarseerPhysics.ConvertUnits.ToDisplayUnits(_impactPos);
+        if (character.Submarine != null) { impactPos += character.Submarine.Position; }
+
+        float impactDamage = __result;
+        Vector2 velocity = _impactVelocity;
+        float? should = null;
+        _eventService.PublishEvent<IEventChangeFallDamage>(x => should = x.OnChangeFallDamage(impactDamage, character, impactPos, velocity) ?? should);
+        if (should != null)
+        {
+            __result = should.Value;
+        }
+    }
+
+    [HarmonyPatch(typeof(WifiComponent), nameof(WifiComponent.TransmitSignal)), HarmonyPrefix]
+    public static bool WifiComponent_TransmitSignal_Pre(WifiComponent __instance, Signal signal, bool sentFromChat)
+    {
+        bool? should = null;
+        _eventService.PublishEvent<IEventWifiSignalTransmitted>(x => should = x.OnWifiSignalTransmitted(__instance, signal, sentFromChat) ?? should);
+        return should != true;
     }
 
     public void Dispose()
@@ -411,6 +647,27 @@ internal class HarmonyEventPatchesService : ISystem
             {
                 _eventService.PublishEvent<IEventRoundStarted>(x => x.OnRoundStart());
             }
+        }
+    }
+
+    [HarmonyPatch]
+    class Patch_CreateAIHusk
+    {
+        static MethodBase TargetMethod()
+        {
+            return AccessTools.EnumeratorMoveNext(AccessTools.Method(typeof(AfflictionHusk), nameof(AfflictionHusk.CreateAIHusk)));
+        }
+
+        [HarmonyPrefix]
+        static void Prefix()
+        {
+            _isCreatingAIHusk = true;
+        }
+
+        [HarmonyFinalizer]
+        static void Finalizer()
+        {
+            _isCreatingAIHusk = false;
         }
     }
 #endif
