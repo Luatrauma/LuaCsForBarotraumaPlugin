@@ -76,6 +76,39 @@ public class DefaultLuaRegistrar : IDefaultLuaRegistrar
     }
 #endif
 
+#if SERVER
+    private class NetLobbyScreenSubsMemberDescriptor : IMemberDescriptor
+    {
+        public bool IsStatic => false;
+        public string Name => "subs";
+
+        public MemberDescriptorAccess MemberAccess => MemberDescriptorAccess.CanRead | MemberDescriptorAccess.CanWrite;
+
+        private static List<SubmarineInfo> GetSubs(object obj)
+        {
+            if (obj is not NetLobbyScreen netLobbyScreen)
+            {
+                throw new ScriptRuntimeException("subs can only be accessed on a NetLobbyScreen.");
+            }
+
+            return (List<SubmarineInfo>)netLobbyScreen.GetSubList();
+        }
+
+        public DynValue GetValue(Script script, object obj)
+        {
+            return DynValue.FromObject(script, GetSubs(obj));
+        }
+
+        public void SetValue(Script script, object obj, DynValue value)
+        {
+            List<SubmarineInfo> subs = GetSubs(obj);
+            var newSubs = ((List<SubmarineInfo>)value.ToObject(typeof(List<SubmarineInfo>))).ToArray();
+            subs.Clear();
+            subs.AddRange(newSubs);
+        }
+    }
+#endif
+
     public DefaultLuaRegistrar(ILoggerService loggerService, ILuaUserDataService userDataService, ISafeLuaUserDataService safeUserDataService)
     {
         _userDataService = userDataService;
@@ -159,8 +192,10 @@ public class DefaultLuaRegistrar : IDefaultLuaRegistrar
         {
             var descriptor = _userDataService.RegisterType("Barotrauma.NetLobbyScreen");
 
-#if SERVER                
-            _userDataService.MakeFieldAccessible(descriptor, "subs");
+#if SERVER
+            var netLobbyScreenDescriptor = (StandardUserDataDescriptor)descriptor;
+            netLobbyScreenDescriptor.RemoveMember("subs");
+            netLobbyScreenDescriptor.AddMember("subs", new NetLobbyScreenSubsMemberDescriptor());
 #endif
         }
 
