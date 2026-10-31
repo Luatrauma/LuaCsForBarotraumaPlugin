@@ -105,7 +105,7 @@ public class PluginManagementService : IAssemblyManagementService
         {
             if (_baseMetadataReferences.IsDefaultOrEmpty)
             {
-                _baseMetadataReferences = Basic.Reference.Assemblies.Net80.References.All
+                _baseMetadataReferences = Net80References
                     .Union(
                         AssemblyLoadContext.Default.Assemblies
                         .Union(AssemblyLoadContext.GetLoadContext(typeof(LuaCsSetup).Assembly).Assemblies)
@@ -115,7 +115,6 @@ public class PluginManagementService : IAssemblyManagementService
                             !ass.GetName().FullName.StartsWith("Barotrauma") &&
                             !ass.GetName().FullName.StartsWith("DedicatedServer"))
                         .Where(ass => !ass.Location.IsNullOrWhiteSpace())
-                        .Where(ass => !ExcludedLoadedAssemblies.Contains(ass.GetName().Name))
                         .Select(MetadataReference (ass) => MetadataReference.CreateFromFile(ass.Location)))
                     .Where(ar => ar is not null)
                     .ToImmutableArray();
@@ -131,11 +130,10 @@ public class PluginManagementService : IAssemblyManagementService
         {
             if (_baseMetadataReferencesNonPublicized.IsDefaultOrEmpty)
             {
-                _baseMetadataReferencesNonPublicized = Basic.Reference.Assemblies.Net80.References.All
+                _baseMetadataReferencesNonPublicized = Net80References
                     .Union(AssemblyLoadContext.Default.Assemblies
                         .Where(ass => !ass.IsDynamic)
                         .Where(ass => !ass.Location.IsNullOrWhiteSpace())
-                        .Where(ass => !ExcludedLoadedAssemblies.Contains(ass.GetName().Name))
                         .Select(MetadataReference (ass) => MetadataReference.CreateFromFile(ass.Location)))
                     .Where(ar => ar is not null)
                     .ToImmutableArray();
@@ -145,7 +143,10 @@ public class PluginManagementService : IAssemblyManagementService
         }
     }
 
-    private static readonly string[] ExcludedLoadedAssemblies = { "System.Collections.Immutable", "System.Reflection.Metadata" };
+    private static readonly string[] ExcludedNet80References = { "System.Collections.Immutable", "System.Reflection.Metadata" };
+
+    private static IEnumerable<MetadataReference> Net80References => Basic.Reference.Assemblies.Net80.References.All
+        .Where(r => !ExcludedNet80References.Contains(System.IO.Path.GetFileNameWithoutExtension(r.FilePath)));
 
     #endregion
     
