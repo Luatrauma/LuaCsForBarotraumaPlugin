@@ -115,6 +115,7 @@ public class PluginManagementService : IAssemblyManagementService
                             !ass.GetName().FullName.StartsWith("Barotrauma") &&
                             !ass.GetName().FullName.StartsWith("DedicatedServer"))
                         .Where(ass => !ass.Location.IsNullOrWhiteSpace())
+                        .Where(ass => !ExcludedLoadedAssemblies.Contains(ass.GetName().Name))
                         .Select(MetadataReference (ass) => MetadataReference.CreateFromFile(ass.Location)))
                     .Where(ar => ar is not null)
                     .ToImmutableArray();
@@ -134,6 +135,7 @@ public class PluginManagementService : IAssemblyManagementService
                     .Union(AssemblyLoadContext.Default.Assemblies
                         .Where(ass => !ass.IsDynamic)
                         .Where(ass => !ass.Location.IsNullOrWhiteSpace())
+                        .Where(ass => !ExcludedLoadedAssemblies.Contains(ass.GetName().Name))
                         .Select(MetadataReference (ass) => MetadataReference.CreateFromFile(ass.Location)))
                     .Where(ar => ar is not null)
                     .ToImmutableArray();
@@ -142,7 +144,9 @@ public class PluginManagementService : IAssemblyManagementService
             return _baseMetadataReferencesNonPublicized;
         }
     }
-    
+
+    private static readonly string[] ExcludedLoadedAssemblies = { "System.Collections.Immutable", "System.Reflection.Metadata" };
+
     #endregion
     
     #region Disposal
@@ -762,7 +766,7 @@ public class PluginManagementService : IAssemblyManagementService
                     builder.AddRange(loaderService.Value.AssemblyReferences.Where(ar => ar is not null));
                 }
             }
-            
+
             return builder.ToImmutable();
         }
     }
