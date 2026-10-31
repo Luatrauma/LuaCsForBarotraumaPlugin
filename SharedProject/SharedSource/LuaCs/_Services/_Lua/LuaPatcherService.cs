@@ -329,30 +329,17 @@ namespace Barotrauma.LuaCs
                 }
                 else
                 {
-                    ConstructorInfo GetCtor()
-                    {
-                        var ctors = classType.GetConstructors(BINDING_FLAGS)
-                            .Except(new[] { classType.TypeInitializer })
-                            .GetEnumerator();
-
-                        if (!ctors.MoveNext()) return null;
-                        var ctor = ctors.Current;
-
-                        if (ctors.MoveNext()) throw new AmbiguousMatchException();
-                        return ctor;
-                    }
-
                     method = methodName switch
                     {
                         ".cctor" => throw new ScriptRuntimeException("type initializers can't have parameters"),
-                        ".ctor" => GetCtor(),
-                        _ => classType.GetMethod(methodName, BINDING_FLAGS),
+                        ".ctor" => PickOverload(classType.GetConstructors(BINDING_FLAGS).Except(new[] { classType.TypeInitializer }), className, methodName),
+                        _ => PickOverload(classType.GetMethods(BINDING_FLAGS).Where(m => m.Name == methodName), className, methodName),
                     };
                 }
             }
             catch (AmbiguousMatchException)
             {
-                throw new ScriptRuntimeException("ambiguous method signature");
+                throw new ScriptRuntimeException($"ambiguous method signature for '{className}.{methodName}', pass the parameter types to pick an overload");
             }
 
             if (method == null)
@@ -362,6 +349,27 @@ namespace Barotrauma.LuaCs
             }
 
             return method;
+        }
+
+        private static MethodBase PickOverload(IEnumerable<MethodBase> candidates, string className, string methodName)
+        {
+            var overloads = candidates.ToList();
+            if (overloads.Count == 0) { return null; }
+            if (overloads.Count == 1) { return overloads[0]; }
+
+            int maxParameterCount = overloads.Max(m => m.GetParameters().Length);
+            var widest = overloads.Where(m => m.GetParameters().Length == maxParameterCount).ToList();
+            if (widest.Count > 1)
+            {
+                throw new AmbiguousMatchException();
+            }
+
+            static string Signature(MethodBase m) => $"{m.Name}({string.Join(", ", m.GetParameters().Select(p => p.ParameterType.FullName))})";
+
+            LuaCsSetup.Instance.Logger.LogWarning(
+                $"[Lua] '{className}.{methodName}' has multiple overloads, assuming that the method with most parameters is desired ({Signature(widest[0])}), specify the parameters to choose a specific method");
+
+            return widest[0];
         }
 
         private class DynamicParameterMapping
