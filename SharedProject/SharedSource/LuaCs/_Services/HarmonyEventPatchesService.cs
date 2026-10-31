@@ -357,6 +357,68 @@ internal class HarmonyEventPatchesService : ISystem
 
         _eventService.PublishEvent<IEventClientControlHusk>(x => x.OnClientControlHusk(client, newCharacter));
     }
+
+    [HarmonyPatch(typeof(TraitorManager), nameof(TraitorManager.Update)), HarmonyPrefix]
+    public static bool TraitorManager_Update_Pre()
+    {
+        return !LuaCsSetup.Instance.Game.overrideTraitors;
+    }
+
+    [HarmonyPatch(typeof(GameServer), nameof(GameServer.SendDirectChatMessage), new Type[] { typeof(string), typeof(Client), typeof(ChatMessageType) }), HarmonyPrefix]
+    public static bool GameServer_SendDirectChatMessage_Pre(string txt)
+    {
+        return !(LuaCsSetup.Instance.Game.overrideTraitors && txt == TextManager.FormatServerMessage("KilledByTraitorNotification"));
+    }
+
+    [HarmonyPatch(typeof(RespawnManager), nameof(RespawnManager.GetClientsToRespawn)), HarmonyPostfix]
+    public static void RespawnManager_GetClientsToRespawn_Post(ref IEnumerable<Client> __result)
+    {
+        if (LuaCsSetup.Instance.Game.overrideRespawnSub)
+        {
+            __result = Enumerable.Empty<Client>();
+        }
+    }
+
+    [HarmonyPatch(typeof(RespawnManager), nameof(RespawnManager.ShouldStartRespawnCountdown), new Type[] { typeof(int) }), HarmonyPrefix]
+    public static void RespawnManager_ShouldStartRespawnCountdown_Pre(ref int characterToRespawnCount)
+    {
+        if (LuaCsSetup.Instance.Game.overrideRespawnSub)
+        {
+            characterToRespawnCount = 0;
+        }
+    }
+
+    private static bool _isShuttleDispatched;
+
+    [HarmonyPatch(typeof(RespawnManager), nameof(RespawnManager.UpdateWaiting)), HarmonyPrefix]
+    public static void RespawnManager_UpdateWaiting_Pre(RespawnManager __instance, RespawnManager.TeamSpecificState teamSpecificState, out Vector2? __state)
+    {
+        _isShuttleDispatched = false;
+        __state = LuaCsSetup.Instance.Game.overrideRespawnSub ? __instance.GetShuttle(teamSpecificState.TeamID)?.Velocity : null;
+    }
+
+    [HarmonyPatch(typeof(RespawnManager), nameof(RespawnManager.UpdateWaiting)), HarmonyPostfix]
+    public static void RespawnManager_UpdateWaiting_Post(RespawnManager __instance, RespawnManager.TeamSpecificState teamSpecificState, Vector2? __state)
+    {
+        if (__state == null || _isShuttleDispatched) { return; }
+
+        Submarine shuttle = __instance.GetShuttle(teamSpecificState.TeamID);
+        if (shuttle != null)
+        {
+            shuttle.Velocity = __state.Value;
+        }
+    }
+
+    [HarmonyPatch(typeof(RespawnManager), nameof(RespawnManager.DispatchShuttle)), HarmonyPostfix]
+    public static void RespawnManager_DispatchShuttle_Post(RespawnManager.TeamSpecificState teamSpecificState)
+    {
+        _isShuttleDispatched = true;
+
+        if (LuaCsSetup.Instance.Game.overrideRespawnSub && teamSpecificState.CurrentState == RespawnManager.State.Transporting)
+        {
+            teamSpecificState.CurrentState = RespawnManager.State.Waiting;
+        }
+    }
 #endif
 
     [HarmonyPatch(typeof(Character), nameof(Character.Create), new[] { 
