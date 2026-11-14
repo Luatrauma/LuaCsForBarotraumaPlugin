@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using static Barotrauma.ContentPackageManager;
 
 namespace Barotrauma.LuaCs;
@@ -728,6 +729,47 @@ internal class HarmonyEventPatchesService : ISystem
         __instance.ShouldWaitForInterval(entity, deltaTime);
 
         return false;
+    }
+
+    [HarmonyPatch(typeof(Deconstructor), nameof(Deconstructor.ProcessItem)), HarmonyTranspiler]
+    public static IEnumerable<CodeInstruction> Deconstructor_ProcessItem_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    {
+        var matcher = new CodeMatcher(instructions, generator).MatchStartForward(
+            new CodeMatch(ci => ci.IsLdloc()),
+            new CodeMatch(ci => ci.opcode == OpCodes.Ldfld && ((FieldInfo)ci.operand).Name == "targetItem"),
+            new CodeMatch(ci => ci.Calls(AccessTools.PropertyGetter(typeof(Item), nameof(Item.AllowDeconstruct)))),
+            new CodeMatch(ci => ci.IsLdloc()),
+            new CodeMatch(ci => ci.opcode == OpCodes.Ldfld && ((FieldInfo)ci.operand).Name == "allowRemove"));
+
+        if (matcher.IsInvalid)
+        {
+            _loggerService.LogError("Couldn't find where to insert the item.deconstructed hook in Deconstructor.ProcessItem, the hook won't be called.");
+            return matcher.InstructionEnumeration();
+        }
+
+        CodeInstruction[] loadTargetItem = { matcher.InstructionAt(0).Clone(), matcher.InstructionAt(1).Clone() };
+        CodeInstruction[] loadAllowRemove = { matcher.InstructionAt(3).Clone(), matcher.InstructionAt(4).Clone() };
+
+        var labels = matcher.Instruction.ExtractLabels();
+        var continueLabel = generator.DefineLabel();
+        matcher.Instruction.labels.Add(continueLabel);
+
+        matcher.Insert(
+            new CodeInstruction(OpCodes.Ldarg_0).WithLabels(labels),
+            loadTargetItem[0], loadTargetItem[1],
+            loadAllowRemove[0], loadAllowRemove[1],
+            new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(HarmonyEventPatchesService), nameof(Deconstructor_ItemDeconstructed))),
+            new CodeInstruction(OpCodes.Brfalse, continueLabel),
+            new CodeInstruction(OpCodes.Ret));
+
+        return matcher.InstructionEnumeration();
+    }
+
+    public static bool Deconstructor_ItemDeconstructed(Deconstructor deconstructor, Item item, bool allowRemove)
+    {
+        bool? should = null;
+        _eventService.PublishEvent<IEventItemDeconstructed>(x => should = x.OnItemDeconstructed(item, deconstructor, deconstructor.user, allowRemove) ?? should);
+        return should == true;
     }
 
     public void Dispose()
