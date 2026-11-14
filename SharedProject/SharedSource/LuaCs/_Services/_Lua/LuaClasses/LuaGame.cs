@@ -6,6 +6,7 @@ using Barotrauma.Items.Components;
 using Barotrauma.LuaCs;
 using Barotrauma.Networking;
 using FarseerPhysics.Dynamics;
+using HarmonyLib;
 using Microsoft.Xna.Framework;
 using MoonSharp.Interpreter;
 
@@ -148,7 +149,7 @@ namespace Barotrauma.LuaCs
         public bool overrideSignalRadio = false;
         public bool disableSpamFilter = false;
         public bool disableDisconnectCharacter = false;
-        public bool enableControlHusk = false;
+        private bool enableControlHusk = false;
 
         /*
         public int MapEntityUpdateInterval
@@ -313,9 +314,16 @@ namespace Barotrauma.LuaCs
         }
 
 
+        private static readonly AccessTools.FieldRef<AfflictionPrefabHusk, bool> ControlHuskRef =
+            AccessTools.FieldRefAccess<AfflictionPrefabHusk, bool>(nameof(AfflictionPrefabHusk.ControlHusk));
+
         public void EnableControlHusk(bool o)
         {
             enableControlHusk = o;
+            foreach (AfflictionPrefabHusk huskPrefab in AfflictionPrefab.Prefabs.OfType<AfflictionPrefabHusk>())
+            {
+                ControlHuskRef(huskPrefab) = o || huskPrefab.configElement.GetAttributeBool("controlhusk", false);
+            }
         }
 
         public static void Explode(Vector2 pos, float range = 100, float force = 30, float damage = 30, float structureDamage = 30, float itemDamage = 30, float empStrength = 0, float ballastFloraStrength = 0)
@@ -545,6 +553,11 @@ namespace Barotrauma.LuaCs
             //CharacterUpdateInterval = 1;
 
             _consoleCommands.RemoveRegisteredCommands();
+
+            if (enableControlHusk)
+            {
+                EnableControlHusk(false);
+            }
         }
 
         public FluentResults.Result Reset()
