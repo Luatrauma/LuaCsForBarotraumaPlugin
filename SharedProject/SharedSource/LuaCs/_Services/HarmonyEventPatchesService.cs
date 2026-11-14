@@ -687,6 +687,49 @@ internal class HarmonyEventPatchesService : ISystem
         return should != true;
     }
 
+    [HarmonyPatch(typeof(StatusEffect), nameof(StatusEffect.Apply), new Type[] { typeof(float), typeof(Entity), typeof(IReadOnlyList<ISerializableEntity>), typeof(Vector2?) }), HarmonyPrefix]
+    public static bool StatusEffect_Apply_Pre(StatusEffect __instance, float deltaTime, Entity entity, IReadOnlyList<ISerializableEntity> targets, Vector2? worldPosition)
+    {
+        if (entity is not (Item or Character)) { return true; }
+
+        if (__instance.Disabled) { return true; }
+
+        if (__instance.lifeTime > 0 && !(__instance.lifeTimer - deltaTime > 0)) 
+        { 
+            return true; 
+        }
+
+        if (entity != null && __instance.Interval > 0.0f)
+        {
+            bool waitForInterval = __instance.intervalTimers != null
+                ? __instance.intervalTimers.TryGetValue(entity, out float intervalTimer) && intervalTimer - deltaTime > 0.0f
+                : __instance.RandomizeInitialInterval;
+
+            if (waitForInterval) 
+            { 
+                return true; 
+            }
+        }
+
+        string hookName = entity is Item item
+            ? "statusEffect.apply." + item.Prefab.Identifier
+            : "statusEffect.apply." + ((Character)entity!).SpeciesName;
+
+        if (_eventService.Call<bool?>(hookName, __instance, deltaTime, entity, targets, worldPosition!) != true) 
+        { 
+            return true; 
+        }
+
+        if (__instance.lifeTime > 0) 
+        { 
+            __instance.lifeTimer -= deltaTime; 
+        }
+
+        __instance.ShouldWaitForInterval(entity, deltaTime);
+
+        return false;
+    }
+
     public void Dispose()
     {
         IsDisposed = true;
