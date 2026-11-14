@@ -419,6 +419,16 @@ internal class HarmonyEventPatchesService : ISystem
             teamSpecificState.CurrentState = RespawnManager.State.Waiting;
         }
     }
+
+    [HarmonyPatch(typeof(Character), nameof(Character.SetStun)), HarmonyPrefix]
+    public static bool Character_SetStun_Pre(Character __instance, float newStun, bool allowStunDecrease, bool isNetworkMessage)
+    {
+        if (!LuaCsSetup.Instance.Game.disableDisconnectCharacter || !__instance.ClientDisconnected) { return true; }
+        if (newStun != 1.0f || allowStunDecrease || isNetworkMessage) { return true; }
+
+        __instance.KillDisconnectedTimer -= (float)Timing.Step;
+        return false;
+    }
 #endif
 
     [HarmonyPatch(typeof(Character), nameof(Character.Create), new[] { 
