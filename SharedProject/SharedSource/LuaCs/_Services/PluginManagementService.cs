@@ -239,6 +239,7 @@ public class PluginManagementService : IAssemblyManagementService
     private readonly ConditionalWeakTable<IAssemblyLoaderService, ContentPackage> _unloadingAssemblyLoaders = new();
     private readonly ConcurrentBag<IntPtr> _loadedNativeLibraries = new();
     private readonly AsyncReaderWriterLock _operationsLock = new();
+    private ImmutableArray<Assembly> _vanillaPluginAssemblies = ImmutableArray<Assembly>.Empty;
     private ServiceContainer _pluginInjectorContainer;
     
     public PluginManagementService(
@@ -262,7 +263,7 @@ public class PluginManagementService : IAssemblyManagementService
         _consoleCommandServiceFactory = consoleCommandServiceFactory;
         _luaCsInfoProvider = luaCsInfoProvider;
         _internalConsoleCommandsService = consoleCommandServiceFactory.Invoke();
-        
+
         RegisterCommands(_internalConsoleCommandsService);
     }
 
@@ -571,7 +572,10 @@ public class PluginManagementService : IAssemblyManagementService
             .ToImmutableArray();
 
         var result = new FluentResults.Result();
-        
+
+        _vanillaPluginAssemblies = GetVanillaPluginAssemblies();
+        var vanillaPluginReferences = CreateVanillaPluginMetadataReferences(_vanillaPluginAssemblies);
+
         foreach (var contentPack in orderedContentPacks)
         {
             LoadBinaries(contentPack);
@@ -768,6 +772,15 @@ public class PluginManagementService : IAssemblyManagementService
                 }
             }
 
+            var knownNames = builder.Select(GetMetadataReferenceName)
+                .Concat(_assemblyLoaders.Values.SelectMany(al => al.Assemblies).Select(a => a.GetName().Name))
+                .Where(n => n is not null)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            builder.AddRange(vanillaPluginReferences
+                .Where(v => !knownNames.Contains(v.Name))
+                .Select(v => v.Reference));
+
             return builder.ToImmutable();
         }
     }
@@ -816,7 +829,7 @@ public class PluginManagementService : IAssemblyManagementService
         return IntPtr.Zero;
     }
 
-    private Assembly OnAssemblyLoaderResolvingManaged(IAssemblyLoaderService requestingLoader, AssemblyName searchName)
+    private Assembly? OnAssemblyLoaderResolvingManaged(IAssemblyLoaderService requestingLoader, AssemblyName searchName)
     {
         // This method is used during assembly instantiation, we cannot put a lock here.
         //using var lck = _operationsLock.AcquireReaderLock().ConfigureAwait(false).GetAwaiter().GetResult();
@@ -847,8 +860,43 @@ public class PluginManagementService : IAssemblyManagementService
             }
         }
 
-        return null;
+        return FindVanillaPluginAssembly(_vanillaPluginAssemblies, searchName);
     }
+
+    #region VanillaPluginInterop
+
+    private static ImmutableArray<Assembly> GetVanillaPluginAssemblies()
+    {
+        var luaCsContext = AssemblyLoadContext.GetLoadContext(typeof(LuaCsSetup).Assembly);
+        return Barotrauma.Plugins.PluginLoader.LoadedPlugins
+            .Where(lp => lp.PluginLoadContext != luaCsContext)
+            .SelectMany(lp => lp.PluginLoadContext.Assemblies)
+            .ToImmutableArray();
+    }
+
+    private static Assembly? FindVanillaPluginAssembly(ImmutableArray<Assembly> assemblies, AssemblyName searchName)
+    {
+        return assemblies
+            .Where(a => AssemblyName.ReferenceMatchesDefinition(searchName, a.GetName()) && a.GetName().Version >= searchName.Version)
+            .MaxBy(a => a.GetName().Version);
+    }
+
+    private static ImmutableArray<(string? Name, MetadataReference Reference)> CreateVanillaPluginMetadataReferences(
+        ImmutableArray<Assembly> assemblies)
+    {
+        return assemblies
+            .Where(a => !a.IsDynamic && !a.Location.IsNullOrWhiteSpace())
+            .DistinctBy(a => a.GetName().Name, StringComparer.OrdinalIgnoreCase)
+            .Select(a => (a.GetName().Name, (MetadataReference)MetadataReference.CreateFromFile(a.Location)))
+            .ToImmutableArray();
+    }
+
+    private static string? GetMetadataReferenceName(MetadataReference reference)
+    {
+        return reference is PortableExecutableReference { FilePath: { } path } ? System.IO.Path.GetFileNameWithoutExtension(path) : null;
+    }
+
+    #endregion
 
     private void OnAssemblyLoaderUnloading(IAssemblyLoaderService loader)
     {
@@ -928,6 +976,7 @@ public class PluginManagementService : IAssemblyManagementService
         }
 
         _assemblyLoaders.Clear();
+        _vanillaPluginAssemblies = ImmutableArray<Assembly>.Empty;
         _storageService.PurgeCache();
         _pluginPackageLookup.Clear();
         
