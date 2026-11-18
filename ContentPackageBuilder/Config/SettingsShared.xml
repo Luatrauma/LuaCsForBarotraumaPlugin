@@ -10,6 +10,7 @@
       </Values>
     </Setting>
     <Setting Name="UseCaching" Type="bool" Value="true" AllowChangesWhileExecuting="false"/>
+    <Setting Name="HideLuaCsFromServerList" Type="bool" Value="false"/>
     <Setting Name="IsCsEnabledForSession" Type="bool" AllowChangesWhileExecuting="false" ShowInMenus="false" Value="false"/>
   </Settings>
 </Configuration>

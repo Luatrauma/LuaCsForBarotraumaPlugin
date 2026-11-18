@@ -146,6 +146,26 @@ namespace Barotrauma
         }
         private ISettingBase<bool> _useCaching;
 
+
+        // hack for reading the setting directly, since we are required to have the setting value before the setting service actually loads
+        internal bool ReadHideFromServerListSetting(ContentPackage luaCsPackage)
+        {
+            const bool defaultValue = false;
+            var storageService = _servicesProvider.GetService<IStorageService>();
+            if (storageService?.LoadLocalXml(luaCsPackage, LuaCs.ConfigService.SaveDataFileName) is not { IsSuccess: true } saveFile
+                || saveFile.Value.Root is not { } root)
+            {
+                return defaultValue;
+            }
+
+            var valueAttr = root
+                .GetChildElement(System.Xml.XmlConvert.EncodeLocalName(luaCsPackage.Name.Trim()), StringComparison.InvariantCultureIgnoreCase)
+                ?.GetChildElement("HideLuaCsFromServerList", StringComparison.InvariantCultureIgnoreCase)
+                ?.GetAttributeString("Value", null);
+
+            return bool.TryParse(valueAttr, out bool value) ? value : defaultValue;
+        }
+
         public static ContentPackage GetLuaCsPackage()
         {
             return ContentPackageManager.EnabledPackages.Regular.FirstOrDefault(cp => cp.NameMatches(PackageName), null)

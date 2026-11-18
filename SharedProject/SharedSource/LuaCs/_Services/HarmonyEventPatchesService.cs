@@ -69,6 +69,19 @@ internal class HarmonyEventPatchesService : ISystem
     {
         _eventService.PublishEvent<IEventRoundStarted>(x => x.OnRoundStart());
     }
+
+    [HarmonyPatch(typeof(SteamManager), nameof(SteamManager.SetServerListInfo)), HarmonyPrefix]
+    public static void SteamManager_SetServerListInfo_Pre(ref object value)
+    {
+        if (value is not IEnumerable<ContentPackage>
+            || EnabledPackages.All.FirstOrDefault(p => p.NameMatches(LuaCsSetup.PackageName)) is not { } luaCs
+            || LuaCsSetup.Instance.ReadHideFromServerListSetting(luaCs))
+        {
+            return;
+        }
+
+        value = EnabledPackages.All.Where(p => p.HasMultiplayerSyncedContent || p == luaCs).ToList();
+    }
 #endif
 
     [HarmonyPatch(typeof(GameSession), nameof(GameSession.EndRound)), HarmonyPrefix]

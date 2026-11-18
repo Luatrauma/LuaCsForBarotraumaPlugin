@@ -20,4 +20,8 @@
   <LuaCsForBarotrauma.HideUserNamesInLogs.DisplayName>Hide Local OS Account Name In Logs</LuaCsForBarotrauma.HideUserNamesInLogs.DisplayName>
   <LuaCsForBarotrauma.HideUserNamesInLogs.Tooltip>If true, will replace your OS account name with 'USERNAME' in log files' paths.</LuaCsForBarotrauma.HideUserNamesInLogs.Tooltip>
   <LuaCsForBarotrauma.HideUserNamesInLogs.DisplayCategory>General</LuaCsForBarotrauma.HideUserNamesInLogs.DisplayCategory>
+  <!-- Hide LuaCs From Server List -->
+  <LuaCsForBarotrauma.HideLuaCsFromServerList.DisplayName>Hide LuaCs From Server List</LuaCsForBarotrauma.HideLuaCsFromServerList.DisplayName>
+  <LuaCsForBarotrauma.HideLuaCsFromServerList.Tooltip>By default, servers you host list LuaCs as a required mod, so players joining must have it enabled. If true, LuaCs is hidden from the server's mod list and players can join without it.</LuaCsForBarotrauma.HideLuaCsFromServerList.Tooltip>
+  <LuaCsForBarotrauma.HideLuaCsFromServerList.DisplayCategory>General</LuaCsForBarotrauma.HideLuaCsFromServerList.DisplayCategory>
 </infotexts>

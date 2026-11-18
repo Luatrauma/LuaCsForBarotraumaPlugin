@@ -7,6 +7,6 @@ public partial class Plugin
 {
     public partial void InitProjectSpecific()
     {
-        
+        LuaCsSetup.Instance.ApplyServerListVisibility();
     }
 }

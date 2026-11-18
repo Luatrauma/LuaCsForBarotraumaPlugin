@@ -124,7 +124,7 @@ public sealed partial class ConfigService : IConfigService
 
     #endregion
 
-    private const string SaveDataFileName = "SettingsData.xml"; 
+    internal const string SaveDataFileName = "SettingsData.xml";
     
     // --- Settings
     private readonly ConcurrentDictionary<(ContentPackage OwnerPackage, string InternalName), ISettingBase> 

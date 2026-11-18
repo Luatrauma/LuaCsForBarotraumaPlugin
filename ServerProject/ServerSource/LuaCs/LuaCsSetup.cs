@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Barotrauma.Networking;
+using HarmonyLib;
 
 namespace Barotrauma;
 
@@ -9,6 +10,17 @@ partial class LuaCsSetup
     partial void CheckReadyToRun(Action onReadyToRun)
     {
         onReadyToRun?.Invoke();
+    }
+
+    internal void ApplyServerListVisibility()
+    {
+        if (GetLuaCsPackage() is not { } luaCs || ReadHideFromServerListSetting(luaCs))
+        {
+            return;
+        }
+
+        // hack
+        AccessTools.Field(typeof(ContentPackage), $"<{nameof(ContentPackage.HasMultiplayerSyncedContent)}>k__BackingField").SetValue(luaCs, true);
     }
     
     /// <summary>
