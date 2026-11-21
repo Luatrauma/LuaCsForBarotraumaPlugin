@@ -59,6 +59,7 @@ internal class UpdatePriorityService : ISystem
     private static bool MapEntity_UpdateAll_Pre(float deltaTime, Camera cam)
     {
         _mapEntityUpdateTick++;
+        _game.ApplyPendingPriorityChanges();
 
         if (_mapEntityUpdateInterval == 1 && _poweredUpdateInterval == 1 && _game.UpdatePriorityItems.Count == 0)
         {
@@ -175,6 +176,7 @@ internal class UpdatePriorityService : ISystem
     private static bool Character_UpdateAll_Pre(float deltaTime, Camera cam)
     {
         _characterUpdateTick++;
+        _game.ApplyPendingPriorityChanges();
 
         if (_characterUpdateInterval == 1 && _game.UpdatePriorityCharacters.Count == 0)
         {

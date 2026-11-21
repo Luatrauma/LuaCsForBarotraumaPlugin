@@ -178,34 +178,65 @@ namespace Barotrauma.LuaCs
         public HashSet<Item> UpdatePriorityItems = new HashSet<Item>();
         public HashSet<Character> UpdatePriorityCharacters = new HashSet<Character>();
 
+        private enum PriorityOp { Add, Remove, ClearItems, ClearCharacters }
+
+        private readonly List<(PriorityOp Op, Entity? Entity)> pendingPriorityChanges = new List<(PriorityOp, Entity?)>();
+
         public void AddPriorityItem(Item item)
         {
-            UpdatePriorityItems.Add(item);
+            pendingPriorityChanges.Add((PriorityOp.Add, item));
         }
 
         public void RemovePriorityItem(Item item)
         {
-            UpdatePriorityItems.Remove(item);
+            pendingPriorityChanges.Add((PriorityOp.Remove, item));
         }
 
         public void ClearPriorityItem()
         {
-            UpdatePriorityItems.Clear();
+            pendingPriorityChanges.Add((PriorityOp.ClearItems, null));
         }
 
         public void AddPriorityCharacter(Character character)
         {
-            UpdatePriorityCharacters.Add(character);
+            pendingPriorityChanges.Add((PriorityOp.Add, character));
         }
 
         public void RemovePriorityCharacter(Character character)
         {
-            UpdatePriorityCharacters.Remove(character);
+            pendingPriorityChanges.Add((PriorityOp.Remove, character));
         }
 
         public void ClearPriorityCharacter()
         {
-            UpdatePriorityCharacters.Clear();
+            pendingPriorityChanges.Add((PriorityOp.ClearCharacters, null));
+        }
+
+        internal void ApplyPendingPriorityChanges()
+        {
+            foreach (var (op, entity) in pendingPriorityChanges)
+            {
+                switch (op)
+                {
+                    case PriorityOp.Add:
+                        if (entity is Item addItem) { UpdatePriorityItems.Add(addItem); }
+                        else if (entity is Character addCharacter) { UpdatePriorityCharacters.Add(addCharacter); }
+                        break;
+                    case PriorityOp.Remove:
+                        if (entity is Item removeItem) { UpdatePriorityItems.Remove(removeItem); }
+                        else if (entity is Character removeCharacter) { UpdatePriorityCharacters.Remove(removeCharacter); }
+                        break;
+                    case PriorityOp.ClearItems:
+                        UpdatePriorityItems.Clear();
+                        break;
+                    case PriorityOp.ClearCharacters:
+                        UpdatePriorityCharacters.Clear();
+                        break;
+                }
+            }
+            pendingPriorityChanges.Clear();
+            UpdatePriorityItems.RemoveWhere(i => i.Removed);
+            UpdatePriorityCharacters.RemoveWhere(c => c.Removed);
         }
 
         public bool RoundStarted
