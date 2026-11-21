@@ -291,7 +291,7 @@ public sealed class PackageManagementService : IPackageManagementService
         }
     }
 
-    public FluentResults.Result ExecuteLoadedPackages(ImmutableArray<ContentPackage> executionOrder, bool executeCsAssemblies)
+    public FluentResults.Result ExecuteLoadedPackages(ImmutableArray<ContentPackage> executionOrder, bool executeCsAssemblies, bool enableLuaSandbox)
     {
         using var lck = _operationsLock.AcquireReaderLock().ConfigureAwait(false).GetAwaiter().GetResult();
         using var executeLock = _executionLock.AcquireWriterLock().ConfigureAwait(false).GetAwaiter().GetResult();
@@ -345,14 +345,12 @@ public sealed class PackageManagementService : IPackageManagementService
 
         //lua scripts
         var luaScripts = SelectCompatible(loadingOrderedPackages
-            .Where(pkg => executeCsAssemblies 
-                          || !pkg.Value.LuaScripts.Any(scr => scr.RunUnrestricted))
             .SelectMany(pkg => pkg.Value.LuaScripts)
             .ToImmutableArray(), toLoadPackagesIndents, loadOrderByPackage);
-            
+
         if (!luaScripts.IsDefaultOrEmpty)
         {
-            result.WithReasons(_luaScriptManagementService.ExecuteLoadedScripts(luaScripts, enableSandbox: !executeCsAssemblies).Reasons);
+            result.WithReasons(_luaScriptManagementService.ExecuteLoadedScripts(luaScripts, enableLuaSandbox).Reasons);
         }
 
         foreach (var package in loadingOrderedPackages)
@@ -524,7 +522,7 @@ public sealed class PackageManagementService : IPackageManagementService
         if (_loadedPackages.IsEmpty)
             return ImmutableArray<ContentPackage>.Empty;
         return [.._loadedPackages.Values
-                .Where(cfg => !cfg.Assemblies.IsDefaultOrEmpty || cfg.LuaScripts.Any(scr => scr.RunUnrestricted))
+                .Where(cfg => !cfg.Assemblies.IsDefaultOrEmpty)
                 .Select(cfg => cfg.Package)];
     }
 

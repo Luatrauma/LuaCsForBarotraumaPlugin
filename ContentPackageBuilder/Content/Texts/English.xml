@@ -10,7 +10,7 @@
   <!-- Settings -->
   <!-- Is Cs Enabled-->
   <LuaCsForBarotrauma.CsRunPolicy.DisplayName>Are C# Mods Allowed</LuaCsForBarotrauma.CsRunPolicy.DisplayName>
-  <LuaCsForBarotrauma.CsRunPolicy.Tooltip>Should unsandboxed scripts and dlls be allowed to run.</LuaCsForBarotrauma.CsRunPolicy.Tooltip>
+  <LuaCsForBarotrauma.CsRunPolicy.Tooltip>Should C# mods (dlls and C# scripts) be allowed to run.</LuaCsForBarotrauma.CsRunPolicy.Tooltip>
   <LuaCsForBarotrauma.CsRunPolicy.DisplayCategory>General</LuaCsForBarotrauma.CsRunPolicy.DisplayCategory>
   <!-- Use Caching -->
   <LuaCsForBarotrauma.UseCaching.DisplayName>Use Pre-Caching</LuaCsForBarotrauma.UseCaching.DisplayName>
@@ -24,4 +24,8 @@
   <LuaCsForBarotrauma.HideLuaCsFromServerList.DisplayName>Hide LuaCs From Server List</LuaCsForBarotrauma.HideLuaCsFromServerList.DisplayName>
   <LuaCsForBarotrauma.HideLuaCsFromServerList.Tooltip>By default, servers you host list LuaCs as a required mod, so players joining must have it enabled. If true, LuaCs is hidden from the server's mod list and players can join without it.</LuaCsForBarotrauma.HideLuaCsFromServerList.Tooltip>
   <LuaCsForBarotrauma.HideLuaCsFromServerList.DisplayCategory>General</LuaCsForBarotrauma.HideLuaCsFromServerList.DisplayCategory>
+  <!-- Disable Lua Sandbox -->
+  <LuaCsForBarotrauma.DisableLuaSandbox.DisplayName>Disable Lua Sandbox (Dangerous)</LuaCsForBarotrauma.DisableLuaSandbox.DisplayName>
+  <LuaCsForBarotrauma.DisableLuaSandbox.Tooltip>DANGEROUS: Lets all Lua mods access any game or .NET type, including the file system and network, without restrictions. Only enable this if you fully trust every Lua mod you run, including mods from servers you join.</LuaCsForBarotrauma.DisableLuaSandbox.Tooltip>
+  <LuaCsForBarotrauma.DisableLuaSandbox.DisplayCategory>Dangerous</LuaCsForBarotrauma.DisableLuaSandbox.DisplayCategory>
 </infotexts>

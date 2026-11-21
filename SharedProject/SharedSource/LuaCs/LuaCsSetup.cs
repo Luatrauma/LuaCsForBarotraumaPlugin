@@ -146,6 +146,12 @@ namespace Barotrauma
         }
         private ISettingBase<bool> _useCaching;
 
+        public bool IsLuaSandboxDisabled
+        {
+            get => _disableLuaSandbox?.Value ?? false;
+        }
+        private ISettingBase<bool> _disableLuaSandbox;
+
 
         // hack for reading the setting directly, since we are required to have the setting value before the setting service actually loads
         internal bool ReadHideFromServerListSetting(ContentPackage luaCsPackage)
@@ -188,6 +194,10 @@ namespace Barotrauma
             _useCaching =
                 ConfigService.TryGetConfig<ISettingBase<bool>>(luaCsPackage, "UseCaching", out var val5)
                     ? val5
+                    : null;
+            _disableLuaSandbox =
+                ConfigService.TryGetConfig<ISettingBase<bool>>(luaCsPackage, "DisableLuaSandbox", out var val7)
+                    ? val7
                     : null;
             _isCsEnabledForSession =
                 ConfigService.TryGetConfig<ISettingBase<bool>>(luaCsPackage, "IsCsEnabledForSession", out var val6)
@@ -411,11 +421,12 @@ namespace Barotrauma
                 }
 
                 string csEnabled = IsCsEnabled ? "enabled" : "disabled";
-                Logger.LogMessage($"LuaCs running state entered. Running under commit {AssemblyInfo.GitRevision}, CSharp is {csEnabled}");
+                string luaSandbox = IsLuaSandboxDisabled ? "disabled" : "enabled";
+                Logger.LogMessage($"LuaCs running state entered. Running under commit {AssemblyInfo.GitRevision}, CSharp is {csEnabled}, Lua sandbox is {luaSandbox}");
 
                 if (!PackageManagementService.IsAnyPackageRunning())
                 {
-                    Logger.LogResults(PackageManagementService.ExecuteLoadedPackages(GetEnabledPackagesList(), IsCsEnabled));
+                    Logger.LogResults(PackageManagementService.ExecuteLoadedPackages(GetEnabledPackagesList(), IsCsEnabled, enableLuaSandbox: !IsLuaSandboxDisabled));
                 }
 
 #if CLIENT
@@ -524,6 +535,7 @@ namespace Barotrauma
         {
             _csRunPolicy = null;
             _hideUserNamesInLogs = null;
+            _disableLuaSandbox = null;
         }
     }
 
