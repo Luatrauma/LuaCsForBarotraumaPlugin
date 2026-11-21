@@ -312,6 +312,8 @@ namespace Barotrauma
             ConfigService.LoadSavedConfigsValues();
             SetRunState(state); // restore
         }
+
+        partial void OnConfigsLoaded();
         
         public void SetRunState(RunState targetRunState)
         {
@@ -388,6 +390,7 @@ namespace Barotrauma
                     Logger.LogResults(PackageManagementService.LoadPackagesInfo(GetEnabledPackagesList()));
                     Logger.LogResults(ConfigService.LoadSavedConfigsValues());
                     LoadLuaCsConfig();
+                    OnConfigsLoaded();
                 }
 
                 CurrentRunState = RunState.LoadedNoExec;

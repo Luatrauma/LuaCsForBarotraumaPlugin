@@ -128,6 +128,11 @@ namespace Barotrauma
             serviceProvider.RegisterServiceType<ISettingsMenuSystem, SettingsMenuSystem>(ServiceLifetime.Singleton);
         }
 
+        partial void OnConfigsLoaded()
+        {
+            _servicesProvider.GetService<ISettingsMenuSystem>()?.RefreshOpenSettingsMenu();
+        }
+
         /// <summary>
         /// Handles changes in game states tracked by screen changes.
         /// </summary>

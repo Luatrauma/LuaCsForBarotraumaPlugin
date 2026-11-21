@@ -2,5 +2,5 @@
 
 public interface ISettingsMenuSystem : ISystem
 {
-    
+    void RefreshOpenSettingsMenu();
 }

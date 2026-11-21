@@ -23,9 +23,27 @@ public class SettingsMenuSystem : ISettingsMenuSystem
     }
 
     [HarmonyPatch(typeof(SettingsMenu), nameof(SettingsMenu.RecreateModSettingsTab)), HarmonyPrefix]
-    private static void SettingsMenu_RecreateModSettingsTab_Pre()
+    private static void SettingsMenu_RecreateModSettingsTab_Pre(bool shouldNotifySettings)
     {
-        SystemInstance?.SyncServices();
+        if (SystemInstance == null)
+        {
+            return;
+        }
+
+        SystemInstance._lastShouldNotifySettings = shouldNotifySettings;
+        SystemInstance.SyncServices();
+    }
+
+    private bool _lastShouldNotifySettings;
+
+    public void RefreshOpenSettingsMenu()
+    {
+        if (SettingsMenu.Instance is not { } menu)
+        {
+            return;
+        }
+
+        menu.RecreateModSettingsTab(shouldNotifySettings: _lastShouldNotifySettings);
     }
 
     [HarmonyPatch(typeof(SettingsService), nameof(SettingsService.Load)), HarmonyPrefix]
