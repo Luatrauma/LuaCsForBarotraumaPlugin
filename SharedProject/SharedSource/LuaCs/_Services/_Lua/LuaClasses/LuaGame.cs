@@ -151,11 +151,10 @@ namespace Barotrauma.LuaCs
         public bool disableDisconnectCharacter = false;
         private bool enableControlHusk = false;
 
-        /*
         public int MapEntityUpdateInterval
         {
-            get { return MapEntity.MapEntityUpdateInterval; }
-            set { MapEntity.MapEntityUpdateInterval = value; }
+            get { return UpdatePriorityService.MapEntityUpdateInterval; }
+            set { UpdatePriorityService.MapEntityUpdateInterval = value; }
         }
 
         public int GapUpdateInterval
@@ -166,16 +165,15 @@ namespace Barotrauma.LuaCs
 
         public int PoweredUpdateInterval
         {
-            get { return MapEntity.PoweredUpdateInterval; }
-            set { MapEntity.PoweredUpdateInterval = value; }
+            get { return UpdatePriorityService.PoweredUpdateInterval; }
+            set { UpdatePriorityService.PoweredUpdateInterval = value; }
         }
 
         public int CharacterUpdateInterval
         {
-            get { return Character.CharacterUpdateInterval; }
-            set { Character.CharacterUpdateInterval = value; }
+            get { return UpdatePriorityService.CharacterUpdateInterval; }
+            set { UpdatePriorityService.CharacterUpdateInterval = value; }
         }
-        */
 
         public HashSet<Item> UpdatePriorityItems = new HashSet<Item>();
         public HashSet<Character> UpdatePriorityCharacters = new HashSet<Character>();
@@ -549,8 +547,8 @@ namespace Barotrauma.LuaCs
 
         public void Stop()
         {
-            //MapEntityUpdateInterval = 1;
-            //CharacterUpdateInterval = 1;
+            MapEntityUpdateInterval = 1;
+            CharacterUpdateInterval = 1;
 
             _consoleCommands.RemoveRegisteredCommands();
 

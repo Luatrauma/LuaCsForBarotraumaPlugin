@@ -225,6 +225,7 @@ namespace Barotrauma
             servicesProvider.RegisterServiceType<MainMenuPatch, MainMenuPatch>(ServiceLifetime.Singleton);
             servicesProvider.RegisterServiceResolver<ILuaConfigService>(factory => factory.GetInstance<IConfigService>() as ILuaConfigService);
             servicesProvider.RegisterServiceType<StatusEffectService, StatusEffectService>(ServiceLifetime.Singleton);
+            servicesProvider.RegisterServiceType<UpdatePriorityService, UpdatePriorityService>(ServiceLifetime.Singleton);
 
             // Extension/Sub Services
             servicesProvider.RegisterServiceType<IAssemblyLoaderService.IFactory, AssemblyLoader.Factory>(ServiceLifetime.Transient);
