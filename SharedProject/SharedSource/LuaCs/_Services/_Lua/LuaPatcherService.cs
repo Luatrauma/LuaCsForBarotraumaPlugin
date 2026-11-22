@@ -165,6 +165,7 @@ namespace Barotrauma.LuaCs
             "Barotrauma.Lua",
             "Barotrauma.Cs",
             "Barotrauma.ContentPackageManager",
+            "Barotrauma.IO",
         };
 
 
@@ -199,11 +200,37 @@ namespace Barotrauma.LuaCs
             */
         }
 
+        private static readonly Assembly[] sandboxAllowedPatchAssemblies =
+        {
+            typeof(Item).Assembly, // Barotrauma, DedicatedServer
+            typeof(Identifier).Assembly, // BarotraumaCore
+            typeof(Vector2).Assembly, // XNA
+            typeof(FarseerPhysics.Dynamics.World).Assembly, // Farseer
+        };
+
         private static void ValidatePatchTarget(MethodBase method)
         {
-            if (prohibitedHooks.Any(h => method.DeclaringType.FullName.StartsWith(h)))
+            Type declaringType = method.DeclaringType;
+            if (declaringType == null)
+            {
+                throw new ArgumentException("Hooks into methods without a declaring type are prohibited.");
+            }
+
+            string typeName = declaringType.FullName ?? declaringType.Name;
+
+            if (prohibitedHooks.Any(h => typeName.StartsWith(h, StringComparison.Ordinal)))
             {
                 throw new ArgumentException("Hooks into the modding environment are prohibited.");
+            }
+
+            if (LuaCsSetup.Instance?.IsLuaSandboxDisabled == true)
+            {
+                return;
+            }
+
+            if (!sandboxAllowedPatchAssemblies.Contains(declaringType.Assembly))
+            {
+                throw new ArgumentException($"Hooks into {typeName} ({declaringType.Assembly.GetName().Name}) are not allowed while the Lua sandbox is enabled.");
             }
         }
 
