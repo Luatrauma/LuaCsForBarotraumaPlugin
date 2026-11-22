@@ -109,6 +109,16 @@ public class DefaultLuaRegistrar : IDefaultLuaRegistrar
     }
 #endif
 
+    private void RestrictXmlFileAccess()
+    {
+        foreach (string typeName in new[] { "System.Xml.Linq.XDocument", "System.Xml.Linq.XElement" })
+        {
+            var descriptor = _userDataService.RegisterType(typeName);
+            _userDataService.RemoveMember(descriptor, "Load");
+            _userDataService.RemoveMember(descriptor, "Save");
+        }
+    }
+
     public DefaultLuaRegistrar(ILoggerService loggerService, ILuaUserDataService userDataService, ISafeLuaUserDataService safeUserDataService)
     {
         _userDataService = userDataService;
@@ -178,6 +188,7 @@ public class DefaultLuaRegistrar : IDefaultLuaRegistrar
         _userDataService.RegisterType("System.Xml.Linq.XContainer");
         _userDataService.RegisterType("System.Xml.Linq.XDocument");
         _userDataService.RegisterType("System.Xml.Linq.XNode");
+        RestrictXmlFileAccess();
 
 
         _userDataService.RegisterType("Barotrauma.Networking.ServerSettings+SavedClientPermission");
