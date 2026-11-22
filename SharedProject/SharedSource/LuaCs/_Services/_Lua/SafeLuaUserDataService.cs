@@ -90,6 +90,9 @@ public class SafeLuaUserDataService : ISafeLuaUserDataService
         if (typeName.StartsWith("Microsoft.Xna", StringComparison.Ordinal))
             return true;
 
+        if (typeName.StartsWith("FarseerPhysics", StringComparison.Ordinal))
+            return true;
+
         if (typeName.StartsWith("Barotrauma.IO", StringComparison.Ordinal))
             return false;
 
