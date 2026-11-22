@@ -125,7 +125,17 @@ public sealed partial class ConfigService : IConfigService
     #endregion
 
     internal const string SaveDataFileName = "SettingsData.xml";
-    
+
+    private static readonly HashSet<string> ConsoleProtectedSettings = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "DisableLuaSandbox",
+        "CsRunPolicy",
+        "IsCsEnabledForSession",
+    };
+
+    private static bool IsConsoleProtected(ContentPackage package, string internalName) =>
+        package.NameMatches(LuaCsSetup.PackageName) && ConsoleProtectedSettings.Contains(internalName);
+
     // --- Settings
     private readonly ConcurrentDictionary<(ContentPackage OwnerPackage, string InternalName), ISettingBase> 
         _settingsInstances = new();
@@ -232,6 +242,12 @@ public sealed partial class ConfigService : IConfigService
 
                 string internalName = args[1];
                 string valueString = args[2];
+
+                if (IsConsoleProtected(package, internalName))
+                {
+                    _logger.LogError($"{internalName} can only be changed from the settings menu.");
+                    return;
+                }
 
                 if (!TryGetConfig(package, internalName, out ISettingBase setting))
                 {
@@ -538,6 +554,12 @@ public sealed partial class ConfigService : IConfigService
         
         foreach (var profileValue in setting.ProfileValues)
         {
+            if (IsConsoleProtected(package, profileValue.SettingName))
+            {
+                result.WithError(new Error($"{nameof(ApplyConfigProfile)}: [{profileValue.SettingName}] can only be changed from the settings menu."));
+                continue;
+            }
+
             if (!_settingsInstances.TryGetValue((package, profileValue.SettingName), out var instance))
             {
                 result.WithError(new Error($"{nameof(ApplyConfigProfile)}: Could not find setting [{profileValue.SettingName}]."));

@@ -93,15 +93,9 @@ public class SettingsEntryRegistrar : ISettingsRegistrationProvider
     private bool IsValueChangeAllowed(IConfigInfo info, OneOf<string, XElement, object> newValue,
         Func<OneOf<string, XElement, object>, bool> valueChangePredicate)
     {
-#if CLIENT
         return !info.Element.GetAttributeBool("ReadOnly", false)
-               || info.EditableStates < _infoProvider.CurrentRunState 
-               || valueChangePredicate is null 
-               || valueChangePredicate.Invoke(newValue);
-#else
-        // Server has absolute authority.
-        return !info.Element.GetAttributeBool("ReadOnly", false);
-#endif
+               && _infoProvider.CurrentRunState <= info.EditableStates
+               && (valueChangePredicate is null || valueChangePredicate.Invoke(newValue));
     }
 
     public void Dispose()

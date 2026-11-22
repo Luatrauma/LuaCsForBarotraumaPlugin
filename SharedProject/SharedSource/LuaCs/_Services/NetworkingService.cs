@@ -306,6 +306,19 @@ internal partial class NetworkingService : INetworkingService, IEventSettingInst
 
     public async void HttpRequest(string url, LuaCsAction callback, string data = null, string method = "POST", string contentType = "application/json", Dictionary<string, string> headers = null, string savePath = null)
     {
+        var requestScript = LuaCsSetup.Instance?.LuaScriptManagementService.InternalScript;
+        void InvokeCallback(params object[] args)
+        {
+            CrossThread.RequestExecutionOnMainThread(() =>
+            {
+                if (LuaCsSetup.Instance?.LuaScriptManagementService.InternalScript != requestScript)
+                {
+                    return;
+                }
+                callback(args);
+            });
+        }
+
         try
         {
             HttpRequestMessage request = new HttpRequestMessage(new HttpMethod(method), url);
@@ -340,18 +353,15 @@ internal partial class NetworkingService : INetworkingService, IEventSettingInst
 
             string responseBody = await response.Content.ReadAsStringAsync();
 
-            CrossThread.RequestExecutionOnMainThread(() =>
-            {
-                callback(responseBody, (int)response.StatusCode, response.Headers);
-            });
+            InvokeCallback(responseBody, (int)response.StatusCode, response.Headers);
         }
         catch (HttpRequestException e)
         {
-            CrossThread.RequestExecutionOnMainThread(() => { callback(e.Message, e.StatusCode, null); });
+            InvokeCallback(e.Message, e.StatusCode, null);
         }
         catch (Exception e)
         {
-            CrossThread.RequestExecutionOnMainThread(() => { callback(e.Message, null, null); });
+            InvokeCallback(e.Message, null, null);
         }
     }
 

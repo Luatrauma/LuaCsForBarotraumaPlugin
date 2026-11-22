@@ -420,6 +420,8 @@ namespace Barotrauma
                     LoadLuaCsConfig();
                 }
 
+                CurrentRunState = RunState.Running;
+
                 string csEnabled = IsCsEnabled ? "enabled" : "disabled";
                 string luaSandbox = IsLuaSandboxDisabled ? "disabled" : "enabled";
                 Logger.LogMessage($"LuaCs running state entered. Running under commit {AssemblyInfo.GitRevision}, CSharp is {csEnabled}, Lua sandbox is {luaSandbox}");
@@ -440,8 +442,6 @@ namespace Barotrauma
 #if SERVER
                 GameMain.Server.ServerSettings.LoadClientPermissions();
 #endif
-
-                CurrentRunState = RunState.Running;
             }
 
 
