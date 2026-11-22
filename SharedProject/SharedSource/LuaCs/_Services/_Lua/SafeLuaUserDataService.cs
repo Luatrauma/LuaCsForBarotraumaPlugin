@@ -71,6 +71,24 @@ public class SafeLuaUserDataService : ISafeLuaUserDataService
         }
     }
 
+    private static readonly string[] LockedTypePrefixes =
+    {
+        "Barotrauma.ContentPackage",
+        "Barotrauma.CorePackage",
+        "Barotrauma.RegularPackage",
+    };
+
+    private static bool IsLocked(string typeName) => LockedTypePrefixes.Any(p => typeName.StartsWith(p, StringComparison.Ordinal));
+
+    private void CheckCanEditMembers(IUserDataDescriptor descriptor)
+    {
+        string? typeName = descriptor?.Type?.FullName;
+        if (typeName == null || !CanBeRegistered(typeName) || IsLocked(typeName))
+        {
+            throw new ScriptRuntimeException($"Members of type {typeName ?? "<unknown>"} can't be changed");
+        }
+    }
+
     private bool CanBeRegistered(string typeName)
     {
         if (typeName.StartsWith("Barotrauma.Lua", StringComparison.Ordinal) ||
@@ -165,7 +183,10 @@ public class SafeLuaUserDataService : ISafeLuaUserDataService
 
     public void UnregisterType(string typeName, bool deleteHistory = false)
     {
-        IsAllowed(typeName);
+        if (!CanBeRegistered(typeName) || IsLocked(typeName))
+        {
+            throw new ScriptRuntimeException($"Type {typeName} can't be unregistered");
+        }
         _userDataService.UnregisterType(typeName, deleteHistory);
     }
     public object CreateStatic(string typeName)
@@ -190,31 +211,37 @@ public class SafeLuaUserDataService : ISafeLuaUserDataService
 
     public void MakeFieldAccessible(IUserDataDescriptor IUUD, string fieldName)
     {
+        CheckCanEditMembers(IUUD);
         _userDataService.MakeFieldAccessible(IUUD, fieldName);
     }
 
     public void MakeMethodAccessible(IUserDataDescriptor IUUD, string methodName, string[] parameters = null)
     {
+        CheckCanEditMembers(IUUD);
         _userDataService.MakeMethodAccessible(IUUD, methodName, parameters);
     }
 
     public void MakePropertyAccessible(IUserDataDescriptor IUUD, string propertyName)
     {
+        CheckCanEditMembers(IUUD);
         _userDataService.MakePropertyAccessible(IUUD, propertyName);
     }
 
     public void AddMethod(IUserDataDescriptor IUUD, string methodName, object function)
     {
+        CheckCanEditMembers(IUUD);
         _userDataService.AddMethod(IUUD, methodName, function);
     }
 
     public void AddField(IUserDataDescriptor IUUD, string fieldName, DynValue value)
     {
+        CheckCanEditMembers(IUUD);
         _userDataService.AddField(IUUD, fieldName, value);
     }
 
     public void RemoveMember(IUserDataDescriptor IUUD, string memberName)
     {
+        CheckCanEditMembers(IUUD);
         _userDataService.RemoveMember(IUUD, memberName);
     }
 

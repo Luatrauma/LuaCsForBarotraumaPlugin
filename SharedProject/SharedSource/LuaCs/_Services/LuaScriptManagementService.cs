@@ -154,13 +154,6 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
             //GameMain.LuaCs.ToggleDebugger(port);
         });
 #endif
-
-#if SERVER
-        commands.RegisterCommand("install_cl_lua|install_cl|install_cl_cs|install_cl_luacs", "Installs Client-Side LuaCs into your client.", (string[] args) =>
-        {
-            LuaCsInstaller.Install();
-        });
-#endif
     }
 
     public bool IsDisposed { get; private set; }
