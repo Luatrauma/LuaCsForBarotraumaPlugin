@@ -168,6 +168,7 @@ namespace Barotrauma.LuaCs
             "Barotrauma.IO",
             "Barotrauma.ToolBox",
             "Barotrauma.SaveUtil",
+            "Barotrauma.Steam.",
         };
 
 

@@ -102,6 +102,9 @@ public class SafeLuaUserDataService : ISafeLuaUserDataService
         if (typeName.StartsWith("Barotrauma.SaveUtil", StringComparison.Ordinal))
             return false;
 
+        if (typeName.StartsWith("Barotrauma.Steam.", StringComparison.Ordinal))
+            return false;
+
         if (typeName.StartsWith("Barotrauma.", StringComparison.Ordinal))
             return true;
 

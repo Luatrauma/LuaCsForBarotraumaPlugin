@@ -109,13 +109,40 @@ public class DefaultLuaRegistrar : IDefaultLuaRegistrar
     }
 #endif
 
-    private void RestrictXmlFileAccess()
+
+    private void ApplyRestrictions()
     {
+        // Xml
         foreach (string typeName in new[] { "System.Xml.Linq.XDocument", "System.Xml.Linq.XElement" })
         {
             var descriptor = _userDataService.RegisterType(typeName);
             _userDataService.RemoveMember(descriptor, "Load");
             _userDataService.RemoveMember(descriptor, "Save");
+        }
+
+
+        var restrictedMembers = new (string TypeName, string[] Members)[]
+        {
+            ("Barotrauma.ContentPackageManager",
+                new[] { "UpdateContentPackageList", "ReloadContentPackage", "LoadVanillaFileList", "Init" }),
+            ("Barotrauma.ContentPackageManager+EnabledPackages",
+                new[] { "SetCore", "SetCoreEnumerable", "ReloadCore", "ReloadPackage", "EnableRegular", "SetRegular",
+                    "SetRegularEnumerable", "DisableMods", "DisableRemovedMods", "RefreshUpdatedMods", "BackUp", "Restore" }),
+            ("Barotrauma.ContentPackageManager+PackageSource",
+                new[] { "SaveRegularMod", "SaveAndEnableRegularMod", "SwapPackage", "Refresh" }),
+        };
+
+        string[] packageMembers = { "TryRenameLocal", "TryDeleteLocal", "TryCreateLocalFromWorkshop" };
+
+        foreach (var (typeName, members) in restrictedMembers
+                     .Concat(new[] { "Barotrauma.ContentPackage", "Barotrauma.CorePackage", "Barotrauma.RegularPackage" }
+                         .Select(t => (t, packageMembers))))
+        {
+            var descriptor = _userDataService.RegisterType(typeName);
+            foreach (string member in members)
+            {
+                _userDataService.RemoveMember(descriptor, member);
+            }
         }
     }
 
@@ -188,8 +215,8 @@ public class DefaultLuaRegistrar : IDefaultLuaRegistrar
         _userDataService.RegisterType("System.Xml.Linq.XContainer");
         _userDataService.RegisterType("System.Xml.Linq.XDocument");
         _userDataService.RegisterType("System.Xml.Linq.XNode");
-        RestrictXmlFileAccess();
 
+        ApplyRestrictions();
 
         _userDataService.RegisterType("Barotrauma.Networking.ServerSettings+SavedClientPermission");
         _userDataService.RegisterType("Barotrauma.Inventory+ItemSlot");
