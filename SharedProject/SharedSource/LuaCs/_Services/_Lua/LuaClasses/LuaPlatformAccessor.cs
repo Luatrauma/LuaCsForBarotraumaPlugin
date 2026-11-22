@@ -52,9 +52,10 @@ namespace Barotrauma
 
         public override Stream IO_OpenFile(Script script, string filename, Encoding encoding, string mode)
         {
-            if (!LuaCsFile.IsPathAllowedLuaException(filename)) { return Stream.Null; }
+            FileAccess access = ParseFileAccess(mode);
+            if (!LuaCsFile.IsPathAllowedLuaException(filename, write: access != FileAccess.Read)) { return Stream.Null; }
 
-            FileStream stream = new FileStream(filename, ParseFileMode(mode), ParseFileAccess(mode), FileShare.ReadWrite | FileShare.Delete);
+            FileStream stream = new FileStream(filename, ParseFileMode(mode), access, FileShare.ReadWrite | FileShare.Delete);
             return stream;
         }
 

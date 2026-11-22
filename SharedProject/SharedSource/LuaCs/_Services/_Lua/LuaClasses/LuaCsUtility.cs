@@ -17,64 +17,79 @@ namespace Barotrauma
 {
     partial class LuaCsFile
     {
+        private static string GetFullPath(string path) => System.IO.Path.GetFullPath(path).CleanUpPath().Replace('\\', '/');
+
+        private static bool IsInDirectory(string fullPath, string directory, bool includeSelf = true)
+        {
+            string dir = GetFullPath(directory).TrimEnd('/');
+            return (includeSelf && fullPath.Equals(dir, StringComparison.OrdinalIgnoreCase))
+                || fullPath.StartsWith(dir + "/", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string SaveFolder => SaveUtil.DefaultSaveFolder;
+
         public static bool CanReadFromPath(string path)
         {
-            string getFullPath(string p) => System.IO.Path.GetFullPath(p).CleanUpPath();
+            path = GetFullPath(path);
 
-            path = getFullPath(path);
-
-            bool pathStartsWith(string prefix) => path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
-
-            string localModsDir = getFullPath(ContentPackage.LocalModsDir);
-            string workshopModsDir = getFullPath(ContentPackage.WorkshopModsDir);
-#if CLIENT
-            string tempDownloadDir = getFullPath(ModReceiver.DownloadFolder);
-#endif
-            if (pathStartsWith(getFullPath(string.IsNullOrEmpty(GameSettings.CurrentConfig.SavePath) ? SaveUtil.DefaultSaveFolder : GameSettings.CurrentConfig.SavePath)))
+            if (IsInDirectory(path, SaveFolder))
                 return true;
 
-            if (pathStartsWith(localModsDir))
+            if (IsInDirectory(path, ContentPackage.LocalModsDir))
                 return true;
 
-            if (pathStartsWith(workshopModsDir))
+            if (IsInDirectory(path, ContentPackage.WorkshopModsDir))
                 return true;
 
 #if CLIENT
-            if (pathStartsWith(tempDownloadDir))
+            if (IsInDirectory(path, ModReceiver.DownloadFolder))
                 return true;
 #endif
 
-            if (pathStartsWith(getFullPath(".")))
+            if (IsInDirectory(path, "."))
                 return true;
 
             return false;
         }
 
+        private static readonly string[] ProhibitedWriteExtensions =
+        {
+            ".dll", ".cs",
+            ".exe", ".com", ".scr", ".msi", ".bat", ".cmd", ".ps1", ".vbs", ".js", ".hta", ".lnk", ".url",
+            ".sh", ".so", ".dylib",
+        };
+
         public static bool CanWriteToPath(string path)
         {
-            const long LuaCsPackageId = 2559634234;
-            
-            string getFullPath(string p) => System.IO.Path.GetFullPath(p).CleanUpPath();
+            path = GetFullPath(path);
 
-            path = getFullPath(path);
-
-            bool pathStartsWith(string prefix) => path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
-
-            if (pathStartsWith(getFullPath(LuaCsSetup.GetLuaCsPackage().Path)))
+            if (path.Length > 2 && path.IndexOf(':', 2) >= 0)
             {
                 return false;
             }
 
-            if (pathStartsWith(getFullPath(string.IsNullOrEmpty(GameSettings.CurrentConfig.SavePath) ? SaveUtil.DefaultSaveFolder : GameSettings.CurrentConfig.SavePath)))
+            string extension = System.IO.Path.GetExtension(path.TrimEnd('.', ' '));
+            if (ProhibitedWriteExtensions.Any(e => extension.Equals(e, StringComparison.OrdinalIgnoreCase)))
+            {
+                return false;
+            }
+
+            if (IsInDirectory(path, LuaCsSetup.GetLuaCsPackage().Dir))
+            {
+                return false;
+            }
+
+            if (IsInDirectory(path, SaveFolder, includeSelf: false))
                 return true;
 
-            if (pathStartsWith(getFullPath(ContentPackage.LocalModsDir)))
+            if (IsInDirectory(path, ContentPackage.LocalModsDir, includeSelf: false))
                 return true;
 
-            if (pathStartsWith(getFullPath(ContentPackage.WorkshopModsDir)))
+            if (IsInDirectory(path, ContentPackage.WorkshopModsDir, includeSelf: false))
                 return true;
+
 #if CLIENT
-            if (pathStartsWith(getFullPath(ModReceiver.DownloadFolder)))
+            if (IsInDirectory(path, ModReceiver.DownloadFolder, includeSelf: false))
                 return true;
 #endif
 
@@ -157,7 +172,7 @@ namespace Barotrauma
 
         public static FileStream OpenRead(string path)
         {
-            if (!IsPathAllowedException(path))
+            if (!IsPathAllowedException(path, false))
                 return null;
 
             return File.Open(path, FileMode.Open, FileAccess.Read);
