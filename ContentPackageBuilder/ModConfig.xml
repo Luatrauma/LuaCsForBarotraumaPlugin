@@ -2,7 +2,16 @@
 <ModConfig>
   <Lua File="%ModDir%/Lua/LuaSetup.lua" IsAutorun="true" />
   <Config File="%ModDir%/Config/SettingsShared.xml"/>
-  <Assembly File="%ModDir%/Content/Publicized/BarotraumaCore.dll" IsReferenceModeOnly="true"/>
-  <Assembly File="%ModDir%/Content/Publicized/Barotrauma.dll" Target="Client" IsReferenceModeOnly="true"/>
-  <Assembly File="%ModDir%/Content/Publicized/DedicatedServer.dll" Target="Server" IsReferenceModeOnly="true"/>
+
+  <Assembly File="%ModDir%/Content/Publicized/Windows/BarotraumaCore.dll" Platform="Windows" IsReferenceModeOnly="true"/>
+  <Assembly File="%ModDir%/Content/Publicized/Windows/Barotrauma.dll" Platform="Windows" Target="Client" IsReferenceModeOnly="true"/>
+  <Assembly File="%ModDir%/Content/Publicized/Windows/DedicatedServer.dll" Platform="Windows" Target="Server" IsReferenceModeOnly="true"/>
+
+  <Assembly File="%ModDir%/Content/Publicized/Linux/BarotraumaCore.dll" Platform="Linux" IsReferenceModeOnly="true"/>
+  <Assembly File="%ModDir%/Content/Publicized/Linux/Barotrauma.dll" Platform="Linux" Target="Client" IsReferenceModeOnly="true"/>
+  <Assembly File="%ModDir%/Content/Publicized/Linux/DedicatedServer.dll" Platform="Linux" Target="Server" IsReferenceModeOnly="true"/>
+
+  <Assembly File="%ModDir%/Content/Publicized/Mac/BarotraumaCore.dll" Platform="OSX" IsReferenceModeOnly="true"/>
+  <Assembly File="%ModDir%/Content/Publicized/Mac/Barotrauma.dll" Platform="OSX" Target="Client" IsReferenceModeOnly="true"/>
+  <Assembly File="%ModDir%/Content/Publicized/Mac/DedicatedServer.dll" Platform="OSX" Target="Server" IsReferenceModeOnly="true"/>
 </ModConfig>

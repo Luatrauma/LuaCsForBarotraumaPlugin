@@ -12,12 +12,12 @@
 
   <Target Name="UpdatePublicizedAssemblies" BeforeTargets="CopyModFiles" Condition="'$(PkgBarotrauma_ReferenceAssemblies_Vanilla_Publicized)' != ''">
     <ItemGroup>
-      <PublicizedAssemblyFiles Include="$(PkgBarotrauma_ReferenceAssemblies_Vanilla_Publicized)\assemblies\Windows\*.dll" />
-      <PublicizedAssemblyFiles Include="$(PkgBarotrauma_ReferenceAssemblies_Vanilla_Publicized)\assemblies\Windows\*.pdb" />
-      <PublicizedAssemblyFiles Include="$(PkgBarotrauma_ReferenceAssemblies_Vanilla_Publicized)\assemblies\Windows\*.xml" />
+      <PublicizedAssemblyFiles Include="$(PkgBarotrauma_ReferenceAssemblies_Vanilla_Publicized)\assemblies\**\*.dll" />
+      <PublicizedAssemblyFiles Include="$(PkgBarotrauma_ReferenceAssemblies_Vanilla_Publicized)\assemblies\**\*.pdb" />
+      <PublicizedAssemblyFiles Include="$(PkgBarotrauma_ReferenceAssemblies_Vanilla_Publicized)\assemblies\**\*.xml" />
     </ItemGroup>
 
-    <Copy SourceFiles="@(PublicizedAssemblyFiles)" DestinationFolder="$(MSBuildThisFileDirectory)Content\Publicized" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(PublicizedAssemblyFiles)" DestinationFiles="@(PublicizedAssemblyFiles->'$(MSBuildThisFileDirectory)Content\Publicized\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>
 
   <UsingTask TaskName="ReplaceTokenInFile" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
