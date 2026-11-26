@@ -25,7 +25,7 @@ namespace Barotrauma
     public partial class LuaCsSetup : IDisposable, IEventScreenSelected, IEventEnabledPackageListChanged, 
         IEventReloadAllPackages
     {
-        public const string PackageName = "LuaCsForBarotraumaPlugin";
+        public const string PackageName = "LuaCsForBarotrauma";
         public const string ClientAssemblyName = "LuaCsForBarotraumaPluginClient";
         public const string ServerAssemblyName = "LuaCsForBarotraumaPluginServer";
 
