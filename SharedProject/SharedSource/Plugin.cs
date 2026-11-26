@@ -75,6 +75,8 @@ public partial class Plugin : IBarotraumaPlugin
 
         _initialized = true;
 
+        Networking.NetConfig.MaxPlayers = 256;
+
         InstallAssemblyBridge(assembly);
 
         // Just so default context knows how to load our dependencies
